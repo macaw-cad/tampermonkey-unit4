@@ -33,6 +33,9 @@ template script from https://github.com/Trim21/webpack-userscript-template
 
 ## create a production build
 
+Make sure you have no uncommitted changed, otherwise the
+build process will stop during version increase.
+
 Start a new build using `npm`:
 
 ```bash
