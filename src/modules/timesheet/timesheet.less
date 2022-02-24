@@ -1,0 +1,233 @@
+// shrink some less important columns
+.timesheetDetails table.Excel {
+    width: 100% !important;
+    position: relative;
+
+    th {
+        position: sticky !important;
+        top: 0;
+        background-color: rgb(245, 246, 246);
+    }
+
+    // hide additional descriptions in list view by default
+    .ListDescription {
+        display: none;
+    }
+
+    // make rows not relevant less visible
+    .LockedRow {
+        opacity: 0.4 !important;
+        pointer-events: none;
+    }
+}
+
+// simple view
+.timesheetDetailsSimple table.Excel {
+    th:nth-of-type(2) {
+        width: 20px !important;
+    }
+
+    th:nth-of-type(3) {
+        width: 30px !important;
+    }
+
+    th:nth-of-type(4) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(4) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    th:nth-of-type(7) {
+        width: 20px !important;
+    }
+
+    th:nth-of-type(9) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(9) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    th:nth-of-type(10) {
+        width: 30px !important;
+    }
+
+    th:nth-of-type(11) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(12) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(13) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(14) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(15) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(16) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(17) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(18) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(19) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(19) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    th:nth-of-type(20) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(20) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    // add for some special columns (easier using CSS)
+    td:nth-of-type(5) .ListDescription {
+        display: block;
+        font-size: 11px;
+        color: #aaa;
+    }
+
+    td:nth-of-type(6) .ListDescription {
+        display: block;
+        font-size: 11px;
+        color: #aaa;
+    }
+}
+
+// advanced view
+.timesheetDetailsAdvanced table.Excel {
+    th:nth-of-type(3) {
+        width: 20px !important;
+    }
+
+    th:nth-of-type(4) {
+        width: 30px !important;
+    }
+
+    th:nth-of-type(5) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(5) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    th:nth-of-type(8) {
+        width: 20px !important;
+    }
+
+    th:nth-of-type(10) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(10) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    th:nth-of-type(11) {
+        width: 30px !important;
+    }
+
+    th:nth-of-type(12) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(13) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(14) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(15) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(16) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(17) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(18) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(19) {
+        width: 25px !important;
+    }
+
+    th:nth-of-type(20) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(20) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    th:nth-of-type(21) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    td:nth-of-type(21) {
+        width: 0 !important;
+        pointer-events: none;
+    }
+
+    // add for some special columns (easier using CSS)
+    td:nth-of-type(5) .ListDescription {
+        display: block;
+        font-size: 11px;
+        color: #aaa;
+    }
+
+    td:nth-of-type(6) .ListDescription {
+        display: block;
+        font-size: 11px;
+        color: #aaa;
+    }
+}
+
+.timesheetDetails.hideLocked table.Excel .LockedRow { display: none;}
+
