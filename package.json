@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "webpack --mode development --config config/webpack.config.dev.cjs",
-    "build": "npm version patch && webpack --mode production --config config/webpack.config.production.cjs",
+    "build": "npm version patch -no-git-tag-version && webpack --mode production --config config/webpack.config.production.cjs",
     "licenses": "npx license-checker --summary > USED_SOFTWARE && npx license-checker >> USED_SOFTWARE"
   },
   "private": true,
