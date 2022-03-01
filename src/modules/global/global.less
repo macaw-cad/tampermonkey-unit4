@@ -1,1 +1,46 @@
 body table.MainTable { width: 100% !important }
+
+// shrink some less important columns
+table.Excel {
+    width: 100% !important;
+    position: relative;
+
+    /*
+    th {
+        position: sticky !important;
+        top: 0;
+        background-color: rgb(245, 246, 246);
+    }
+    */
+
+    // hide additional descriptions in list view by default
+    .ListDescription {
+        display: none;
+    }
+
+    *[data-type="cell-zoom"] { width: 35px !important; }
+    *[data-type="cell-status"] { width: 70px !important; }
+    *[data-type="cell-timecode"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-activity"] { width: 60px !important; }
+    *[data-type="cell-timeunit"] { width: 50px !important; }
+    *[data-type="cell-weekday"] { width: 55px !important; }
+    *[data-type="cell-sum"] { width: 55px !important; }
+    *[data-type="cell-workorder"] { width: 120px !important }
+    *[data-type="cell-description"] { width: auto !important }
+
+    // hide/disable some columns
+    *[data-type="cell-servicelines"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-finprjtype"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-invunit"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-value"] { width: 0 !important; pointer-events: none; }
+
+    // show descriptions all the time
+    *[data-type="cell-workorder"], *[data-type="cell-project"] {
+        width: 250px !important;
+        .ListDescription {
+            display: block;
+            font-size: 11px;
+            color: #aaa;
+        }
+    }
+}

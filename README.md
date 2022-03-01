@@ -13,6 +13,8 @@ userscript for you.
 
 Link: https://github.com/macaw-cad/tampermonkey-unit4/raw/main/dist/index.prod.user.js
 
+Or: https://cdn.jsdelivr.net/gh/macaw-cad/tampermonkey-unit4@main/dist/index.prod.user.js
+
 # Development
 
 The userscript is build using the Webpack + TypeScript
