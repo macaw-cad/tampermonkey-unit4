@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.2
+// @version     0.9.3
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -933,7 +933,7 @@ window.GM_config = new GM_configStruct();
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 120px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-workorder\"],\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] .ListDescription,\ntable.Excel *[data-type=\"cell-project\"] .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -956,7 +956,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% 
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".timeEntry table.Excel {\n  width: 100% !important;\n  position: relative;\n}\n.timeEntry table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timeEntry table.Excel th:nth-of-type(2) {\n  width: 30px !important;\n}\n.timeEntry table.Excel th:nth-of-type(3) {\n  width: 50px !important;\n}\n.timeEntry table.Excel th:nth-of-type(4) {\n  width: 80px !important;\n}\n.timeEntry table.Excel th:nth-of-type(5) {\n  width: 0 !important;\n  border: none;\n  pointer-events: none;\n}\n.timeEntry table.Excel th:nth-of-type(6) {\n  width: 300px !important;\n}\n.timeEntry table.Excel th:nth-of-type(7) {\n  width: 150px !important;\n}\n.timeEntry table.Excel th:nth-of-type(8) {\n  width: 100px !important;\n}\n.timeEntry table.Excel th:nth-of-type(9) {\n  width: auto !important;\n}\n.timeEntry table.Excel td:nth-of-type(9) .Ellipsis {\n  white-space: break-spaces;\n}\n.timeEntry table.Excel th:nth-of-type(10) {\n  width: 60px !important;\n}\n.timeEntry table.Excel th:nth-of-type(11) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(12) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(13) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(14) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(15) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(16) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(17) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(18) {\n  width: 70px !important;\n}\n.timeEntry table.Excel th:nth-of-type(19) {\n  width: 70px !important;\n}\n.timeEntry table.Excel td:nth-of-type(5) button {\n  display: none;\n}\n.timeEntry table.Excel .ListDescription {\n  display: none;\n}\n.timeEntry table.Excel td:nth-of-type(6) .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n.timeEntry table.Excel td:nth-of-type(7) .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -979,7 +979,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, ".timeEntry table.Excel {\n  width: 100
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails table.Excel {\n  width: 100% !important;\n  position: relative;\n}\n.timesheetDetails table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timesheetDetails table.Excel .ListDescription {\n  display: none;\n}\n.timesheetDetails table.Excel .LockedRow {\n  opacity: 0.4 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(2) {\n  width: 20px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(3) {\n  width: 30px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(4) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel td:nth-of-type(4) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(7) {\n  width: 20px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(9) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel td:nth-of-type(9) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(10) {\n  width: 30px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(11) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(12) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(13) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(14) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(15) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(16) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(17) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(18) {\n  width: 25px !important;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(19) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel td:nth-of-type(19) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel th:nth-of-type(20) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel td:nth-of-type(20) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsSimple table.Excel td:nth-of-type(5) .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n.timesheetDetailsSimple table.Excel td:nth-of-type(6) .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(3) {\n  width: 20px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(4) {\n  width: 30px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(5) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel td:nth-of-type(5) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(8) {\n  width: 20px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(10) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel td:nth-of-type(10) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(11) {\n  width: 30px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(12) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(13) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(14) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(15) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(16) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(17) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(18) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(19) {\n  width: 25px !important;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(20) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel td:nth-of-type(20) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel th:nth-of-type(21) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel td:nth-of-type(21) {\n  width: 0 !important;\n  pointer-events: none;\n}\n.timesheetDetailsAdvanced table.Excel td:nth-of-type(5) .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n.timesheetDetailsAdvanced table.Excel td:nth-of-type(6) .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n.timesheetDetails.hideLocked table.Excel .LockedRow {\n  display: none;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timesheetDetails table.Excel .LockedRow {\n  opacity: 0.4 !important;\n  pointer-events: none;\n}\n.timesheetDetails.hideLocked table.Excel .LockedRow {\n  display: none;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1343,7 +1343,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.2"};
+const package_namespaceObject = {"i8":"0.9.3"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1469,7 +1469,80 @@ class Configuration {
 }
 
 _defineProperty(Configuration, "instance", new Configuration());
+;// CONCATENATED MODULE: ./src/modules/MarkupUtility.ts
+class MarkupUtility {
+  /**
+   * Add a data attribute to table head and cells
+   * @param table  DOM element of table
+   * @param th     DOM element of header cell
+   * @param col    column number of header cell
+   * @param type   type for data attribute
+   */
+  static markTableCells(table, th, col, type) {
+    // add type to header cell
+    th.dataset.type = type; // iterate over all rows of the table
+
+    table.querySelectorAll(':scope > tbody > tr').forEach(row => {
+      // iterate over all table data cells of the row
+      row.querySelectorAll(':scope > td').forEach((td, key) => {
+        // if column number matches, set type data attribute on data cell as well
+        if (key == col) {
+          td.dataset.type = type;
+        }
+      });
+    });
+  }
+
+  static addTypeToTableCells(section) {
+    // since Unit45 changes the DOM frequently (and there are no callbacks or events), we need to check
+    // and re-add the classes on a regular basis
+    window.setInterval(() => {
+      section.querySelectorAll('table.Excel').forEach(table => {
+        if (!table.classList.contains("tmFix")) {
+          table.classList.add("tmFix");
+          table.querySelectorAll('th').forEach((th, col) => {
+            const text = th.innerText.replace(/[_.\s]/g, '').toLowerCase();
+
+            switch (text) {
+              case '':
+                // ignore headers with empty text
+                break;
+
+              case 'zoom':
+              case 'status':
+              case 'timecode':
+              case 'workorder':
+              case 'project':
+              case 'activity':
+              case 'description':
+              case 'servicelines':
+              case 'finprjtype':
+              case 'timeunit':
+              case 'sum':
+              case 'invunit':
+              case 'value':
+                // add CSS class for some headers
+                MarkupUtility.markTableCells(table, th, col, 'cell-' + text);
+                break;
+
+              default:
+                // check if day of week is found
+                if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/[0-9]+/)) {
+                  MarkupUtility.markTableCells(table, th, col, 'cell-weekday');
+                } else {
+                  console.log("Unknown header '" + text + "'", th);
+                }
+
+            }
+          });
+        }
+      });
+    }, 100);
+  }
+
+}
 ;// CONCATENATED MODULE: ./src/modules/timeentry/timeentry.ts
+
 
 
 class TimeEntry {
@@ -1492,29 +1565,38 @@ class TimeEntry {
   }
 
   processTimeEntry(section) {
-    section.classList.add('timeEntry'); // really disable some fields to avoid errors
+    // add data tape attributes to table
+    MarkupUtility.addTypeToTableCells(section);
+    window.setInterval(() => {
+      if (!section.classList.contains("timeEntry")) {
+        section.classList.add('timeEntry'); // scroll to current entry
 
-    section.querySelectorAll('input[title="Time code"]').forEach(e => {
-      e.disabled = true;
-      e.readOnly = true;
-    }); // scroll to current entry
+        section.querySelectorAll('input[title="Work order - Mandatory"]').forEach(e => {
+          e.focus();
+          setTimeout(function () {
+            e.scrollIntoView();
+          }, 100);
+        });
+      } // really disable some fields to avoid errors
 
-    section.querySelectorAll('input[title="Work order - Mandatory"]').forEach(e => {
-      e.focus();
-      setTimeout(function () {
-        e.scrollIntoView();
-      }, 100);
-    }); // always show work item & project descriptions in time entry
 
-    if (Configuration.getInstance().alwaysShowDescriptions()) {
-      section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
-        let x = document.createElement('div');
-        x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
-        x.style.whiteSpace = "break-spaces";
-        x.appendChild(document.createTextNode(e.getAttribute('title')));
-        e.appendChild(x);
-      });
-    }
+      section.querySelectorAll('input[title="Time code"]').forEach(e => {
+        e.disabled = true;
+        e.readOnly = true;
+      }); // always show work item & project descriptions in time entry
+
+      if (Configuration.getInstance().alwaysShowDescriptions()) {
+        section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
+          if (e.querySelectorAll('.tmFixDescription').length == 0) {
+            let x = document.createElement('div');
+            x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
+            x.style.whiteSpace = "break-spaces";
+            x.appendChild(document.createTextNode(e.getAttribute('title')));
+            e.appendChild(x);
+          }
+        });
+      }
+    }, 100);
   }
 
 }
@@ -1550,6 +1632,7 @@ var timesheet_update = injectStylesIntoStyleTag_default()(timesheet/* default */
        /* harmony default export */ const timesheet_timesheet = (timesheet/* default */.Z && timesheet/* default.locals */.Z.locals ? timesheet/* default.locals */.Z.locals : undefined);
 
 ;// CONCATENATED MODULE: ./src/modules/timesheet/timesheet.ts
+
 
 
 class TimeSheet {
@@ -1591,30 +1674,34 @@ class TimeSheet {
 
 
   processTimesheetDetails(section) {
-    if (section.querySelector('input[type="checkbox"]') == null) {
-      section.classList.add('timesheetDetails', 'timesheetDetailsSimple');
-    } else {
-      section.classList.add('timesheetDetails', 'timesheetDetailsAdvanced');
-    }
+    // add data tape attributes to table
+    MarkupUtility.addTypeToTableCells(section);
+    window.setInterval(() => {
+      if (section.querySelector('input[type="checkbox"]') == null) {
+        section.classList.add('timesheetDetails', 'timesheetDetailsSimple');
+      } else {
+        section.classList.add('timesheetDetails', 'timesheetDetailsAdvanced');
+      }
 
-    if (Configuration.getInstance().hideLockedRows()) {
-      section.classList.add('hideLocked');
-    } // mark complete rows for locked cells
+      if (Configuration.getInstance().hideLockedRows()) {
+        section.classList.add('hideLocked');
+      } // mark complete rows for locked cells
 
 
-    section.querySelectorAll('.GridCell.Locked').forEach(e => {
-      e.closest('tr').classList.add('LockedRow');
-    }); // always show work item & project descriptions in timesheet details
+      section.querySelectorAll('.GridCell.Locked').forEach(e => {
+        e.closest('tr').classList.add('LockedRow');
+      }); // always show work item & project descriptions in timesheet details
 
-    if (Configuration.getInstance().alwaysShowDescriptions()) {
-      section.querySelectorAll('tr.MarkRow td[title], tr.ListItemReadOnly td[title], tr.AltListItemReadOnly td[title]').forEach(e => {
-        let x = document.createElement('div');
-        x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
-        x.style.whiteSpace = "break-spaces";
-        x.appendChild(document.createTextNode(e.getAttribute('title')));
-        e.appendChild(x);
-      });
-    }
+      if (Configuration.getInstance().alwaysShowDescriptions()) {
+        section.querySelectorAll('tr.MarkRow td[title], tr.ListItemReadOnly td[title], tr.AltListItemReadOnly td[title]').forEach(e => {
+          let x = document.createElement('div');
+          x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
+          x.style.whiteSpace = "break-spaces";
+          x.appendChild(document.createTextNode(e.getAttribute('title')));
+          e.appendChild(x);
+        });
+      }
+    }, 100);
   }
 
 }
