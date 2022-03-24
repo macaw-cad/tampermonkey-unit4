@@ -16,6 +16,11 @@
             pointer-events: none;
         }
 
+        // word wrap descriptions due to smaller columns
+        *[data-type="cell-description"] div {
+            white-space: break-spaces !important;
+        }
+
     }
 
     &.hideLocked table.Excel .LockedRow {
