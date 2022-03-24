@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.3
+// @version     0.9.4
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -122,6 +122,42 @@ module.exports = function (cssWithMappingToString) {
 
 /***/ }),
 
+/***/ "./node_modules/css-loader/dist/runtime/getUrl.js":
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = function (url, options) {
+  if (!options) {
+    options = {};
+  }
+
+  if (!url) {
+    return url;
+  }
+
+  url = String(url.__esModule ? url.default : url); // If url is already wrapped in quotes, remove them
+
+  if (/^['"].*['"]$/.test(url)) {
+    url = url.slice(1, -1);
+  }
+
+  if (options.hash) {
+    url += options.hash;
+  } // Should url be wrapped?
+  // See https://drafts.csswg.org/css-values-3/#urls
+
+
+  if (/["'() \t\n]|(%20)/.test(url) || options.needQuotes) {
+    return "\"".concat(url.replace(/"/g, '\\"').replace(/\n/g, "\\n"), "\"");
+  }
+
+  return url;
+};
+
+/***/ }),
+
 /***/ "./node_modules/css-loader/dist/runtime/noSourceMaps.js":
 /***/ ((module) => {
 
@@ -204,7 +240,7 @@ function GM_configInit(config, args) {
     config.isOpen = false;
     config.title = 'User Script Settings';
     config.css = {
-      basic: ["#GM_config * { font-family: arial,tahoma,myriad pro,sans-serif; }", "#GM_config { background: #FFF; }", "#GM_config input[type='radio'] { margin-right: 8px; }", "#GM_config .indent40 { margin-left: 40%; }", "#GM_config .field_label { font-size: 12px; font-weight: bold; margin-right: 6px; }", "#GM_config .radio_label { font-size: 12px; }", "#GM_config .block { display: block; }", "#GM_config .saveclose_buttons { margin: 16px 10px 10px; padding: 2px 12px; }", "#GM_config .reset, #GM_config .reset a," + " #GM_config_buttons_holder { color: #000; text-align: right; }", "#GM_config .config_header { font-size: 20pt; margin: 0; }", "#GM_config .config_desc, #GM_config .section_desc, #GM_config .reset { font-size: 9pt; }", "#GM_config .center { text-align: center; }", "#GM_config .section_header_holder { margin-top: 8px; }", "#GM_config .config_var { margin: 0 0 4px; }", "#GM_config .section_header { background: #414141; border: 1px solid #000; color: #FFF;", " font-size: 13pt; margin: 0; }", "#GM_config .section_desc { background: #EFEFEF; border: 1px solid #CCC; color: #575757;" + " font-size: 9pt; margin: 0 0 6px; }"].join('\n') + '\n',
+      basic: ["#GM_config * { font-family: arial,tahoma,myriad pro,sans-serif; }", "#GM_config { background: #FFF; }", "#GM_config input[type='radio'] { margin-right: 8px; }", "#GM_config input[type='checkbox'] { height: 20px; width: 20px; vertical-align: middle; margin-right: 10px; }", "#GM_config .indent40 { margin-left: 40%; }", "#GM_config .field_label { font-size: 16px; font-weight: bold; margin-right: 6px; }", "#GM_config .radio_label { font-size: 16px; }", "#GM_config .block { display: block; }", "#GM_config .saveclose_buttons { margin: 16px 10px 10px; padding: 2px 16px; }", "#GM_config .reset, #GM_config .reset a," + " #GM_config_buttons_holder { color: #000; text-align: right; }", "#GM_config .config_header { font-size: 20pt; margin: 0; }", "#GM_config .config_desc, #GM_config .section_desc, #GM_config .reset { font-size: 9pt; }", "#GM_config .center { text-align: center; }", "#GM_config .section_header_holder { margin-top: 8px; }", "#GM_config .config_var { margin: 0 0 8px; }", "#GM_config .section_header { background: #414141; border: 1px solid #000; color: #FFF;", " font-size: 13pt; margin: 0; }", "#GM_config .section_desc { background: #EFEFEF; border: 1px solid #CCC; color: #575757;" + " font-size: 9pt; margin: 0 0 6px; }"].join('\n') + '\n',
       basicPrefix: "GM_config",
       stylish: ""
     };
@@ -407,7 +443,7 @@ GM_configStruct.prototype = {
     } // Change this in the onOpen callback using this.frame.setAttribute('style', '')
 
 
-    var defaultStyle = 'bottom: auto; border: 1px solid #000; display: none; height: 75%;' + ' left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;' + ' overflow: auto; padding: 0; position: fixed; right: auto; top: 0;' + ' width: 75%; z-index: 9999;'; // Either use the element passed to init() or create an iframe
+    var defaultStyle = 'bottom: auto; border: 1px solid #000; display: none; height: 75%;' + ' left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;' + ' overflow: auto; padding: 0; position: fixed; right: auto; top: 0;' + ' width: 50%; z-index: 9999;'; // Either use the element passed to init() or create an iframe
 
     if (this.frame) {
       this.frame.id = this.id; // Allows for prefixing styles with the config id
@@ -928,12 +964,17 @@ window.GM_config = new GM_configStruct();
 /* harmony import */ var _node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("./node_modules/css-loader/dist/runtime/api.js");
 /* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__("./node_modules/css-loader/dist/runtime/getUrl.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2__);
 // Imports
 
 
+
+var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require__("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 xml:space=%27preserve%27 viewBox=%270 0 569.613 569.614%27%3E%3Cpath d=%27m371.49 563.638 113.052-65.854a22.954 22.954 0 0 0 10.64-13.975c1.555-5.888.701-12.148-2.359-17.405l-30.769-52.807c4.789-6.524 9.083-13.115 12.972-19.918 3.893-6.799 7.405-13.84 10.606-21.275l61.114-.221c6.086-.021 11.915-2.464 16.202-6.781 4.287-4.32 6.687-10.165 6.665-16.255l-.48-130.833c-.024-6.089-2.464-11.919-6.784-16.206-4.299-4.269-10.113-6.662-16.166-6.662h-.089l-61.182.242c-6.444-14.462-14.428-28.14-23.871-40.913l30.417-53.143c6.294-11.001 2.481-25.025-8.52-31.316L369.403 5.335c-5.281-3.023-11.545-3.822-17.424-2.231-5.872 1.598-10.872 5.462-13.892 10.747L307.665 67c-15.766-1.662-31.653-1.613-47.363.144l-30.796-52.892c-3.063-5.263-8.094-9.091-13.975-10.646-5.884-1.551-12.148-.704-17.408 2.359L85.068 71.823c-10.949 6.38-14.657 20.429-8.28 31.38l30.765 52.831c-4.761 6.484-9.048 13.076-12.953 19.899-3.904 6.824-7.417 13.855-10.6 21.255l-61.139.235C10.187 197.472-.046 207.785 0 220.456L.48 351.29c.024 6.086 2.463 11.919 6.784 16.206 4.299 4.269 10.11 6.661 16.166 6.661h.086l61.203-.229c6.432 14.452 14.413 28.131 23.868 40.915l-30.413 53.141a22.968 22.968 0 0 0-2.231 17.423 22.9495 22.9495 0 0 0 10.747 13.896l113.535 64.977c3.596 2.056 7.513 3.032 11.38 3.032 7.962 0 15.701-4.146 19.942-11.552l30.417-53.149c15.799 1.671 31.684 1.619 47.348-.144l30.799 52.89A22.9755 22.9755 0 0 0 354.089 566a22.9313 22.9313 0 0 0 17.401-2.362zm-30.361-97.727c-4.902-8.418-14.599-12.815-24.137-10.994-20.588 3.935-42.174 3.999-63.128.202-9.572-1.735-19.184 2.741-24.015 11.181l-26.748 46.745-73.694-42.18 26.75-46.741c4.832-8.439 3.819-19.006-2.521-26.371-13.978-16.239-24.685-34.594-31.818-54.554-3.265-9.131-11.918-15.227-21.61-15.227h-.085l-53.825.199-.315-84.937 53.819-.205c9.722-.04 18.366-6.197 21.576-15.374 3.69-10.557 7.962-20.019 13.06-28.917 5.101-8.914 11.089-17.387 18.311-25.897 6.294-7.417 7.225-17.993 2.334-26.396l-27.081-46.509 73.385-42.754 27.078 46.497c4.893 8.4 14.544 12.821 24.095 11.004 20.716-3.911 42.317-3.978 63.189-.19 9.557 1.753 19.189-2.742 24.019-11.178l26.753-46.744 73.697 42.179-26.753 46.742c-4.826 8.437-3.816 19 2.521 26.368 13.956 16.221 24.669 34.587 31.842 54.59 3.271 9.119 11.919 15.202 21.604 15.202h.092l53.789-.214.315 84.927-53.783.192c-9.712.037-18.351 6.182-21.569 15.347-3.746 10.654-8.023 20.131-13.082 28.975-5.064 8.847-11.067 17.338-18.356 25.958-6.271 7.418-7.194 17.978-2.305 26.368l27.078 46.472-73.391 42.749-27.091-46.515z%27/%3E%3Cpath d=%27M392.531 346.458c16.472-28.773 20.746-62.24 12.047-94.232s-29.342-58.685-58.115-75.151c-18.761-10.74-40.05-16.417-61.562-16.417-44.446 0-85.762 23.944-107.822 62.485-33.994 59.404-13.327 135.39 46.071 169.386 18.764 10.737 40.052 16.411 61.564 16.411 44.444.003 85.761-23.939 107.817-62.482zm-39.835-22.8c-13.902 24.293-39.955 39.385-67.985 39.385-13.528 0-26.934-3.58-38.764-10.349-37.433-21.426-50.456-69.312-29.033-106.751 13.905-24.291 39.958-39.385 67.987-39.385 13.528 0 26.932 3.58 38.762 10.355 18.136 10.379 31.142 27.197 36.628 47.359 5.48 20.163 2.784 41.252-7.595 59.386z%27/%3E%3C/svg%3E"), __webpack_require__.b);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
+var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 120px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-workorder\"],\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] .ListDescription,\ntable.Excel *[data-type=\"cell-project\"] .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n.openConfigBtn {\n  position: fixed;\n  bottom: 0;\n  right: 0;\n  background: #f0f0f0;\n  z-index: 99999;\n  border: 1px solid #888;\n  padding: 4px;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.openConfigBtn:hover {\n  background: #e0e0e0;\n}\n.openConfigBtn:before {\n  content: \"\";\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  height: 14px;\n  width: 25px;\n  display: inline-block;\n  background-repeat: no-repeat;\n  background-position: center;\n  vertical-align: text-top;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 120px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-workorder\"],\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] .ListDescription,\ntable.Excel *[data-type=\"cell-project\"] .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -979,7 +1020,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, "", ""]);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timesheetDetails table.Excel .LockedRow {\n  opacity: 0.4 !important;\n  pointer-events: none;\n}\n.timesheetDetails.hideLocked table.Excel .LockedRow {\n  display: none;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails {\n  box-sizing: border-box;\n  padding-left: 20%;\n}\n.timesheetDetails table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timesheetDetails table.Excel .LockedRow {\n  opacity: 0.4 !important;\n  pointer-events: none;\n}\n.timesheetDetails.hideLocked table.Excel .LockedRow {\n  display: none;\n}\n.workflowLog {\n  width: 20% !important;\n  position: sticky;\n  top: 0;\n  background: yellow;\n  height: 1px !important;\n  overflow: visible;\n  display: block !important;\n  margin-bottom: 0 !important;\n}\n.workflowLog + div {\n  display: none;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1278,6 +1319,14 @@ function styleTagTransform(css, styleElement) {
 
 module.exports = styleTagTransform;
 
+/***/ }),
+
+/***/ "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 xml:space=%27preserve%27 viewBox=%270 0 569.613 569.614%27%3E%3Cpath d=%27m371.49 563.638 113.052-65.854a22.954 22.954 0 0 0 10.64-13.975c1.555-5.888.701-12.148-2.359-17.405l-30.769-52.807c4.789-6.524 9.083-13.115 12.972-19.918 3.893-6.799 7.405-13.84 10.606-21.275l61.114-.221c6.086-.021 11.915-2.464 16.202-6.781 4.287-4.32 6.687-10.165 6.665-16.255l-.48-130.833c-.024-6.089-2.464-11.919-6.784-16.206-4.299-4.269-10.113-6.662-16.166-6.662h-.089l-61.182.242c-6.444-14.462-14.428-28.14-23.871-40.913l30.417-53.143c6.294-11.001 2.481-25.025-8.52-31.316L369.403 5.335c-5.281-3.023-11.545-3.822-17.424-2.231-5.872 1.598-10.872 5.462-13.892 10.747L307.665 67c-15.766-1.662-31.653-1.613-47.363.144l-30.796-52.892c-3.063-5.263-8.094-9.091-13.975-10.646-5.884-1.551-12.148-.704-17.408 2.359L85.068 71.823c-10.949 6.38-14.657 20.429-8.28 31.38l30.765 52.831c-4.761 6.484-9.048 13.076-12.953 19.899-3.904 6.824-7.417 13.855-10.6 21.255l-61.139.235C10.187 197.472-.046 207.785 0 220.456L.48 351.29c.024 6.086 2.463 11.919 6.784 16.206 4.299 4.269 10.11 6.661 16.166 6.661h.086l61.203-.229c6.432 14.452 14.413 28.131 23.868 40.915l-30.413 53.141a22.968 22.968 0 0 0-2.231 17.423 22.9495 22.9495 0 0 0 10.747 13.896l113.535 64.977c3.596 2.056 7.513 3.032 11.38 3.032 7.962 0 15.701-4.146 19.942-11.552l30.417-53.149c15.799 1.671 31.684 1.619 47.348-.144l30.799 52.89A22.9755 22.9755 0 0 0 354.089 566a22.9313 22.9313 0 0 0 17.401-2.362zm-30.361-97.727c-4.902-8.418-14.599-12.815-24.137-10.994-20.588 3.935-42.174 3.999-63.128.202-9.572-1.735-19.184 2.741-24.015 11.181l-26.748 46.745-73.694-42.18 26.75-46.741c4.832-8.439 3.819-19.006-2.521-26.371-13.978-16.239-24.685-34.594-31.818-54.554-3.265-9.131-11.918-15.227-21.61-15.227h-.085l-53.825.199-.315-84.937 53.819-.205c9.722-.04 18.366-6.197 21.576-15.374 3.69-10.557 7.962-20.019 13.06-28.917 5.101-8.914 11.089-17.387 18.311-25.897 6.294-7.417 7.225-17.993 2.334-26.396l-27.081-46.509 73.385-42.754 27.078 46.497c4.893 8.4 14.544 12.821 24.095 11.004 20.716-3.911 42.317-3.978 63.189-.19 9.557 1.753 19.189-2.742 24.019-11.178l26.753-46.744 73.697 42.179-26.753 46.742c-4.826 8.437-3.816 19 2.521 26.368 13.956 16.221 24.669 34.587 31.842 54.59 3.271 9.119 11.919 15.202 21.604 15.202h.092l53.789-.214.315 84.927-53.783.192c-9.712.037-18.351 6.182-21.569 15.347-3.746 10.654-8.023 20.131-13.082 28.975-5.064 8.847-11.067 17.338-18.356 25.958-6.271 7.418-7.194 17.978-2.305 26.368l27.078 46.472-73.391 42.749-27.091-46.515z%27/%3E%3Cpath d=%27M392.531 346.458c16.472-28.773 20.746-62.24 12.047-94.232s-29.342-58.685-58.115-75.151c-18.761-10.74-40.05-16.417-61.562-16.417-44.446 0-85.762 23.944-107.822 62.485-33.994 59.404-13.327 135.39 46.071 169.386 18.764 10.737 40.052 16.411 61.564 16.411 44.444.003 85.761-23.939 107.817-62.482zm-39.835-22.8c-13.902 24.293-39.955 39.385-67.985 39.385-13.528 0-26.934-3.58-38.764-10.349-37.433-21.426-50.456-69.312-29.033-106.751 13.905-24.291 39.958-39.385 67.987-39.385 13.528 0 26.932 3.58 38.762 10.355 18.136 10.379 31.142 27.197 36.628 47.359 5.48 20.163 2.784 41.252-7.595 59.386z%27/%3E%3C/svg%3E":
+/***/ ((module) => {
+
+"use strict";
+module.exports = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 xml:space=%27preserve%27 viewBox=%270 0 569.613 569.614%27%3E%3Cpath d=%27m371.49 563.638 113.052-65.854a22.954 22.954 0 0 0 10.64-13.975c1.555-5.888.701-12.148-2.359-17.405l-30.769-52.807c4.789-6.524 9.083-13.115 12.972-19.918 3.893-6.799 7.405-13.84 10.606-21.275l61.114-.221c6.086-.021 11.915-2.464 16.202-6.781 4.287-4.32 6.687-10.165 6.665-16.255l-.48-130.833c-.024-6.089-2.464-11.919-6.784-16.206-4.299-4.269-10.113-6.662-16.166-6.662h-.089l-61.182.242c-6.444-14.462-14.428-28.14-23.871-40.913l30.417-53.143c6.294-11.001 2.481-25.025-8.52-31.316L369.403 5.335c-5.281-3.023-11.545-3.822-17.424-2.231-5.872 1.598-10.872 5.462-13.892 10.747L307.665 67c-15.766-1.662-31.653-1.613-47.363.144l-30.796-52.892c-3.063-5.263-8.094-9.091-13.975-10.646-5.884-1.551-12.148-.704-17.408 2.359L85.068 71.823c-10.949 6.38-14.657 20.429-8.28 31.38l30.765 52.831c-4.761 6.484-9.048 13.076-12.953 19.899-3.904 6.824-7.417 13.855-10.6 21.255l-61.139.235C10.187 197.472-.046 207.785 0 220.456L.48 351.29c.024 6.086 2.463 11.919 6.784 16.206 4.299 4.269 10.11 6.661 16.166 6.661h.086l61.203-.229c6.432 14.452 14.413 28.131 23.868 40.915l-30.413 53.141a22.968 22.968 0 0 0-2.231 17.423 22.9495 22.9495 0 0 0 10.747 13.896l113.535 64.977c3.596 2.056 7.513 3.032 11.38 3.032 7.962 0 15.701-4.146 19.942-11.552l30.417-53.149c15.799 1.671 31.684 1.619 47.348-.144l30.799 52.89A22.9755 22.9755 0 0 0 354.089 566a22.9313 22.9313 0 0 0 17.401-2.362zm-30.361-97.727c-4.902-8.418-14.599-12.815-24.137-10.994-20.588 3.935-42.174 3.999-63.128.202-9.572-1.735-19.184 2.741-24.015 11.181l-26.748 46.745-73.694-42.18 26.75-46.741c4.832-8.439 3.819-19.006-2.521-26.371-13.978-16.239-24.685-34.594-31.818-54.554-3.265-9.131-11.918-15.227-21.61-15.227h-.085l-53.825.199-.315-84.937 53.819-.205c9.722-.04 18.366-6.197 21.576-15.374 3.69-10.557 7.962-20.019 13.06-28.917 5.101-8.914 11.089-17.387 18.311-25.897 6.294-7.417 7.225-17.993 2.334-26.396l-27.081-46.509 73.385-42.754 27.078 46.497c4.893 8.4 14.544 12.821 24.095 11.004 20.716-3.911 42.317-3.978 63.189-.19 9.557 1.753 19.189-2.742 24.019-11.178l26.753-46.744 73.697 42.179-26.753 46.742c-4.826 8.437-3.816 19 2.521 26.368 13.956 16.221 24.669 34.587 31.842 54.59 3.271 9.119 11.919 15.202 21.604 15.202h.092l53.789-.214.315 84.927-53.783.192c-9.712.037-18.351 6.182-21.569 15.347-3.746 10.654-8.023 20.131-13.082 28.975-5.064 8.847-11.067 17.338-18.356 25.958-6.271 7.418-7.194 17.978-2.305 26.368l27.078 46.472-73.391 42.749-27.091-46.515z%27/%3E%3Cpath d=%27M392.531 346.458c16.472-28.773 20.746-62.24 12.047-94.232s-29.342-58.685-58.115-75.151c-18.761-10.74-40.05-16.417-61.562-16.417-44.446 0-85.762 23.944-107.822 62.485-33.994 59.404-13.327 135.39 46.071 169.386 18.764 10.737 40.052 16.411 61.564 16.411 44.444.003 85.761-23.939 107.817-62.482zm-39.835-22.8c-13.902 24.293-39.955 39.385-67.985 39.385-13.528 0-26.934-3.58-38.764-10.349-37.433-21.426-50.456-69.312-29.033-106.751 13.905-24.291 39.958-39.385 67.987-39.385 13.528 0 26.932 3.58 38.762 10.355 18.136 10.379 31.142 27.197 36.628 47.359 5.48 20.163 2.784 41.252-7.595 59.386z%27/%3E%3C/svg%3E";
+
 /***/ })
 
 /******/ 	});
@@ -1305,6 +1354,9 @@ module.exports = styleTagTransform;
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
+/******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = __webpack_modules__;
 /******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
@@ -1336,6 +1388,32 @@ module.exports = styleTagTransform;
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
 /******/ 	
+/******/ 	/* webpack/runtime/jsonp chunk loading */
+/******/ 	(() => {
+/******/ 		__webpack_require__.b = document.baseURI || self.location.href;
+/******/ 		
+/******/ 		// object to store loaded and loading chunks
+/******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+/******/ 		var installedChunks = {
+/******/ 			179: 0
+/******/ 		};
+/******/ 		
+/******/ 		// no chunk on demand loading
+/******/ 		
+/******/ 		// no prefetching
+/******/ 		
+/******/ 		// no preloaded
+/******/ 		
+/******/ 		// no HMR
+/******/ 		
+/******/ 		// no HMR manifest
+/******/ 		
+/******/ 		// no on chunks loaded
+/******/ 		
+/******/ 		// no jsonp function
+/******/ 	})();
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
@@ -1343,7 +1421,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.3"};
+const package_namespaceObject = {"i8":"0.9.4"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1407,35 +1485,54 @@ class Configuration {
 
   constructor() {
     GM_config.init({
-      'id': 'MacawUnit4Config',
-      'fields': {
-        'allowCommaEntry': {
-          'label': 'allow time entry with "," as separator',
-          'type': 'checkbox',
-          'default': false
+      id: 'MacawUnit4Config',
+      events: {
+        save: () => this.save()
+      },
+      fields: {
+        alwaysShowDescriptions: {
+          label: '[Global]: Always show descriptions for a workorder',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
         },
-        'alwaysShowDescriptions': {
-          'label': 'always show work item & project descriptions',
-          'type': 'checkbox',
-          'default': true
+        handleTimeEntry: {
+          label: 'Enhance Timesheet Entry',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
         },
-        'handleTimeEntry': {
-          'label': 'handle time entry screen (for entering bookings)',
-          'type': 'checkbox',
-          'default': true
+        handleTimesheetDetails: {
+          label: 'Enhance Timesheet Approval',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
         },
-        'handleTimesheetDetails': {
-          'label': 'handle timesheet details (for approving bookings)',
-          'type': 'checkbox',
-          'default': true
+        hideLockedRows: {
+          label: '[Timesheet Approval]: hide rows that you cannot accept/reject',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
         },
-        'hideLockedRows': {
-          'label': 'hide rows in details that you cannot accept/reject',
-          'type': 'checkbox',
-          'default': true
+        allowCommaEntry: {
+          label: '[Global]: allow time entry with "," as separator',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: false
         }
       }
     });
+  }
+
+  addConfigUI() {
+    const btn = document.createElement("button");
+    btn.className = "openConfigBtn";
+    btn.innerText = "Config";
+    btn.title = "Click to configure Unit4 enhancements";
+
+    btn.onclick = () => this.show();
+
+    document.body.appendChild(btn);
   }
 
   allowCommaEntry() {
@@ -1460,6 +1557,11 @@ class Configuration {
 
   show() {
     GM_config.open();
+  }
+
+  save() {
+    // reload page to reflect changes
+    window.location.reload();
   }
 
   close() {
@@ -1567,34 +1669,39 @@ class TimeEntry {
   processTimeEntry(section) {
     // add data tape attributes to table
     MarkupUtility.addTypeToTableCells(section);
-    window.setInterval(() => {
+    const interval = window.setInterval(() => {
       if (!section.classList.contains("timeEntry")) {
+        // cancel interval, since UI is now initialized
+        window.clearInterval(interval); // add CSS class
+
         section.classList.add('timeEntry'); // scroll to current entry
 
         section.querySelectorAll('input[title="Work order - Mandatory"]').forEach(e => {
-          e.focus();
           setTimeout(function () {
+            if (document.activeElement === null || document.activeElement.tagName !== "INPUT") {
+              e.focus();
+            }
+
             e.scrollIntoView();
           }, 100);
-        });
-      } // really disable some fields to avoid errors
+        }); // really disable some fields to avoid errors
 
+        section.querySelectorAll('input[title="Time code"]').forEach(e => {
+          e.disabled = true;
+          e.readOnly = true;
+        }); // always show work item & project descriptions in time entry
 
-      section.querySelectorAll('input[title="Time code"]').forEach(e => {
-        e.disabled = true;
-        e.readOnly = true;
-      }); // always show work item & project descriptions in time entry
-
-      if (Configuration.getInstance().alwaysShowDescriptions()) {
-        section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
-          if (e.querySelectorAll('.tmFixDescription').length == 0) {
-            let x = document.createElement('div');
-            x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
-            x.style.whiteSpace = "break-spaces";
-            x.appendChild(document.createTextNode(e.getAttribute('title')));
-            e.appendChild(x);
-          }
-        });
+        if (Configuration.getInstance().alwaysShowDescriptions()) {
+          section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
+            if (e.querySelectorAll('.tmFixDescription').length == 0) {
+              let x = document.createElement('div');
+              x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
+              x.style.whiteSpace = "break-spaces";
+              x.appendChild(document.createTextNode(e.getAttribute('title')));
+              e.appendChild(x);
+            }
+          });
+        }
       }
     }, 100);
   }
@@ -1652,7 +1759,7 @@ class TimeSheet {
         }
 
         if (e.textContent == 'Timesheet details') {
-          let section = e.closest('.u4-section-container');
+          let section = e.closest('.u4-section-placeholder');
 
           if (section != null) {
             this.processTimesheetDetails(section);
@@ -1667,7 +1774,6 @@ class TimeSheet {
 
   processWorkflowLow(section) {
     section.classList.add('workflowLog');
-    GM_addStyle('.workflowLog { position: fixed; top: 0px; z-index: 10; background: white; right: 20px; width: 35% !important; }');
   } // ----------------------------------------------------------------------
   // Timesheet Details
   // ----------------------------------------------------------------------
@@ -1676,30 +1782,36 @@ class TimeSheet {
   processTimesheetDetails(section) {
     // add data tape attributes to table
     MarkupUtility.addTypeToTableCells(section);
-    window.setInterval(() => {
-      if (section.querySelector('input[type="checkbox"]') == null) {
-        section.classList.add('timesheetDetails', 'timesheetDetailsSimple');
-      } else {
-        section.classList.add('timesheetDetails', 'timesheetDetailsAdvanced');
-      }
+    const interval = window.setInterval(() => {
+      if (!section.classList.contains("timeSheetDetails")) {
+        // cancel interval, since UI is now initialized
+        window.clearInterval(interval); // add CSS class for different types of view (simple / advanced)
 
-      if (Configuration.getInstance().hideLockedRows()) {
-        section.classList.add('hideLocked');
-      } // mark complete rows for locked cells
+        if (section.querySelector('input[type="checkbox"]') == null) {
+          section.classList.add('timesheetDetails', 'timesheetDetailsSimple');
+        } else {
+          section.classList.add('timesheetDetails', 'timesheetDetailsAdvanced');
+        } // CSS class for locked rows
 
 
-      section.querySelectorAll('.GridCell.Locked').forEach(e => {
-        e.closest('tr').classList.add('LockedRow');
-      }); // always show work item & project descriptions in timesheet details
+        if (Configuration.getInstance().hideLockedRows()) {
+          section.classList.add('hideLocked');
+        } // mark complete rows for locked cells
 
-      if (Configuration.getInstance().alwaysShowDescriptions()) {
-        section.querySelectorAll('tr.MarkRow td[title], tr.ListItemReadOnly td[title], tr.AltListItemReadOnly td[title]').forEach(e => {
-          let x = document.createElement('div');
-          x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
-          x.style.whiteSpace = "break-spaces";
-          x.appendChild(document.createTextNode(e.getAttribute('title')));
-          e.appendChild(x);
-        });
+
+        section.querySelectorAll('.GridCell.Locked').forEach(e => {
+          e.closest('tr').classList.add('LockedRow');
+        }); // always show work item & project descriptions in timesheet details
+
+        if (Configuration.getInstance().alwaysShowDescriptions()) {
+          section.querySelectorAll('tr.MarkRow td[title], tr.ListItemReadOnly td[title], tr.AltListItemReadOnly td[title]').forEach(e => {
+            let x = document.createElement('div');
+            x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
+            x.style.whiteSpace = "break-spaces";
+            x.appendChild(document.createTextNode(e.getAttribute('title')));
+            e.appendChild(x);
+          });
+        }
       }
     }, 100);
   }
@@ -1778,12 +1890,15 @@ class Global {
 
 
 
+
 class Unit4Enhancer {
   async main() {
     new TimeEntry();
     new TimeSheet();
     new Global();
-    console.log("Unit4 enhancements " + package_namespaceObject.i8 + " active ... "); //Configuration.getInstance().show();
+    console.log("Unit4 enhancements " + package_namespaceObject.i8 + " active ... ");
+    console.log(document.querySelectorAll(".u4-activitymenu"));
+    Configuration.getInstance().addConfigUI();
   }
 
 }

@@ -1,5 +1,8 @@
 // shrink some less important columns
 .timesheetDetails {
+    box-sizing: border-box;
+    padding-left: 20%;
+
     table.Excel {
         th {
             position: sticky !important;
@@ -20,5 +23,19 @@
     }
 }
 
+.workflowLog {
+    width: 20% !important;
+    position: sticky;
+    top: 0;
+    background: yellow;
+    height: 1px !important;
+    overflow: visible;
+    display: block !important;
+    margin-bottom: 0 !important;
+
+    & + div {
+        display: none;
+    }
+}
 
 

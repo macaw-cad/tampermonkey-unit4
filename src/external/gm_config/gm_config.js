@@ -70,18 +70,19 @@ function GM_configInit(config, args) {
         "#GM_config * { font-family: arial,tahoma,myriad pro,sans-serif; }",
         "#GM_config { background: #FFF; }",
         "#GM_config input[type='radio'] { margin-right: 8px; }",
+        "#GM_config input[type='checkbox'] { height: 20px; width: 20px; vertical-align: middle; margin-right: 10px; }",
         "#GM_config .indent40 { margin-left: 40%; }",
-        "#GM_config .field_label { font-size: 12px; font-weight: bold; margin-right: 6px; }",
-        "#GM_config .radio_label { font-size: 12px; }",
+        "#GM_config .field_label { font-size: 16px; font-weight: bold; margin-right: 6px; }",
+        "#GM_config .radio_label { font-size: 16px; }",
         "#GM_config .block { display: block; }",
-        "#GM_config .saveclose_buttons { margin: 16px 10px 10px; padding: 2px 12px; }",
+        "#GM_config .saveclose_buttons { margin: 16px 10px 10px; padding: 2px 16px; }",
         "#GM_config .reset, #GM_config .reset a," +
           " #GM_config_buttons_holder { color: #000; text-align: right; }",
         "#GM_config .config_header { font-size: 20pt; margin: 0; }",
         "#GM_config .config_desc, #GM_config .section_desc, #GM_config .reset { font-size: 9pt; }",
         "#GM_config .center { text-align: center; }",
         "#GM_config .section_header_holder { margin-top: 8px; }",
-        "#GM_config .config_var { margin: 0 0 4px; }",
+        "#GM_config .config_var { margin: 0 0 8px; }",
         "#GM_config .section_header { background: #414141; border: 1px solid #000; color: #FFF;",
         " font-size: 13pt; margin: 0; }",
         "#GM_config .section_desc { background: #EFEFEF; border: 1px solid #CCC; color: #575757;" +
@@ -310,7 +311,7 @@ GM_configStruct.prototype = {
     var defaultStyle = 'bottom: auto; border: 1px solid #000; display: none; height: 75%;'
       + ' left: 0; margin: 0; max-height: 95%; max-width: 95%; opacity: 0;'
       + ' overflow: auto; padding: 0; position: fixed; right: auto; top: 0;'
-      + ' width: 75%; z-index: 9999;';
+      + ' width: 50%; z-index: 9999;';
 
     // Either use the element passed to init() or create an iframe
     if (this.frame) {

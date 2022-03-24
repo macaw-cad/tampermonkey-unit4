@@ -20,7 +20,7 @@ export class TimeSheet {
         }
 
         if(e.textContent == 'Timesheet details') {
-          let section = e.closest('.u4-section-container');
+          let section = e.closest('.u4-section-placeholder');
           if (section != null) {
             this.processTimesheetDetails(section);
           }
@@ -34,9 +34,6 @@ export class TimeSheet {
   // ----------------------------------------------------------------------
   processWorkflowLow(section: Element) {
     section.classList.add('workflowLog');
-    GM_addStyle(
-      '.workflowLog { position: fixed; top: 0px; z-index: 10; background: white; right: 20px; width: 35% !important; }'
-    );
   }
 
   // ----------------------------------------------------------------------
@@ -46,30 +43,38 @@ export class TimeSheet {
     // add data tape attributes to table
     MarkupUtility.addTypeToTableCells(section);
 
-    window.setInterval(() => {
-      if (section.querySelector('input[type="checkbox"]') == null) {
-        section.classList.add('timesheetDetails', 'timesheetDetailsSimple');
-      } else {
-        section.classList.add('timesheetDetails', 'timesheetDetailsAdvanced');
-      }
-      if (Configuration.getInstance().hideLockedRows()) {
-        section.classList.add('hideLocked');
-      }
+    const interval = window.setInterval(() => {
+      if (!section.classList.contains("timeSheetDetails")) {
+        // cancel interval, since UI is now initialized
+        window.clearInterval(interval);
 
-      // mark complete rows for locked cells
-      section.querySelectorAll('.GridCell.Locked').forEach(e => {
-        e.closest('tr').classList.add('LockedRow');
-      });
+        // add CSS class for different types of view (simple / advanced)
+        if (section.querySelector('input[type="checkbox"]') == null) {
+          section.classList.add('timesheetDetails', 'timesheetDetailsSimple');
+        } else {
+          section.classList.add('timesheetDetails', 'timesheetDetailsAdvanced');
+        }
 
-      // always show work item & project descriptions in timesheet details
-      if (Configuration.getInstance().alwaysShowDescriptions()) {
-        section.querySelectorAll('tr.MarkRow td[title], tr.ListItemReadOnly td[title], tr.AltListItemReadOnly td[title]').forEach(e => {
-          let x = document.createElement('div');
-          x.className='Message DivOverflowNoWrap Ellipsis Description ListDescription';
-          x.style.whiteSpace="break-spaces";
-          x.appendChild(document.createTextNode(e.getAttribute('title')));
-          e.appendChild(x);
+        // CSS class for locked rows
+        if (Configuration.getInstance().hideLockedRows()) {
+          section.classList.add('hideLocked');
+        }
+
+        // mark complete rows for locked cells
+        section.querySelectorAll('.GridCell.Locked').forEach(e => {
+          e.closest('tr').classList.add('LockedRow');
         });
+
+        // always show work item & project descriptions in timesheet details
+        if (Configuration.getInstance().alwaysShowDescriptions()) {
+          section.querySelectorAll('tr.MarkRow td[title], tr.ListItemReadOnly td[title], tr.AltListItemReadOnly td[title]').forEach(e => {
+            let x = document.createElement('div');
+            x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
+            x.style.whiteSpace = "break-spaces";
+            x.appendChild(document.createTextNode(e.getAttribute('title')));
+            e.appendChild(x);
+          });
+        }
       }
     }, 100);
   }

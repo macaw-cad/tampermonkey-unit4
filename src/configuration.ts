@@ -11,35 +11,52 @@ export class Configuration {
   constructor() {
     GM_config.init(
       {
-        'id': 'MacawUnit4Config',
-        'fields': {
-          'allowCommaEntry': {
-            'label': 'allow time entry with "," as separator',
-            'type': 'checkbox',
-            'default': false
+        id: 'MacawUnit4Config',
+        events: {
+          save: () => this.save()
+        },
+        fields: {
+          alwaysShowDescriptions: {
+            label: '[Global]: Always show descriptions for a workorder',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
           },
-          'alwaysShowDescriptions': {
-            'label': 'always show work item & project descriptions',
-            'type': 'checkbox',
-            'default': true
+          handleTimeEntry: {
+            label: 'Enhance Timesheet Entry',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
           },
-          'handleTimeEntry': {
-            'label': 'handle time entry screen (for entering bookings)',
-            'type': 'checkbox',
-            'default': true
+          handleTimesheetDetails: {
+            label: 'Enhance Timesheet Approval',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
           },
-          'handleTimesheetDetails': {
-            'label': 'handle timesheet details (for approving bookings)',
-            'type': 'checkbox',
-            'default': true
+          hideLockedRows: {
+            label: '[Timesheet Approval]: hide rows that you cannot accept/reject',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
           },
-          'hideLockedRows': {
-            'label': 'hide rows in details that you cannot accept/reject',
-            'type': 'checkbox',
-            'default': true
-          }
+          allowCommaEntry: {
+            label: '[Global]: allow time entry with "," as separator',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: false
+          },
         }
       });
+  }
+
+  addConfigUI() {
+    const btn = document.createElement("button");
+    btn.className = "openConfigBtn";
+    btn.innerText = "Config";
+    btn.title = "Click to configure Unit4 enhancements";
+    btn.onclick = () => this.show();
+    document.body.appendChild(btn);
   }
 
   allowCommaEntry() {
@@ -64,6 +81,11 @@ export class Configuration {
 
   show() {
     GM_config.open();
+  }
+
+  save() {
+    // reload page to reflect changes
+    window.location.reload();
   }
 
   close() {
