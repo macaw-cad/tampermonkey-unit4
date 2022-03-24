@@ -11,8 +11,6 @@ class Unit4Enhancer {
     new Global();
 
     console.log("Unit4 enhancements " + version + " active ... ");
-
-    console.log(document.querySelectorAll(".u4-activitymenu"));
     Configuration.getInstance().addConfigUI();
   }
 
