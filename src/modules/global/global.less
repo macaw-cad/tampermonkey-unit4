@@ -53,7 +53,8 @@ table.Excel {
     *[data-type="cell-timeunit"] { width: 50px !important; }
     *[data-type="cell-weekday"] { width: 55px !important; }
     *[data-type="cell-sum"] { width: 55px !important; }
-    *[data-type="cell-workorder"] { width: 120px !important }
+    *[data-type="cell-workorder"] { width: 250px !important }
+    *[data-type="cell-project"] { width: 250px !important }
     *[data-type="cell-description"] { width: auto !important }
 
     // hide/disable some columns
@@ -64,7 +65,6 @@ table.Excel {
 
     // show descriptions all the time
     *[data-type="cell-workorder"], *[data-type="cell-project"] {
-        width: 250px !important;
         .ListDescription {
             display: block;
             font-size: 11px;
