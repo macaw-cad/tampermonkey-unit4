@@ -1,7 +1,7 @@
 {
   "name": "userscript-macaw-unit4",
   "description": "Enhance Unit4 UI using Tampermonkey",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "license": "MIT",
   "author": {
     "name": "Carsten Wilhelm",
