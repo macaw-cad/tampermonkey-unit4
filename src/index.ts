@@ -12,6 +12,10 @@ class Unit4Enhancer {
 
     if (timeEntry.isActive() || timeSheet.isActive() || global.isActive()) {
       console.log("Unit4 enhancements " + version + " active ... ");
+    }
+
+    if(window.parent == window.self) {
+      // only show config button on top level
       Configuration.getInstance().addConfigUI();
     }
   }
