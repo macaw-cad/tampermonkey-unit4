@@ -4,6 +4,8 @@ import {MarkupUtility} from "../MarkupUtility";
 
 export class TimeSheet {
 
+  private active = false;
+
   // ----------------------------------------------------------------------
   // Time Entry Screen
   // ----------------------------------------------------------------------
@@ -15,6 +17,7 @@ export class TimeSheet {
         if(e.textContent.startsWith('Workflow log')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
+            this.active = true;
             this.processWorkflowLow(section);
           }
         }
@@ -22,11 +25,16 @@ export class TimeSheet {
         if(e.textContent == 'Timesheet details') {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
+            this.active = true;
             this.processTimesheetDetails(section);
           }
         }
       }
     });
+  }
+
+  public isActive() {
+    return this.active;
   }
 
   // ----------------------------------------------------------------------

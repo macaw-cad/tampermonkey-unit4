@@ -4,6 +4,8 @@ import {MarkupUtility} from "../MarkupUtility";
 
 export class TimeEntry {
 
+  private active = false;
+
   // ----------------------------------------------------------------------
   // Time Entry Screen
   // ----------------------------------------------------------------------
@@ -15,11 +17,16 @@ export class TimeEntry {
         if(e.textContent == 'Time entry') {
           let section = e.closest('.u4-section-container');
           if (section != null) {
+            this.active = true;
             this.processTimeEntry(section);
           }
         }
       }
     });
+  }
+
+  public isActive() {
+    return this.active;
   }
 
   private processTimeEntry(section: Element) {

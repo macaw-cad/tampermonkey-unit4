@@ -6,12 +6,14 @@ import {Configuration} from "./configuration";
 
 class Unit4Enhancer {
   async main () {
-    new TimeEntry();
-    new TimeSheet();
-    new Global();
+    const timeEntry = new TimeEntry();
+    const timeSheet = new TimeSheet();
+    const global = new Global();
 
-    console.log("Unit4 enhancements " + version + " active ... ");
-    Configuration.getInstance().addConfigUI();
+    if (timeEntry.isActive() || timeSheet.isActive() || global.isActive()) {
+      console.log("Unit4 enhancements " + version + " active ... ");
+      Configuration.getInstance().addConfigUI();
+    }
   }
 
 }
