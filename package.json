@@ -1,7 +1,7 @@
 {
   "name": "userscript-macaw-unit4",
   "description": "Enhance Unit4 UI using Tampermonkey",
-  "version": "0.9.9",
+  "version": "0.9.12",
   "license": "MIT",
   "author": {
     "name": "Carsten Wilhelm",
@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "webpack --mode development --config config/webpack.config.dev.cjs",
     "build": "webpack --mode production --config config/webpack.config.production.cjs",
-    "package": "npm version patch -no-git-tag-version && nom run build",
+    "package": "npm version patch -no-git-tag-version && npm run build",
     "licenses": "npx license-checker --summary > USED_SOFTWARE && npx license-checker >> USED_SOFTWARE"
   },
   "private": true,

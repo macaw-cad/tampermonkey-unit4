@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name        macaw-unit4
+// @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.9
+// @version     0.9.12
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -1421,7 +1421,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.9"};
+const package_namespaceObject = {"i8":"0.9.12"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1644,6 +1644,8 @@ class MarkupUtility {
 
 }
 ;// CONCATENATED MODULE: ./src/modules/timeentry/timeentry.ts
+function timeentry_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -1652,6 +1654,8 @@ class TimeEntry {
   // Time Entry Screen
   // ----------------------------------------------------------------------
   constructor() {
+    timeentry_defineProperty(this, "active", false);
+
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().handleTimeEntry()) {
@@ -1659,11 +1663,16 @@ class TimeEntry {
           let section = e.closest('.u4-section-container');
 
           if (section != null) {
+            this.active = true;
             this.processTimeEntry(section);
           }
         }
       }
     });
+  }
+
+  isActive() {
+    return this.active;
   }
 
   processTimeEntry(section) {
@@ -1739,6 +1748,8 @@ var timesheet_update = injectStylesIntoStyleTag_default()(timesheet/* default */
        /* harmony default export */ const timesheet_timesheet = (timesheet/* default */.Z && timesheet/* default.locals */.Z.locals ? timesheet/* default.locals */.Z.locals : undefined);
 
 ;// CONCATENATED MODULE: ./src/modules/timesheet/timesheet.ts
+function timesheet_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -1747,6 +1758,8 @@ class TimeSheet {
   // Time Entry Screen
   // ----------------------------------------------------------------------
   constructor() {
+    timesheet_defineProperty(this, "active", false);
+
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().handleTimesheetDetails()) {
@@ -1754,6 +1767,7 @@ class TimeSheet {
           let section = e.closest('.u4-section-placeholder');
 
           if (section != null) {
+            this.active = true;
             this.processWorkflowLow(section);
           }
         }
@@ -1762,11 +1776,16 @@ class TimeSheet {
           let section = e.closest('.u4-section-placeholder');
 
           if (section != null) {
+            this.active = true;
             this.processTimesheetDetails(section);
           }
         }
       }
     });
+  }
+
+  isActive() {
+    return this.active;
   } // ----------------------------------------------------------------------
   // Workflow Logh (in Timesheet Details)
   // ----------------------------------------------------------------------
@@ -1849,6 +1868,8 @@ var global_update = injectStylesIntoStyleTag_default()(global/* default */.Z, gl
        /* harmony default export */ const global_global = (global/* default */.Z && global/* default.locals */.Z.locals ? global/* default.locals */.Z.locals : undefined);
 
 ;// CONCATENATED MODULE: ./src/modules/global/global.ts
+function global_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 class Global {
@@ -1856,9 +1877,12 @@ class Global {
   // Time Entry Screen
   // ----------------------------------------------------------------------
   constructor() {
+    global_defineProperty(this, "active", false);
+
     // allow time entry with "," as separator
     if (Configuration.getInstance().allowCommaEntry()) {
       document.querySelectorAll('.timeEntry input[data-type="Double"]').forEach(e => {
+        this.active = true;
         e.addEventListener('keydown', event => {
           if (event.key == ',') {
             let sel = e.selectionStart;
@@ -1872,6 +1896,7 @@ class Global {
 
     var currentFocus = null;
     document.querySelectorAll('.timeEntry').forEach(e => {
+      this.active = true;
       e.addEventListener('focusin', event => {
         const ele = event.target;
 
@@ -1881,6 +1906,10 @@ class Global {
         }
       });
     });
+  }
+
+  isActive() {
+    return this.active;
   }
 
 }
@@ -1893,11 +1922,14 @@ class Global {
 
 class Unit4Enhancer {
   async main() {
-    new TimeEntry();
-    new TimeSheet();
-    new Global();
-    console.log("Unit4 enhancements " + package_namespaceObject.i8 + " active ... ");
-    Configuration.getInstance().addConfigUI();
+    const timeEntry = new TimeEntry();
+    const timeSheet = new TimeSheet();
+    const global = new Global();
+
+    if (timeEntry.isActive() || timeSheet.isActive() || global.isActive()) {
+      console.log("Unit4 enhancements " + package_namespaceObject.i8 + " active ... ");
+      Configuration.getInstance().addConfigUI();
+    }
   }
 
 }
