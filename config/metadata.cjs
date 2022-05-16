@@ -1,7 +1,7 @@
-const { author, version, repository } = require('../package.json')
+const { name, author, version, repository } = require('../package.json')
 
 module.exports = {
-  name: 'macaw-unit4',
+  name: name,
   namespace: 'https://ubw.unit4cloud.com/',
   version: version,
   author: author,

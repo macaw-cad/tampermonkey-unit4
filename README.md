@@ -41,7 +41,7 @@ build process will stop during version increase.
 Start a new build using `npm`:
 
 ```bash
-npm run build
+npm run package
 ```
 
 This will first increase the patch number of your packages

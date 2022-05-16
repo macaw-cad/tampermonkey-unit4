@@ -6,6 +6,7 @@ const UserScriptMetaDataPlugin = require('userscript-metadata-webpack-plugin')
 const metadata = require('./metadata.cjs')
 const webpackConfig = require('./webpack.config.base.cjs')
 
+metadata.name = metadata.name + " (debug)";
 metadata.require.push(
   'file://' + path.resolve(__dirname, '../dist/index.debug.user.js')
 )
