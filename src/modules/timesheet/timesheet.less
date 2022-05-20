@@ -33,16 +33,21 @@
 }
 
 .workflowLog {
-    width: 20% !important;
-    position: sticky;
-    top: 0;
-    height: 1px !important;
-    overflow: visible;
+    width: 40% !important;
+    position: fixed;
+    z-index: 6;
+    top: 35px;
+    right: 19px;
     display: block !important;
     margin-bottom: 0 !important;
+    background: #fff;
 
     & + div {
         display: none;
+    }
+
+    &:hover {
+        opacity: 1;
     }
 }
 

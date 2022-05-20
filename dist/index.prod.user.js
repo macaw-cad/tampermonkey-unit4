@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.13
+// @version     0.9.14
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -1020,7 +1020,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, "", ""]);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails {\n  box-sizing: border-box;\n  padding-left: 20%;\n}\n.timesheetDetails table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timesheetDetails table.Excel .LockedRow {\n  opacity: 0.4 !important;\n  pointer-events: none;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-description\"] div {\n  white-space: break-spaces !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-workorder\"] {\n  width: 120px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-project\"] {\n  width: 120px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-weekday\"] {\n  width: 45px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-sum\"] {\n  width: 45px !important;\n}\n.timesheetDetails.hideLocked table.Excel .LockedRow {\n  display: none;\n}\n.workflowLog {\n  width: 20% !important;\n  position: sticky;\n  top: 0;\n  height: 1px !important;\n  overflow: visible;\n  display: block !important;\n  margin-bottom: 0 !important;\n}\n.workflowLog + div {\n  display: none;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails {\n  box-sizing: border-box;\n  padding-left: 20%;\n}\n.timesheetDetails table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timesheetDetails table.Excel .LockedRow {\n  opacity: 0.4 !important;\n  pointer-events: none;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-description\"] div {\n  white-space: break-spaces !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-workorder\"] {\n  width: 120px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-project\"] {\n  width: 120px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-weekday\"] {\n  width: 45px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-sum\"] {\n  width: 45px !important;\n}\n.timesheetDetails.hideLocked table.Excel .LockedRow {\n  display: none;\n}\n.workflowLog {\n  width: 40% !important;\n  position: fixed;\n  z-index: 6;\n  top: 35px;\n  right: 19px;\n  display: block !important;\n  margin-bottom: 0 !important;\n  background: #fff;\n}\n.workflowLog + div {\n  display: none;\n}\n.workflowLog:hover {\n  opacity: 1;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1421,7 +1421,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.13"};
+const package_namespaceObject = {"i8":"0.9.14"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
