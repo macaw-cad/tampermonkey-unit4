@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.14
+// @version     0.9.15
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -1421,7 +1421,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.14"};
+const package_namespaceObject = {"i8":"0.9.15"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1508,6 +1508,12 @@ class Configuration {
           type: 'checkbox',
           default: true
         },
+        stickyWorkflowLog: {
+          label: 'Make Workflow Log sticky (in approval view)',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
+        },
         hideLockedRows: {
           label: '[Timesheet Approval]: hide rows that you cannot accept/reject',
           labelPos: 'right',
@@ -1549,6 +1555,10 @@ class Configuration {
 
   handleTimesheetDetails() {
     return GM_config.get('handleTimesheetDetails');
+  }
+
+  stickyWorkflowLog() {
+    return GM_config.get('stickyWorkflowLog');
   }
 
   hideLockedRows() {
@@ -1762,7 +1772,7 @@ class TimeSheet {
 
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
-      if (Configuration.getInstance().handleTimesheetDetails()) {
+      if (Configuration.getInstance().stickyWorkflowLog()) {
         if (e.textContent.startsWith('Workflow log')) {
           let section = e.closest('.u4-section-placeholder');
 
@@ -1771,7 +1781,9 @@ class TimeSheet {
             this.processWorkflowLow(section);
           }
         }
+      }
 
+      if (Configuration.getInstance().handleTimesheetDetails()) {
         if (e.textContent == 'Timesheet details') {
           let section = e.closest('.u4-section-placeholder');
 
