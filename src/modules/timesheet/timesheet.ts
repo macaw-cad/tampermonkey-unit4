@@ -13,15 +13,16 @@ export class TimeSheet {
   constructor() {
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
-      if (Configuration.getInstance().handleTimesheetDetails()) {
-        if(e.textContent.startsWith('Workflow log')) {
+      if (Configuration.getInstance().stickyWorkflowLog()) {
+        if (e.textContent.startsWith('Workflow log')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
             this.active = true;
             this.processWorkflowLow(section);
           }
         }
-
+      }
+      if (Configuration.getInstance().handleTimesheetDetails()) {
         if(e.textContent == 'Timesheet details') {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {

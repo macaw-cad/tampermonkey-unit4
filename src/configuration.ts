@@ -34,6 +34,12 @@ export class Configuration {
             type: 'checkbox',
             default: true
           },
+          stickyWorkflowLog: {
+            label: 'Make Workflow Log sticky (in approval view)',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
+          },
           hideLockedRows: {
             label: '[Timesheet Approval]: hide rows that you cannot accept/reject',
             labelPos: 'right',
@@ -73,6 +79,10 @@ export class Configuration {
 
   handleTimesheetDetails() {
     return GM_config.get('handleTimesheetDetails');
+  }
+
+  stickyWorkflowLog() {
+    return GM_config.get('stickyWorkflowLog');
   }
 
   hideLockedRows() {
