@@ -51,26 +51,46 @@ export class TimeEntry {
           }, 100);
         });
 
-        // really disable some fields to avoid errors
-        section.querySelectorAll('input[title="Time code"]').forEach((e: HTMLInputElement) => {
-          e.disabled = true;
-          e.readOnly = true;
-        });
+        // add all kind of functionality to the table
+        this.add(section);
 
-        // always show work item & project descriptions in time entry
-        if (Configuration.getInstance().alwaysShowDescriptions()) {
-          section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
-            if (e.querySelectorAll('.tmFixDescription').length == 0) {
-              let x = document.createElement('div');
-              x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
-              x.style.whiteSpace = "break-spaces";
-              x.appendChild(document.createTextNode(e.getAttribute('title')));
-              e.appendChild(x);
-            }
-          });
-        }
+        // add observer to get changes after sort
+        this.attachMutationObserver();
       }
     }, 100);
+  }
+  private add(section: Element) {
+    // really disable some fields to avoid errors
+    section.querySelectorAll('input[title="Time code"]').forEach((e: HTMLInputElement) => {
+      e.disabled = true;
+      e.readOnly = true;
+    });
+
+    // always show work item & project descriptions in time entry
+    if (Configuration.getInstance().alwaysShowDescriptions()) {
+      section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
+        if (e.querySelectorAll('.tmFixDescription').length == 0) {
+          let x = document.createElement('div');
+          x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
+          x.style.whiteSpace = "break-spaces";
+          x.appendChild(document.createTextNode(e.getAttribute('title')));
+          e.appendChild(x);
+        }
+      });
+    }
+  }
+
+  private attachMutationObserver() {
+    const section = document.querySelector(".timeEntry");
+    if (section) {
+      const observer = new MutationObserver(mutationRecords  => {
+        // reintegrate functionality
+        this.add(section);
+      });
+      // get the parent element of the table and start observing
+      const e = section.querySelector(".Excel").parentNode;
+      observer.observe(e, {childList: true});
+   }
   }
 
 }
