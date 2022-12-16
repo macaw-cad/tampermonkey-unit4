@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.15
+// @version     0.9.16
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -1421,7 +1421,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.15"};
+const package_namespaceObject = {"i8":"0.9.16"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1486,47 +1486,49 @@ class Configuration {
   constructor() {
     GM_config.init({
       id: 'MacawUnit4Config',
+      title: 'Unit4 enhancements configuration',
       events: {
         save: () => this.save()
       },
       fields: {
         alwaysShowDescriptions: {
-          label: '[Global]: Always show descriptions for a workorder',
-          labelPos: 'right',
-          type: 'checkbox',
-          default: true
-        },
-        handleTimeEntry: {
-          label: 'Enhance Timesheet Entry',
-          labelPos: 'right',
-          type: 'checkbox',
-          default: true
-        },
-        handleTimesheetDetails: {
-          label: 'Enhance Timesheet Approval',
-          labelPos: 'right',
-          type: 'checkbox',
-          default: true
-        },
-        stickyWorkflowLog: {
-          label: 'Make Workflow Log sticky (in approval view)',
-          labelPos: 'right',
-          type: 'checkbox',
-          default: true
-        },
-        hideLockedRows: {
-          label: '[Timesheet Approval]: hide rows that you cannot accept/reject',
+          label: '[Global]: Always show descriptions for a workorder<copy>Display the name of the workorder and project whereever possible.</copy>',
           labelPos: 'right',
           type: 'checkbox',
           default: true
         },
         allowCommaEntry: {
-          label: '[Global]: allow time entry with "," as separator',
+          label: '[Global]: allow time entry with "," as separator<copy>Enable comma as decimal separator (in addition to the dot). Does not work consistently, so by default it is disabled</copy>',
           labelPos: 'right',
           type: 'checkbox',
           default: false
+        },
+        handleTimeEntry: {
+          label: '[Timesheet Entry]: enable enhancements<copy>Enable enhancements on time entry screen</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
+        },
+        handleTimesheetDetails: {
+          label: '[Timesheet Approval]: enable enhancements<copy>Enable enhancements on approval / rejection screen</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
+        },
+        stickyWorkflowLog: {
+          label: '[Timesheet Approval]: Make Workflow Log sticky (in approval view)<copy>In Approval/Reject view, make the box with the log entry sticky, so it it visible all the time. This might lead to the box overlapping your time entries, so by default this is disabled</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
+        },
+        hideLockedRows: {
+          label: '[Timesheet Approval]: hide rows that you cannot accept/reject<copy>In Approval screen, hide all rows that you are not responsible for</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
         }
-      }
+      },
+      css: 'copy { display: block; margin-left: 40px; font-weight: normal }'
     });
   }
 
@@ -1703,26 +1705,49 @@ class TimeEntry {
 
             e.scrollIntoView();
           }, 100);
-        }); // really disable some fields to avoid errors
+        }); // add all kind of functionality to the table
 
-        section.querySelectorAll('input[title="Time code"]').forEach(e => {
-          e.disabled = true;
-          e.readOnly = true;
-        }); // always show work item & project descriptions in time entry
+        this.add(section); // add observer to get changes after sort
 
-        if (Configuration.getInstance().alwaysShowDescriptions()) {
-          section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
-            if (e.querySelectorAll('.tmFixDescription').length == 0) {
-              let x = document.createElement('div');
-              x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
-              x.style.whiteSpace = "break-spaces";
-              x.appendChild(document.createTextNode(e.getAttribute('title')));
-              e.appendChild(x);
-            }
-          });
-        }
+        this.attachMutationObserver();
       }
     }, 100);
+  }
+
+  add(section) {
+    // really disable some fields to avoid errors
+    section.querySelectorAll('input[title="Time code"]').forEach(e => {
+      e.disabled = true;
+      e.readOnly = true;
+    }); // always show work item & project descriptions in time entry
+
+    if (Configuration.getInstance().alwaysShowDescriptions()) {
+      section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
+        if (e.querySelectorAll('.tmFixDescription').length == 0) {
+          let x = document.createElement('div');
+          x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
+          x.style.whiteSpace = "break-spaces";
+          x.appendChild(document.createTextNode(e.getAttribute('title')));
+          e.appendChild(x);
+        }
+      });
+    }
+  }
+
+  attachMutationObserver() {
+    const section = document.querySelector(".timeEntry");
+
+    if (section) {
+      const observer = new MutationObserver(mutationRecords => {
+        // reintegrate functionality
+        this.add(section);
+      }); // get the parent element of the table and start observing
+
+      const e = section.querySelector(".Excel").parentNode;
+      observer.observe(e, {
+        childList: true
+      });
+    }
   }
 
 }
