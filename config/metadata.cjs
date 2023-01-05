@@ -8,7 +8,8 @@ module.exports = {
   source: repository.url,
   license: 'MIT',
   match: [
-    'https://ubw.unit4cloud.com/*'
+    'https://ubw.unit4cloud.com/*',
+    'https://ubw-preview.unit4cloud.com/*'
   ],
   require: [],
   grant: [],
