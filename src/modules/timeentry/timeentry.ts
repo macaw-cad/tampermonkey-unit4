@@ -12,8 +12,8 @@ export class TimeEntry {
 
   constructor() {
     // mark time entry table with special CSS class
-    document.querySelectorAll('h2.SectionTitle').forEach(e => {
-      if (Configuration.getInstance().handleTimeEntry()) {
+    if (Configuration.getInstance().handleTimeEntry()) {
+      document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if(e.textContent == 'Time entry') {
           let section = e.closest('.u4-section-container');
           if (section != null) {
@@ -21,8 +21,8 @@ export class TimeEntry {
             this.processTimeEntry(section);
           }
         }
-      }
-    });
+      });
+    }
   }
 
   public isActive() {
