@@ -29,6 +29,12 @@ export class Configuration {
             type: 'checkbox',
             default: false
           },
+          fixedDialogs: {
+            label: '[Global]: make dialogs sticky and centered',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
+          },
           handleTimeEntry: {
             label: '[Timesheet Entry]: enable enhancements<copy>Enable enhancements on time entry screen</copy>',
             labelPos: 'right',
@@ -69,6 +75,10 @@ export class Configuration {
 
   allowCommaEntry() {
     return GM_config.get('allowCommaEntry');
+  }
+
+  fixedDialogs() {
+    return GM_config.get('fixedDialogs');
   }
 
   alwaysShowDescriptions() {

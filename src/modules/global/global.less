@@ -72,3 +72,17 @@ table.Excel {
         }
     }
 }
+
+// show dialogs fixed and centered on screen
+body.fixedDialog {
+    [role=dialog] {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999 !important;
+    }
+    #b_modalBackground {
+        z-index: 1000 !important;
+    }   
+}

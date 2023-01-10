@@ -37,6 +37,13 @@ export class Global {
         }
       });
     });
+
+    // fixed centered dialogs
+    if (Configuration.getInstance().fixedDialogs()) {
+      document.body.classList.add("fixedDialog");
+    } else {
+      document.body.classList.remove("fixedDialog");
+    }
   }
 
   public isActive() {
