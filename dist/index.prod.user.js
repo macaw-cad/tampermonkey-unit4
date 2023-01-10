@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.17
+// @version     0.9.18
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -975,7 +975,7 @@ var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n.openConfigBtn {\n  position: fixed;\n  bottom: 0;\n  right: 0;\n  background: #f0f0f0;\n  z-index: 99999;\n  border: 1px solid #888;\n  padding: 4px;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.openConfigBtn:hover {\n  background: #e0e0e0;\n}\n.openConfigBtn:before {\n  content: \"\";\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  height: 14px;\n  width: 25px;\n  display: inline-block;\n  background-repeat: no-repeat;\n  background-position: center;\n  vertical-align: text-top;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-workorder\"] .ListDescription,\ntable.Excel *[data-type=\"cell-project\"] .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n.openConfigBtn {\n  position: fixed;\n  bottom: 0;\n  right: 0;\n  background: #f0f0f0;\n  z-index: 99999;\n  border: 1px solid #888;\n  padding: 4px;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.openConfigBtn:hover {\n  background: #e0e0e0;\n}\n.openConfigBtn:before {\n  content: \"\";\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  height: 14px;\n  width: 25px;\n  display: inline-block;\n  background-repeat: no-repeat;\n  background-position: center;\n  vertical-align: text-top;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-workorder\"] .ListDescription,\ntable.Excel *[data-type=\"cell-project\"] .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\nbody.fixedDialog [role=dialog] {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  z-index: 9999 !important;\n}\nbody.fixedDialog #b_modalBackground {\n  z-index: 1000 !important;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1422,7 +1422,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.17"};
+const package_namespaceObject = {"i8":"0.9.18"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1504,6 +1504,12 @@ class Configuration {
           type: 'checkbox',
           default: false
         },
+        fixedDialogs: {
+          label: '[Global]: make dialogs sticky and centered',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
+        },
         handleTimeEntry: {
           label: '[Timesheet Entry]: enable enhancements<copy>Enable enhancements on time entry screen</copy>',
           labelPos: 'right',
@@ -1546,6 +1552,10 @@ class Configuration {
 
   allowCommaEntry() {
     return GM_config.get('allowCommaEntry');
+  }
+
+  fixedDialogs() {
+    return GM_config.get('fixedDialogs');
   }
 
   alwaysShowDescriptions() {
@@ -1670,8 +1680,8 @@ class TimeEntry {
     timeentry_defineProperty(this, "active", false);
 
     // mark time entry table with special CSS class
-    document.querySelectorAll('h2.SectionTitle').forEach(e => {
-      if (Configuration.getInstance().handleTimeEntry()) {
+    if (Configuration.getInstance().handleTimeEntry()) {
+      document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if (e.textContent == 'Time entry') {
           let section = e.closest('.u4-section-container');
 
@@ -1680,8 +1690,8 @@ class TimeEntry {
             this.processTimeEntry(section);
           }
         }
-      }
-    });
+      });
+    }
   }
 
   isActive() {
@@ -1943,7 +1953,13 @@ class Global {
           console.log("Scroll into view", window.scrollY, ele.getBoundingClientRect()); //ele.scrollIntoView({block: "end", inline: "nearest"});
         }
       });
-    });
+    }); // fixed centered dialogs
+
+    if (Configuration.getInstance().fixedDialogs()) {
+      document.body.classList.add("fixedDialog");
+    } else {
+      document.body.classList.remove("fixedDialog");
+    }
   }
 
   isActive() {
