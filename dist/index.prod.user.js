@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.19
+// @version     0.9.20
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -975,7 +975,7 @@ var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n.openConfigBtn {\n  position: fixed;\n  bottom: 0;\n  right: 0;\n  background: #f0f0f0;\n  z-index: 99999;\n  border: 1px solid #888;\n  padding: 4px;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.openConfigBtn:hover {\n  background: #e0e0e0;\n}\n.openConfigBtn:before {\n  content: \"\";\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  height: 14px;\n  width: 25px;\n  display: inline-block;\n  background-repeat: no-repeat;\n  background-position: center;\n  vertical-align: text-top;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-workorder\"] .ListDescription,\ntable.Excel *[data-type=\"cell-project\"] .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\nbody.fixedDialog [role=dialog] {\n  position: fixed;\n  top: 50% !important;\n  left: 50% !important;\n  transform: translate(-50%, -50%);\n  z-index: 9999 !important;\n}\nbody.fixedDialog #b_modalBackground {\n  z-index: 1000 !important;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n.openConfigBtn {\n  position: fixed;\n  bottom: 0;\n  right: 0;\n  background: #f0f0f0;\n  z-index: 99999;\n  border: 1px solid #888;\n  padding: 4px;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.openConfigBtn:hover {\n  background: #e0e0e0;\n}\n.openConfigBtn:before {\n  content: \"\";\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  height: 14px;\n  width: 25px;\n  display: inline-block;\n  background-repeat: no-repeat;\n  background-position: center;\n  vertical-align: text-top;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-hidden-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-workorder\"] .ListDescription,\ntable.Excel *[data-type=\"cell-project\"] .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\nbody.fixedDialog [role=dialog] {\n  position: fixed;\n  top: 50% !important;\n  left: 50% !important;\n  transform: translate(-50%, -50%);\n  z-index: 9999 !important;\n}\nbody.fixedDialog #b_modalBackground {\n  z-index: 1000 !important;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1422,7 +1422,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.19"};
+const package_namespaceObject = {"i8":"0.9.20"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1510,6 +1510,12 @@ class Configuration {
           type: 'checkbox',
           default: true
         },
+        hideTimeCodeColumn: {
+          label: '[Global]: hide TimeCode column<copy>If you need the column, disable this option</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
+        },
         handleTimeEntry: {
           label: '[Timesheet Entry]: enable enhancements<copy>Enable enhancements on time entry screen</copy>',
           labelPos: 'right',
@@ -1566,6 +1572,10 @@ class Configuration {
     return GM_config.get('handleTimeEntry');
   }
 
+  hideTimeCodeColumn() {
+    return GM_config.get('hideTimeCodeColumn');
+  }
+
   handleTimesheetDetails() {
     return GM_config.get('handleTimesheetDetails');
   }
@@ -1595,6 +1605,7 @@ class Configuration {
 
 _defineProperty(Configuration, "instance", new Configuration());
 ;// CONCATENATED MODULE: ./src/modules/MarkupUtility.ts
+
 class MarkupUtility {
   /**
    * Add a data attribute to table head and cells
@@ -1625,6 +1636,7 @@ class MarkupUtility {
       section.querySelectorAll('table.Excel').forEach(table => {
         if (!table.classList.contains("tmFix")) {
           table.classList.add("tmFix");
+          var config = Configuration.getInstance();
           table.querySelectorAll('th').forEach((th, col) => {
             const text = th.innerText.replace(/[_.\s]/g, '').toLowerCase();
 
@@ -1635,7 +1647,6 @@ class MarkupUtility {
 
               case 'zoom':
               case 'status':
-              case 'timecode':
               case 'workorder':
               case 'project':
               case 'activity':
@@ -1646,8 +1657,13 @@ class MarkupUtility {
               case 'sum':
               case 'invunit':
               case 'value':
-                // add CSS class for some headers
+                // add type for some headers
                 MarkupUtility.markTableCells(table, th, col, 'cell-' + text);
+                break;
+
+              case 'timecode':
+                // add type for timecode based on config
+                MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
                 break;
 
               default:
@@ -1727,10 +1743,13 @@ class TimeEntry {
 
   add(section) {
     // really disable some fields to avoid errors
-    section.querySelectorAll('input[title="Time code"]').forEach(e => {
-      e.disabled = true;
-      e.readOnly = true;
-    }); // always show work item & project descriptions in time entry
+    if (Configuration.getInstance().hideTimeCodeColumn()) {
+      section.querySelectorAll('input[title="Time code"]').forEach(e => {
+        e.disabled = true;
+        e.readOnly = true;
+      });
+    } // always show work item & project descriptions in time entry
+
 
     if (Configuration.getInstance().alwaysShowDescriptions()) {
       section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
