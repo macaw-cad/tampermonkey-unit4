@@ -1,3 +1,5 @@
+import { Configuration } from "../configuration";
+
 export class MarkupUtility {
 
   /**
@@ -29,6 +31,7 @@ export class MarkupUtility {
       section.querySelectorAll('table.Excel').forEach((table: HTMLTableElement) => {
         if (!table.classList.contains("tmFix")) {
           table.classList.add("tmFix");
+          var config = Configuration.getInstance();
           table.querySelectorAll('th').forEach((th: HTMLElement, col) => {
             const text = th.innerText.replace(/[_.\s]/g, '').toLowerCase();
             switch (text) {
@@ -37,7 +40,6 @@ export class MarkupUtility {
                 break;
               case 'zoom':
               case 'status':
-              case 'timecode':
               case 'workorder':
               case 'project':
               case 'activity':
@@ -47,9 +49,13 @@ export class MarkupUtility {
               case 'timeunit':
               case 'sum':
               case 'invunit':
-              case 'value':
-                // add CSS class for some headers
+              case 'value': 
+                // add type for some headers
                 MarkupUtility.markTableCells(table, th, col, 'cell-' + text)
+                break;
+              case 'timecode':
+                // add type for timecode based on config
+                MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
                 break;
               default:
                 // check if day of week is found

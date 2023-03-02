@@ -35,6 +35,12 @@ export class Configuration {
             type: 'checkbox',
             default: true
           },
+          hideTimeCodeColumn: {
+            label: '[Global]: hide TimeCode column<copy>If you need the column, disable this option</copy>',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
+          },
           handleTimeEntry: {
             label: '[Timesheet Entry]: enable enhancements<copy>Enable enhancements on time entry screen</copy>',
             labelPos: 'right',
@@ -87,6 +93,10 @@ export class Configuration {
 
   handleTimeEntry() {
     return GM_config.get('handleTimeEntry');
+  }
+
+  hideTimeCodeColumn() {
+    return GM_config.get('hideTimeCodeColumn');
   }
 
   handleTimesheetDetails() {

@@ -61,10 +61,12 @@ export class TimeEntry {
   }
   private add(section: Element) {
     // really disable some fields to avoid errors
-    section.querySelectorAll('input[title="Time code"]').forEach((e: HTMLInputElement) => {
-      e.disabled = true;
-      e.readOnly = true;
-    });
+    if (Configuration.getInstance().hideTimeCodeColumn()) {
+      section.querySelectorAll('input[title="Time code"]').forEach((e: HTMLInputElement) => {
+        e.disabled = true;
+        e.readOnly = true;
+      });
+    }
 
     // always show work item & project descriptions in time entry
     if (Configuration.getInstance().alwaysShowDescriptions()) {
