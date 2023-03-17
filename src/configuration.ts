@@ -59,6 +59,12 @@ export class Configuration {
             type: 'checkbox',
             default: true
           },
+          experimentalNewActionButtons: {
+            label: '[Timesheet Entry]: Add X rows at once</copy>',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: false
+          },
         },
         css: 'copy { display: block; margin-left: 40px; font-weight: normal }'
       });
@@ -99,6 +105,10 @@ export class Configuration {
 
   hideLockedRows() {
     return GM_config.get('hideLockedRows');
+  }
+
+  experimentalNewActionButtons() {
+    return GM_config.get('experimentalNewActionButtons');
   }
 
   show() {

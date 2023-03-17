@@ -8,7 +8,7 @@ for your browser
 
 Once you have installed Tampermonkey, you can install this
 script by opening the URL to the production version.
-Tampermonkey will pic up the download and create a new
+Tampermonkey will pick up the download and create a new
 userscript for you.
 
 Link: https://github.com/macaw-cad/tampermonkey-unit4/raw/main/dist/index.prod.user.js
@@ -29,7 +29,7 @@ template script from https://github.com/Trim21/webpack-userscript-template
 5. every time you edit your metadata, you'll have to restart
    webpack watch server and (maybe even) install new UserScript
    in your browser again, because Tampermonkey don't read it
-   from dist every times.
+   from dist every time.
 
 ## create a production build
 
