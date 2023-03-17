@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.22
+// @version     0.9.23
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -1445,7 +1445,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.22"};
+const package_namespaceObject = {"i8":"0.9.23"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
