@@ -1,0 +1,54 @@
+// shrink some less important columns
+.timesheetDetails {
+    box-sizing: border-box;
+    padding-left: 20%;
+
+    table.Excel {
+        th {
+            position: sticky !important;
+            top: 0;
+            background-color: rgb(245, 246, 246);
+        }
+
+        // make rows not relevant less visible
+        .LockedRow {
+            opacity: 0.4 !important;
+            pointer-events: none;
+        }
+
+        // word wrap descriptions due to smaller columns
+        *[data-type="cell-description"] div {
+            white-space: break-spaces !important;
+        }
+
+        *[data-type="cell-workorder"] { width: 120px !important }
+        *[data-type="cell-project"] { width: 120px !important }
+        *[data-type="cell-weekday"] { width: 45px !important; }
+        *[data-type="cell-sum"] { width: 45px !important; }
+    }
+
+    &.hideLocked table.Excel .LockedRow {
+        display: none;
+    }
+}
+
+.workflowLog {
+    width: 40% !important;
+    position: fixed;
+    z-index: 6;
+    top: 35px;
+    right: 19px;
+    display: block !important;
+    margin-bottom: 0 !important;
+    background: #fff;
+
+    & + div {
+        display: none;
+    }
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+

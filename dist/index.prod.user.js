@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.20
+// @version     0.9.22
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -1028,6 +1028,29 @@ ___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails {\n  box-sizing: bor
 
 /***/ }),
 
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheetactions/timesheetactions.less":
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Z": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("./node_modules/css-loader/dist/runtime/noSourceMaps.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+// Imports
+
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, ".timesheetDetails {\n  box-sizing: border-box;\n  padding-left: 20%;\n}\n.timesheetDetails table.Excel th {\n  position: sticky !important;\n  top: 0;\n  background-color: #f5f6f6;\n}\n.timesheetDetails table.Excel .LockedRow {\n  opacity: 0.4 !important;\n  pointer-events: none;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-description\"] div {\n  white-space: break-spaces !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-workorder\"] {\n  width: 120px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-project\"] {\n  width: 120px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-weekday\"] {\n  width: 45px !important;\n}\n.timesheetDetails table.Excel *[data-type=\"cell-sum\"] {\n  width: 45px !important;\n}\n.timesheetDetails.hideLocked table.Excel .LockedRow {\n  display: none;\n}\n.workflowLog {\n  width: 40% !important;\n  position: fixed;\n  z-index: 6;\n  top: 35px;\n  right: 19px;\n  display: block !important;\n  margin-bottom: 0 !important;\n  background: #fff;\n}\n.workflowLog + div {\n  display: none;\n}\n.workflowLog:hover {\n  opacity: 1;\n}\n", ""]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
 /***/ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js":
 /***/ ((module) => {
 
@@ -1422,7 +1445,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.20"};
+const package_namespaceObject = {"i8":"0.9.22"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1539,6 +1562,12 @@ class Configuration {
           labelPos: 'right',
           type: 'checkbox',
           default: true
+        },
+        experimentalNewActionButtons: {
+          label: '[Timesheet Entry]: Add X rows at once</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: false
         }
       },
       css: 'copy { display: block; margin-left: 40px; font-weight: normal }'
@@ -1586,6 +1615,10 @@ class Configuration {
 
   hideLockedRows() {
     return GM_config.get('hideLockedRows');
+  }
+
+  experimentalNewActionButtons() {
+    return GM_config.get('experimentalNewActionButtons');
   }
 
   show() {
@@ -1903,6 +1936,171 @@ class TimeSheet {
   }
 
 }
+// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheetactions/timesheetactions.less
+var timesheetactions = __webpack_require__("./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheetactions/timesheetactions.less");
+;// CONCATENATED MODULE: ./src/modules/timesheetactions/timesheetactions.less
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+var timesheetactions_options = {};
+
+timesheetactions_options.styleTagTransform = (styleTagTransform_default());
+timesheetactions_options.setAttributes = (setAttributesWithoutAttributes_default());
+
+      timesheetactions_options.insert = insertBySelector_default().bind(null, "head");
+    
+timesheetactions_options.domAPI = (styleDomAPI_default());
+timesheetactions_options.insertStyleElement = (insertStyleElement_default());
+
+var timesheetactions_update = injectStylesIntoStyleTag_default()(timesheetactions/* default */.Z, timesheetactions_options);
+
+
+
+
+       /* harmony default export */ const timesheetactions_timesheetactions = (timesheetactions/* default */.Z && timesheetactions/* default.locals */.Z.locals ? timesheetactions/* default.locals */.Z.locals : undefined);
+
+;// CONCATENATED MODULE: ./src/modules/timesheetactions/timesheetactions.ts
+function timesheetactions_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+class Timesheetactions {
+  // ----------------------------------------------------------------------
+  // Time Entry Screen Action Buttons
+  // ----------------------------------------------------------------------
+  constructor() {
+    timesheetactions_defineProperty(this, "active", false);
+
+    // mark time entry table with special CSS class
+    document.querySelectorAll('h2.SectionTitle').forEach(e => {
+      if (Configuration.getInstance().experimentalNewActionButtons()) {
+        if (e.textContent.startsWith('Time entry')) {
+          let section = e.closest('.u4-section-placeholder');
+
+          if (section != null) {
+            this.active = true;
+            this.prependNumberofRowsButton(section); //this.appendDeleteEmptyButton(section);
+          }
+        }
+      }
+    });
+  }
+
+  isActive() {
+    return this.active;
+  }
+
+  prependNumberofRowsButton(tablesection) {
+    if (tablesection) {
+      const table = tablesection.querySelector('.TableButtonRow').closest('table');
+
+      if (table) {
+        //get Instance of original 'Add' btn
+        table.querySelectorAll('button').forEach(e => {
+          if (Configuration.getInstance().experimentalNewActionButtons()) {
+            if (e.textContent.startsWith('Add')) {
+              this.standardAddBtn = e;
+            }
+          }
+        }); //create new table cell
+
+        const inputCell = table.rows[0].insertCell(0);
+        inputCell.classList.add('Input'); //create new table cell
+
+        const buttonCell = table.rows[0].insertCell(1);
+        buttonCell.classList.add('Button'); //create new table cell
+
+        const sepCell = table.rows[0].insertCell(2); //create new input
+
+        const input = document.createElement('input');
+        input.setAttribute('type', 'number');
+        input.setAttribute('min', '1');
+        input.setAttribute('max', '99');
+        input.classList.add('Edit');
+        input.value = '10'; //create new button
+
+        const button = document.createElement("button");
+        button.setAttribute("type", "button");
+        button.setAttribute("role", "button");
+        button.setAttribute("title", "Add new rows to the table");
+        button.classList.add('BaseButton');
+        button.classList.add('SectionButton');
+        button.innerHTML = "<span>Add rows</span>";
+        button.addEventListener("click", () => {
+          let repeat = 10;
+
+          if (!isNaN(parseInt(input.value))) {
+            repeat = parseInt(input.value);
+          }
+
+          sessionStorage.setItem("sw_repeatbtnclick", String(repeat));
+          this.standardAddBtn.dispatchEvent(new Event('click'));
+        }); //create seperator
+
+        let sepWrapper = document.createElement("div");
+        sepWrapper.innerHTML = '&nbsp;|&nbsp;'; // when the first row was added, this should do the trick
+
+        if (sessionStorage.getItem("sw_repeatbtnclick") !== "") {
+          let item = parseInt(sessionStorage.getItem("sw_repeatbtnclick"));
+
+          if (item > 1) {
+            item = item - 1;
+            sessionStorage.setItem("sw_repeatbtnclick", String(item));
+            this.standardAddBtn.dispatchEvent(new Event('click'));
+          } else {
+            sessionStorage.setItem("sw_repeatbtnclick", "");
+          }
+        }
+
+        inputCell.appendChild(input);
+        buttonCell.appendChild(button);
+        sepCell.appendChild(sepWrapper);
+      }
+    }
+  }
+
+  appendDeleteEmptyButton(tablesection) {
+    if (tablesection) {
+      const table = tablesection.querySelector('.TableButtonRow').closest('table');
+
+      if (table) {
+        //get Instance of original 'Delete' btn
+        table.querySelectorAll('button').forEach(e => {
+          if (Configuration.getInstance().experimentalNewActionButtons()) {
+            if (e.textContent.startsWith('Delete')) {
+              this.standardDeleteBtn = e;
+            }
+          }
+        }); //create new table cell
+
+        const buttonCell = table.rows[0].insertCell(5);
+        buttonCell.classList.add('Button'); //create new button
+
+        const button = document.createElement("button");
+        button.setAttribute("type", "button");
+        button.setAttribute("role", "button");
+        button.setAttribute("title", "Delete empty rows with no hours");
+        button.classList.add('BaseButton');
+        button.classList.add('SectionButton');
+        button.innerHTML = "<span>Delete empty</span>";
+        button.addEventListener("click", () => {
+          let repeat = 1; //TODO: search empty rows and click selectbox
+          //this.standardDeleteBtn.dispatchEvent(new Event('click'));
+        });
+        buttonCell.appendChild(button);
+      }
+    }
+  }
+
+}
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/global/global.less
 var global = __webpack_require__("./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/global/global.less");
 ;// CONCATENATED MODULE: ./src/modules/global/global.less
@@ -1993,14 +2191,17 @@ class Global {
 
 
 
+
 class Unit4Enhancer {
   async main() {
     const timeEntry = new TimeEntry();
     const timeSheet = new TimeSheet();
+    const timeSheetActions = new Timesheetactions();
     const global = new Global();
+    const version = package_namespaceObject.i8;
 
-    if (timeEntry.isActive() || timeSheet.isActive() || global.isActive()) {
-      console.log("Unit4 enhancements " + package_namespaceObject.i8 + " active ... ");
+    if (timeEntry.isActive() || timeSheet.isActive() || timeSheetActions.isActive() || global.isActive()) {
+      console.log("Unit4 enhancements " + version + " active ... ");
     }
 
     if (window.parent == window.self) {
