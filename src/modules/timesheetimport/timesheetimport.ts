@@ -147,15 +147,15 @@ export class Timesheetimport {
         {
           "workOrder": "400002-10027", "activity": "100", "description": "Import test #1",
           "time": [
-            { "date": "5/1", "hours": 1.5 },
-            { "date": "5/2", "hours": 0.75 }
+            { "date": "5/1", "hours": "1.5" },
+            { "date": "5/2", "hours": "0.75" }
           ]
         },
         {
           "workOrder": "400002-10025", "activity": "100", "description": "Import test #2",
           "time": [
-            { "date": "5/3", "hours": 1.25 },
-            { "date": "5/5", "hours": 4.75 }
+            { "date": "5/3", "hours": "1.25" },
+            { "date": "5/5", "hours": "4.75" }
           ]
         }
       ]      
@@ -165,15 +165,15 @@ export class Timesheetimport {
         {
           workOrder: "400002-10027", activity: "100", description: "Import test #1",
           time: [
-            { date: "5/1", hours: 1.5 },
-            { date: "5/2", hours: 0.75 },
+            { date: "5/1", hours: "1.5" },
+            { date: "5/2", hours: "0.75" },
           ]
         },
         {
           workOrder: "400002-10025", activity: "100", description: "Import test #2",
           time: [
-            { date: "5/3", hours: 1.25 },
-            { date: "5/5", hours: 4.75 },
+            { date: "5/3", hours: "1.25" },
+            { date: "5/5", hours: "4.75" },
           ]
         }
       ];
@@ -337,7 +337,7 @@ export class Timesheetimport {
           const field = fields[i] as HTMLInputElement;
           const curr = field.value;
           field.dispatchEvent(new Event("focus"));
-          field.value = entry.hours.toFixed(2);
+          field.value = `${entry.hours}`;
           field.dispatchEvent(new Event("blur"));
           // page reloads if value has changed
           return curr !== field.value;
