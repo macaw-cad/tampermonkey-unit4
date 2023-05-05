@@ -71,6 +71,12 @@ export class Configuration {
             type: 'checkbox',
             default: false
           },
+          experimentalJsonImport: {
+            label: '[Timesheet Entry]: Import data from JSON<copy>This is an experimental feature for now and enabled to fill in workorders based on a JSON document</copy>',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: false
+          },
         },
         css: 'copy { display: block; margin-left: 40px; font-weight: normal }'
       });
@@ -119,6 +125,10 @@ export class Configuration {
 
   experimentalNewActionButtons() {
     return GM_config.get('experimentalNewActionButtons');
+  }
+
+  experimentalJsonImport() {
+    return GM_config.get('experimentalJsonImport');
   }
 
   show() {

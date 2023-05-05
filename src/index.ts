@@ -4,16 +4,18 @@ import {TimeSheet} from "./modules/timesheet/timesheet";
 import {Timesheetactions} from "./modules/timesheetactions/timesheetactions";
 import {Global} from "./modules/global/global";
 import {Configuration} from "./configuration";
+import { Timesheetimport } from './modules/timesheetimport/timesheetimport';
 
 class Unit4Enhancer {
   async main () {
     const timeEntry = new TimeEntry();
     const timeSheet = new TimeSheet();
     const timeSheetActions = new Timesheetactions();
+    const timeSheetImport = new Timesheetimport();
     const global = new Global();
     const version = packageInfo.version;
 
-    if (timeEntry.isActive() || timeSheet.isActive() || timeSheetActions.isActive() || global.isActive()) {
+    if (timeEntry.isActive() || timeSheet.isActive() || timeSheetActions.isActive() || timeSheetImport.isActive() || global.isActive()) {
       console.log("Unit4 enhancements " + version + " active ... ");
     }
 
