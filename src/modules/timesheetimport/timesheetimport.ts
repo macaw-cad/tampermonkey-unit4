@@ -71,53 +71,56 @@ export class Timesheetimport {
 
         //get Instance of original 'Add' btn
         table.querySelectorAll('button').forEach(e => {
-          if (e.textContent.startsWith('Add')) {
+          if (e.textContent === 'Add') {
             this.standardAddBtn = e;
           }
         });
 
-        // create modal import dialog
-        this.dialog = document.createElement("div");
-        this.dialog.classList.add("modalDialog");
-        this.dialog.style.display = 'none';
+        if (this.standardAddBtn) {
+          // create modal import dialog
+          this.dialog = document.createElement("div");
+          this.dialog.classList.add("modalDialog");
+          this.dialog.style.display = 'none';
 
-        this.dialogEntry = document.createElement("textarea");
-        this.dialog.appendChild(this.dialogEntry);
+          this.dialogEntry = document.createElement("textarea");
+          this.dialog.appendChild(this.dialogEntry);
 
-        const dialogButtons = document.createElement("div");
-        dialogButtons.classList.add("modalDialog__buttons");
-        this.dialog.appendChild(dialogButtons);
+          const dialogButtons = document.createElement("div");
+          dialogButtons.classList.add("modalDialog__buttons");
+          this.dialog.appendChild(dialogButtons);
 
-        const dialogOK = document.createElement("button");
-        dialogOK.setAttribute("type", "button");
-        dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
-        dialogOK.innerHTML = "<span>Start Import</span>";
-        dialogOK.addEventListener('click', this.actionImport.bind(this));
-        dialogButtons.appendChild(dialogOK);
+          const dialogOK = document.createElement("button");
+          dialogOK.setAttribute("type", "button");
+          dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
+          dialogOK.innerHTML = "<span>Start Import</span>";
+          dialogOK.addEventListener('click', this.actionImport.bind(this));
+          dialogButtons.appendChild(dialogOK);
 
-        const dialogCancel = document.createElement("button");
-        dialogCancel.setAttribute("type", "button");
-        dialogCancel.classList.add("RibbonInlineButton");
-        dialogCancel.innerHTML = "<span>Cancel</span>";
-        dialogCancel.addEventListener('click', this.actionClose.bind(this));
-        dialogButtons.appendChild(dialogCancel);
+          const dialogCancel = document.createElement("button");
+          dialogCancel.setAttribute("type", "button");
+          dialogCancel.classList.add("RibbonInlineButton");
+          dialogCancel.innerHTML = "<span>Cancel</span>";
+          dialogCancel.addEventListener('click', this.actionClose.bind(this));
+          dialogButtons.appendChild(dialogCancel);
 
-        document.body.appendChild(this.dialog);
+          document.body.appendChild(this.dialog);
 
-        //create new table cell
-        const buttonCell = table.rows[0].insertCell(1);
-        buttonCell.classList.add('Button');
+          //create new table cell
+          const buttonCell = document.createElement("td");
+          table.rows[0].insertBefore(buttonCell, this.standardAddBtn.parentElement);
+          buttonCell.classList.add('Button');
 
-        //create new button
-        const button = document.createElement("button");
-        button.setAttribute("type", "button");
-        button.setAttribute("role", "button");
-        button.setAttribute("title", "Import data from JSON");
-        button.classList.add('BaseButton');
-        button.classList.add('SectionButton');
-        button.innerHTML = "<span>Impot JSON</span>";
-        button.addEventListener("click", this.actionDialog.bind(this));        
-        buttonCell.appendChild(button);
+          //create new button
+          const button = document.createElement("button");
+          button.setAttribute("type", "button");
+          button.setAttribute("role", "button");
+          button.setAttribute("title", "Import data from JSON");
+          button.classList.add('BaseButton');
+          button.classList.add('SectionButton');
+          button.innerHTML = "<span>Import JSON</span>"
+          button.addEventListener("click", this.actionDialog.bind(this));        
+          buttonCell.appendChild(button);
+        }
 
         // Handle remaining data from last JSON import
         this.handleImportNextItem();

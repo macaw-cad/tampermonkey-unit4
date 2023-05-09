@@ -1,6 +1,7 @@
 # Macaw Unit4 Enhancements
 
-This project is an enhancement for the Unit4 web UI.
+This project has been created to improve the UX/UI of the existing Unit4 web application
+and add additional features not available by default.
 
 You need Tampermonkey to use it in your browser, please
 visit https://www.tampermonkey.net/ to get an extension
@@ -12,6 +13,21 @@ Tampermonkey will pick up the download and create a new
 userscript for you.
 
 Link: https://github.com/macaw-cad/tampermonkey-unit4/raw/main/dist/index.prod.user.js
+
+# Features
+
+The script enhances the time entry screen with these features:
+
+* resize columns to better fit their relevamce (e.g. larger description colulm)
+* hide some unused columns
+* always show workorder and project titles
+* experimental: add more than 1 row at once
+* experimental: import data using JSON
+
+When the script is active, a "config" button is rendered in the bottom right corner.
+Using this, you can enable or disable some features of this script.
+
+More documentation is available in the ```docs``` folder.
 
 # Development
 
