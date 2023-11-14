@@ -23,6 +23,12 @@ export class Configuration {
             type: 'checkbox',
             default: true
           },
+          alwaysShowActivity: {
+            label: '[Global]: Always show descriptions for an activity<copy>Display the name of the activity whereever possible.</copy>',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: false
+          },
           allowCommaEntry: {
             label: '[Global]: allow time entry with "," as separator<copy>Enable comma as decimal separator (in addition to the dot). Does not work consistently, so by default it is disabled</copy>',
             labelPos: 'right',
@@ -101,6 +107,10 @@ export class Configuration {
 
   alwaysShowDescriptions() {
     return GM_config.get('alwaysShowDescriptions');
+  }
+
+  alwaysShowActivity() {
+    return GM_config.get('alwaysShowActivity');
   }
 
   handleTimeEntry() {

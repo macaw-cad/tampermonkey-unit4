@@ -69,17 +69,23 @@ export class TimeEntry {
     }
 
     // always show work item & project descriptions in time entry
-    if (Configuration.getInstance().alwaysShowDescriptions()) {
-      section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
-        if (e.querySelectorAll('.tmFixDescription').length == 0) {
+    const showDescriptions = Configuration.getInstance().alwaysShowDescriptions();
+    const showActivity = Configuration.getInstance().alwaysShowActivity();
+
+    section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
+      const add = (showDescriptions && (e.getAttribute("data-type") === "cell-workorder" || e.getAttribute("data-type") === "cell-project"))
+        || (showActivity && e.getAttribute("data-type") === "cell-activity");
+      if (add) {
+        if (!e.classList.contains('.tmFixDescription')) {
           let x = document.createElement('div');
-          x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription tmFixDescription';
+          x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
           x.style.whiteSpace = "break-spaces";
           x.appendChild(document.createTextNode(e.getAttribute('title')));
           e.appendChild(x);
+          e.classList.add('tmFixDescription');
         }
-      });
-    }
+      }
+    });
   }
 
   private attachMutationObserver() {
