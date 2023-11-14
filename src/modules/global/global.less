@@ -65,13 +65,14 @@ table.Excel {
     *[data-type="cell-value"] { width: 0 !important; pointer-events: none; }
 
     // show descriptions all the time
-    *[data-type="cell-workorder"], *[data-type="cell-project"] {
-        .ListDescription {
-            display: block;
-            font-size: 11px;
-            color: #aaa;
-        }
+    .tmFixDescription .ListDescription {
+        display: block;
+        font-size: 11px;
+        color: #aaa;
     }
+    // larger activity
+    body.alwaysShowActivity & *[data-type="cell-activity"] { width: 120px !important; }
+
 }
 
 // show dialogs fixed and centered on screen
@@ -86,4 +87,7 @@ body.fixedDialog {
     #b_modalBackground {
         z-index: 1000 !important;
     }   
+    .slcPopup {
+        z-index: 9999 !important;
+    }
 }

@@ -10,8 +10,10 @@ export class Global {
   // ----------------------------------------------------------------------
 
   constructor() {
+    const config = Configuration.getInstance();
+
     // allow time entry with "," as separator
-    if (Configuration.getInstance().allowCommaEntry()) {
+    if (config.allowCommaEntry()) {
       document.querySelectorAll('.timeEntry input[data-type="Double"]').forEach((e : HTMLInputElement) => {
         this.active = true;
         e.addEventListener('keydown', event => {
@@ -39,11 +41,15 @@ export class Global {
     });
 
     // fixed centered dialogs
-    if (Configuration.getInstance().fixedDialogs()) {
+    if (config.fixedDialogs()) {
       document.body.classList.add("fixedDialog");
     } else {
       document.body.classList.remove("fixedDialog");
     }
+
+    // add some CSS classes based on configuration
+    if (config.alwaysShowDescriptions()) document.body.classList.add("alwaysShowDescription");
+    if (config.alwaysShowActivity()) document.body.classList.add("alwaysShowActivity");
   }
 
   public isActive() {
