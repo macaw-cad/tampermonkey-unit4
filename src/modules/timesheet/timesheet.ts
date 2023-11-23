@@ -1,23 +1,23 @@
 import './timesheet.less'
 import {Configuration} from "../../configuration";
 import {MarkupUtility} from "../MarkupUtility";
+import { AbstractModule } from '../AbstractModule';
 
-export class TimeSheet {
-
-  private active = false;
+export class TimeSheet extends AbstractModule {
 
   // ----------------------------------------------------------------------
   // Time Entry Screen
   // ----------------------------------------------------------------------
 
   constructor() {
+    super();
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().stickyWorkflowLog()) {
         if (e.textContent.startsWith('Workflow log')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.processWorkflowLow(section);
           }
         }
@@ -26,16 +26,12 @@ export class TimeSheet {
         if(e.textContent == 'Timesheet details') {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.processTimesheetDetails(section);
           }
         }
       }
     });
-  }
-
-  public isActive() {
-    return this.active;
   }
 
   // ----------------------------------------------------------------------

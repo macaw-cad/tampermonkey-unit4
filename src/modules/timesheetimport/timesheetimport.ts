@@ -1,5 +1,6 @@
 import './timesheetimport.less'
 import {Configuration} from "../../configuration";
+import { AbstractModule } from '../AbstractModule';
 
 // definition of a time entry with date ("M/D" format) and number of hours
 type DailyHours = {
@@ -31,11 +32,10 @@ class ImportWorkOrder {
   workOrder: WorkOrder;
 }
 
-export class Timesheetimport {
+export class Timesheetimport extends AbstractModule {
   // max waiting time for a field to be available / get focus
   private static readonly retrySeconds = 20;
 
-  private active = false;
   private standardAddBtn: Element;
   private dialog: HTMLElement;
   private dialogEntry: HTMLTextAreaElement;
@@ -45,22 +45,19 @@ export class Timesheetimport {
   // ----------------------------------------------------------------------
 
   constructor() {
+    super();
     // add import button if this feature is enabled in configuration
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().experimentalJsonImport()) {
         if (e.textContent.startsWith('Time entry')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.importButton(section);
           }
         }
       }
     });
-  }
-
-  public isActive() {
-    return this.active;
   }
 
   private importButton(tablesection: Element) {

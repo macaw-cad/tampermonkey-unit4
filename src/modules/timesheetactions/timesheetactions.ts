@@ -1,9 +1,9 @@
 import './timesheetactions.less'
 import {Configuration} from "../../configuration";
+import { AbstractModule } from '../AbstractModule';
 
-export class Timesheetactions {
+export class Timesheetactions extends AbstractModule {
 
-  private active = false;
   private standardAddBtn: Element;
   private standardDeleteBtn: Element;
 
@@ -12,23 +12,20 @@ export class Timesheetactions {
   // ----------------------------------------------------------------------
 
   constructor() {
+    super();
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().experimentalNewActionButtons()) {
         if (e.textContent.startsWith('Time entry')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.prependNumberofRowsButton(section);
             //this.appendDeleteEmptyButton(section);
           }
         }
       }
     });
-  }
-
-  public isActive() {
-    return this.active;
   }
 
   prependNumberofRowsButton(tablesection: Element) {
