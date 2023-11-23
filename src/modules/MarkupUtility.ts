@@ -59,7 +59,8 @@ export class MarkupUtility {
                 break;
               default:
                 // check if day of week is found
-                if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/[0-9]+/)) {
+                // Either "Mon MM/DD" or "Mon DD.MM." (dots are removed above!)
+                if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/?[0-9]+/)) {
                   MarkupUtility.markTableCells(table, th, col, 'cell-weekday');
                 } else {
                   console.log("Unknown header '" + text + "'", th);
