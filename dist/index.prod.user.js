@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.26
+// @version     0.9.27
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -1468,7 +1468,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.26"};
+const package_namespaceObject = {"i8":"0.9.27"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1744,7 +1744,8 @@ class MarkupUtility {
 
               default:
                 // check if day of week is found
-                if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/[0-9]+/)) {
+                // Either "Mon MM/DD" or "Mon DD.MM." (dots are removed above!)
+                if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/?[0-9]+/)) {
                   MarkupUtility.markTableCells(table, th, col, 'cell-weekday');
                 } else {
                   console.log("Unknown header '" + text + "'", th);
@@ -1758,36 +1759,47 @@ class MarkupUtility {
   }
 
 }
+;// CONCATENATED MODULE: ./src/modules/AbstractModule.ts
+function AbstractModule_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+class AbstractModule {
+  constructor() {
+    AbstractModule_defineProperty(this, "active", false);
+  }
+
+  isActive() {
+    return this.active;
+  }
+
+  setActive() {
+    this.active = true;
+  }
+
+}
 ;// CONCATENATED MODULE: ./src/modules/timeentry/timeentry.ts
-function timeentry_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
 
 
-class TimeEntry {
+class TimeEntry extends AbstractModule {
   // ----------------------------------------------------------------------
   // Time Entry Screen
   // ----------------------------------------------------------------------
   constructor() {
-    timeentry_defineProperty(this, "active", false);
+    super(); // mark time entry table with special CSS class
 
-    // mark time entry table with special CSS class
     if (Configuration.getInstance().handleTimeEntry()) {
       document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if (e.textContent == 'Time entry') {
           let section = e.closest('.u4-section-container');
 
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.processTimeEntry(section);
           }
         }
       });
     }
-  }
-
-  isActive() {
-    return this.active;
   }
 
   processTimeEntry(section) {
@@ -1894,26 +1906,24 @@ var timesheet_update = injectStylesIntoStyleTag_default()(timesheet/* default */
        /* harmony default export */ const timesheet_timesheet = (timesheet/* default */.Z && timesheet/* default.locals */.Z.locals ? timesheet/* default.locals */.Z.locals : undefined);
 
 ;// CONCATENATED MODULE: ./src/modules/timesheet/timesheet.ts
-function timesheet_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
 
 
-class TimeSheet {
+class TimeSheet extends AbstractModule {
   // ----------------------------------------------------------------------
   // Time Entry Screen
   // ----------------------------------------------------------------------
   constructor() {
-    timesheet_defineProperty(this, "active", false);
+    super(); // mark time entry table with special CSS class
 
-    // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().stickyWorkflowLog()) {
         if (e.textContent.startsWith('Workflow log')) {
           let section = e.closest('.u4-section-placeholder');
 
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.processWorkflowLow(section);
           }
         }
@@ -1924,16 +1934,12 @@ class TimeSheet {
           let section = e.closest('.u4-section-placeholder');
 
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.processTimesheetDetails(section);
           }
         }
       }
     });
-  }
-
-  isActive() {
-    return this.active;
   } // ----------------------------------------------------------------------
   // Workflow Logh (in Timesheet Details)
   // ----------------------------------------------------------------------
@@ -2016,34 +2022,28 @@ var timesheetactions_update = injectStylesIntoStyleTag_default()(timesheetaction
        /* harmony default export */ const timesheetactions_timesheetactions = (timesheetactions/* default */.Z && timesheetactions/* default.locals */.Z.locals ? timesheetactions/* default.locals */.Z.locals : undefined);
 
 ;// CONCATENATED MODULE: ./src/modules/timesheetactions/timesheetactions.ts
-function timesheetactions_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
 
-class Timesheetactions {
+class Timesheetactions extends AbstractModule {
   // ----------------------------------------------------------------------
   // Time Entry Screen Action Buttons
   // ----------------------------------------------------------------------
   constructor() {
-    timesheetactions_defineProperty(this, "active", false);
+    super(); // mark time entry table with special CSS class
 
-    // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().experimentalNewActionButtons()) {
         if (e.textContent.startsWith('Time entry')) {
           let section = e.closest('.u4-section-placeholder');
 
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.prependNumberofRowsButton(section); //this.appendDeleteEmptyButton(section);
           }
         }
       }
     });
-  }
-
-  isActive() {
-    return this.active;
   }
 
   prependNumberofRowsButton(tablesection) {
@@ -2069,6 +2069,7 @@ class Timesheetactions {
         const sepCell = table.rows[0].insertCell(2); //create new input
 
         const input = document.createElement('input');
+        input.setAttribute("id", "add-rows-num");
         input.setAttribute('type', 'number');
         input.setAttribute('min', '1');
         input.setAttribute('max', '99');
@@ -2076,6 +2077,7 @@ class Timesheetactions {
         input.value = '10'; //create new button
 
         const button = document.createElement("button");
+        button.setAttribute("id", "add-rows-btn");
         button.setAttribute("type", "button");
         button.setAttribute("role", "button");
         button.setAttribute("title", "Add new rows to the table");
@@ -2133,9 +2135,11 @@ class Timesheetactions {
         buttonCell.classList.add('Button'); //create new button
 
         const button = document.createElement("button");
+        button.setAttribute("id", "delete-empty-rows-btn");
         button.setAttribute("type", "button");
         button.setAttribute("role", "button");
         button.setAttribute("title", "Delete empty rows with no hours");
+        button.setAttribute("onclick", "");
         button.classList.add('BaseButton');
         button.classList.add('SectionButton');
         button.innerHTML = "<span>Delete empty</span>";
@@ -2181,22 +2185,20 @@ var global_update = injectStylesIntoStyleTag_default()(global/* default */.Z, gl
        /* harmony default export */ const global_global = (global/* default */.Z && global/* default.locals */.Z.locals ? global/* default.locals */.Z.locals : undefined);
 
 ;// CONCATENATED MODULE: ./src/modules/global/global.ts
-function global_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
 
-class Global {
+class Global extends AbstractModule {
   // ----------------------------------------------------------------------
   // Time Entry Screen
   // ----------------------------------------------------------------------
   constructor() {
-    global_defineProperty(this, "active", false);
-
+    super();
     const config = Configuration.getInstance(); // allow time entry with "," as separator
 
     if (config.allowCommaEntry()) {
       document.querySelectorAll('.timeEntry input[data-type="Double"]').forEach(e => {
-        this.active = true;
+        this.setActive();
         e.addEventListener('keydown', event => {
           if (event.key == ',') {
             let sel = e.selectionStart;
@@ -2210,7 +2212,7 @@ class Global {
 
     var currentFocus = null;
     document.querySelectorAll('.timeEntry').forEach(e => {
-      this.active = true;
+      this.setActive();
       e.addEventListener('focusin', event => {
         const ele = event.target;
 
@@ -2230,10 +2232,6 @@ class Global {
 
     if (config.alwaysShowDescriptions()) document.body.classList.add("alwaysShowDescription");
     if (config.alwaysShowActivity()) document.body.classList.add("alwaysShowActivity");
-  }
-
-  isActive() {
-    return this.active;
   }
 
 }
@@ -2272,6 +2270,7 @@ var timesheetimport_update = injectStylesIntoStyleTag_default()(timesheetimport/
 function timesheetimport_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
+
  // definition of a time entry with date ("M/D" format) and number of hours
 
 // status of currently imported work order
@@ -2288,31 +2287,26 @@ var ImportWorkOrderStatus; // class for storing work orders to import
 
 class ImportWorkOrder {}
 
-class Timesheetimport {
+class Timesheetimport extends AbstractModule {
   // max waiting time for a field to be available / get focus
   // ----------------------------------------------------------------------
   // Time Entry Screen Action Buttons
   // ----------------------------------------------------------------------
   constructor() {
-    timesheetimport_defineProperty(this, "active", false);
+    super(); // add import button if this feature is enabled in configuration
 
-    // add import button if this feature is enabled in configuration
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().experimentalJsonImport()) {
         if (e.textContent.startsWith('Time entry')) {
           let section = e.closest('.u4-section-placeholder');
 
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.importButton(section);
           }
         }
       }
     });
-  }
-
-  isActive() {
-    return this.active;
   }
 
   importButton(tablesection) {
@@ -2356,9 +2350,11 @@ class Timesheetimport {
           buttonCell.classList.add('Button'); //create new button
 
           const button = document.createElement("button");
+          button.setAttribute("id", "json-import-btn");
           button.setAttribute("type", "button");
           button.setAttribute("role", "button");
           button.setAttribute("title", "Import data from JSON");
+          button.setAttribute("onclick", "");
           button.classList.add('BaseButton');
           button.classList.add('SectionButton');
           button.innerHTML = "<span>Import JSON</span>";
@@ -2393,15 +2389,15 @@ class Timesheetimport {
         {
           "workOrder": "400002-10027", "activity": "100", "description": "Import test #1",
           "time": [
-            { "date": "5/1", "hours": "1.5" },
-            { "date": "5/2", "hours": "0.75" }
+            { "date": "2023-05-01", "hours": "1.5" },
+            { "date": "2023-05-02", "hours": "0.75" }
           ]
         },
         {
           "workOrder": "400002-10025", "activity": "100", "description": "Import test #2",
           "time": [
-            { "date": "5/3", "hours": "1.25" },
-            { "date": "5/5", "hours": "4.75" }
+            { "date": "2023-05-03", "hours": "1.25" },
+            { "date": "2023-05-05", "hours": "4.75" }
           ]
         }
       ]      
@@ -2411,15 +2407,15 @@ class Timesheetimport {
         {
           workOrder: "400002-10027", activity: "100", description: "Import test #1",
           time: [
-            { date: "5/1", hours: "1.5" },
-            { date: "5/2", hours: "0.75" },
+            { date: "2023-05-01", hours: "1.5" },
+            { date: "2023-05-02", hours: "0.75" },
           ]
         },
         {
           workOrder: "400002-10025", activity: "100", description: "Import test #2",
           time: [
-            { date: "5/3", hours: "1.25" },
-            { date: "5/5", hours: "4.75" },
+            { date: "2023-05-03", hours: "1.25" },
+            { date: "2023-05-05", hours: "4.75" },
           ]
         }
       ];
@@ -2432,7 +2428,8 @@ class Timesheetimport {
         status: ImportWorkOrderStatus.ADD,
         workOrder: next
       }));
-      sessionStorage.setItem("workorder_import_pending", JSON.stringify(data)); // close dialog
+      sessionStorage.setItem("workorder_import_pending", JSON.stringify(data));
+      sessionStorage.setItem("workorder_import_failed", "[]"); // close dialog
 
       this.actionClose(); // handle first import item
 
@@ -2463,6 +2460,25 @@ class Timesheetimport {
 
   storeCurrentImportWorkOrder(next) {
     sessionStorage.setItem("workorder_import_next", JSON.stringify(next));
+  } // add an entry to the failed ones
+
+
+  addFailed(failed) {
+    // load failed ones    
+    var failedList = this.getFailed();
+    failedList.push(failed);
+    sessionStorage.setItem("workorder_import_failed", JSON.stringify(failedList));
+  }
+
+  getFailed() {
+    var rawFailedList = sessionStorage.getItem("workorder_import_failed");
+    var failedList = [];
+
+    if (rawFailedList !== null && rawFailedList !== "") {
+      failedList = JSON.parse(rawFailedList);
+    }
+
+    return failedList;
   } // change status of import object and store in session
 
 
@@ -2602,12 +2618,18 @@ class Timesheetimport {
       const entry = next.workOrder.time.shift();
       this.storeCurrentImportWorkOrder(next);
       const headers = await this.waitForElements('th[data-type=cell-weekday]');
-      const fields = await this.waitForElements('.EditRow [data-type=cell-weekday] .InputCell input');
+      const fields = await this.waitForElements('.EditRow [data-type=cell-weekday] .InputCell input'); // TODO: when workorder is not valid, there is no EditRow InputCell and this throws an Exception
+      // requested date
+
+      const date = new Date(entry.date);
+      const dateEN = date.getMonth() + 1 + "/" + date.getDate(); // eEN format: M/D
+
+      const dateDE = date.getDate() + "." + (date.getMonth() + 1) + "."; // DE format: D.M.
 
       for (var i = 0; i < headers.length; ++i) {
         const head = headers[i];
 
-        if (head.title.includes(entry.date)) {
+        if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
           // seems to match the date
           const field = fields[i];
           const curr = field.value;
@@ -2634,35 +2656,84 @@ class Timesheetimport {
     if (next) {
       var willReload = false; // run actions as long as we do not have a page reload
 
+      var lastAction = "";
+      var recoverable = true;
+
       do {
         if (next.status === ImportWorkOrderStatus.ADD) {
+          lastAction = "Add a new row";
           willReload = this.addNewRow(next);
         } else if (next.status === ImportWorkOrderStatus.WORKORDER) {
+          lastAction = "Insert workorder";
+          recoverable = false; // wrong workorders are not recoverable!
+
           willReload = await this.fillWorkorder(next);
         } else if (next.status === ImportWorkOrderStatus.ACTIVITY) {
+          lastAction = "Insert activity";
           willReload = await this.fillActivity(next);
         } else if (next.status === ImportWorkOrderStatus.DESCRIPTION) {
+          lastAction = "Insert description";
           willReload = await this.fillDescription(next);
         } else if (next.status === ImportWorkOrderStatus.TIME) {
-          willReload = await this.fillTime(next);
+          lastAction = "Insert time";
+
+          try {
+            willReload = await this.fillTime(next);
+          } catch (e) {
+            // time field not found = invalid workorder
+            // skip the whole entry and mark as failed
+            this.addFailed(next);
+            this.updateImportState(next, ImportWorkOrderStatus.DONE);
+          }
         } else if (next.status === ImportWorkOrderStatus.DONE) {
           // just reload the frame to finish
+          lastAction = "Reload page";
           window.location.reload();
           willReload = true;
-        } //console.log("Will the last action reload the page?", willReload);
+        }
 
+        if (willReload) {
+          // last action should reload the page - if this has not been done for 5s,
+          // log an error and proceed with next action?
+          console.log("Wait for reload");
+          await new Promise(f => setTimeout(f, 5000));
+          alert("Last action (" + lastAction + ") seems to have failed, will retry next action");
+
+          if (recoverable) {
+            // move to next action
+            willReload = false;
+          } else {
+            // remember this as failed, mark as done and try next one
+            this.addFailed(next);
+            this.updateImportState(next, ImportWorkOrderStatus.DONE);
+          }
+        }
       } while (!willReload);
     } else if (sessionStorage.getItem("workorder_import_running") === "true") {
       // HOORAY! We are done!
       sessionStorage.setItem("workorder_import_running", "false");
-      alert("JSON import finished");
+      const failed = this.getFailed();
+
+      if (failed.length === 0) {
+        // no failed rows!
+        alert("JSON import finished without errors");
+      } else {
+        // we had some failed rows, show them in alert
+        var failedMsg = "";
+        failed.forEach(f => {
+          failedMsg += `Failed: ${f.workOrder.workOrder} - ${f.workOrder.description}\n`;
+        });
+        alert("JSON import finished with " + failed.length + " failed workorders:\n" + failedMsg);
+      }
     }
   }
 
 }
 
-timesheetimport_defineProperty(Timesheetimport, "retrySeconds", 20);
+timesheetimport_defineProperty(Timesheetimport, "retrySeconds", 10);
 ;// CONCATENATED MODULE: ./src/index.ts
+function src_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -2672,15 +2743,15 @@ timesheetimport_defineProperty(Timesheetimport, "retrySeconds", 20);
 
 
 class Unit4Enhancer {
+  // list of modules to use
   async main() {
-    const timeEntry = new TimeEntry();
-    const timeSheet = new TimeSheet();
-    const timeSheetActions = new Timesheetactions();
-    const timeSheetImport = new Timesheetimport();
-    const global = new Global();
     const version = package_namespaceObject.i8;
+    var active = false;
+    Unit4Enhancer.modules.forEach(m => {
+      active = new m().isActive() || active;
+    });
 
-    if (timeEntry.isActive() || timeSheet.isActive() || timeSheetActions.isActive() || timeSheetImport.isActive() || global.isActive()) {
+    if (active) {
       console.log("Unit4 enhancements " + version + " active ... ");
     }
 
@@ -2691,6 +2762,8 @@ class Unit4Enhancer {
   }
 
 }
+
+src_defineProperty(Unit4Enhancer, "modules", [TimeEntry, TimeSheet, Timesheetactions, Timesheetimport, Global]);
 
 const inst = new Unit4Enhancer();
 inst.main().catch(e => {
