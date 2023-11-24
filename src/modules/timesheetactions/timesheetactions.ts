@@ -1,9 +1,9 @@
 import './timesheetactions.less'
 import {Configuration} from "../../configuration";
+import { AbstractModule } from '../AbstractModule';
 
-export class Timesheetactions {
+export class Timesheetactions extends AbstractModule {
 
-  private active = false;
   private standardAddBtn: Element;
   private standardDeleteBtn: Element;
 
@@ -12,23 +12,20 @@ export class Timesheetactions {
   // ----------------------------------------------------------------------
 
   constructor() {
+    super();
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().experimentalNewActionButtons()) {
         if (e.textContent.startsWith('Time entry')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.prependNumberofRowsButton(section);
             //this.appendDeleteEmptyButton(section);
           }
         }
       }
     });
-  }
-
-  public isActive() {
-    return this.active;
   }
 
   prependNumberofRowsButton(tablesection: Element) {
@@ -59,6 +56,7 @@ export class Timesheetactions {
 
         //create new input
         const input = document.createElement('input');
+        input.setAttribute("id", "add-rows-num");
         input.setAttribute('type', 'number');
         input.setAttribute('min', '1');
         input.setAttribute('max', '99');
@@ -67,6 +65,7 @@ export class Timesheetactions {
 
         //create new button
         const button = document.createElement("button");
+        button.setAttribute("id", "add-rows-btn");
         button.setAttribute("type", "button");
         button.setAttribute("role", "button");
         button.setAttribute("title", "Add new rows to the table");
@@ -129,9 +128,11 @@ export class Timesheetactions {
 
         //create new button
         const button = document.createElement("button");
+        button.setAttribute("id", "delete-empty-rows-btn");
         button.setAttribute("type", "button");
         button.setAttribute("role", "button");
         button.setAttribute("title", "Delete empty rows with no hours");
+        button.setAttribute("onclick", "");
         button.classList.add('BaseButton');
         button.classList.add('SectionButton');
         button.innerHTML = "<span>Delete empty</span>";

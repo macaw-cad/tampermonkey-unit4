@@ -1,32 +1,28 @@
 import './timeentry.less'
 import {Configuration} from "../../configuration";
 import {MarkupUtility} from "../MarkupUtility";
+import { AbstractModule } from '../AbstractModule';
 
-export class TimeEntry {
-
-  private active = false;
+export class TimeEntry extends AbstractModule {
 
   // ----------------------------------------------------------------------
   // Time Entry Screen
   // ----------------------------------------------------------------------
 
   constructor() {
+    super();
     // mark time entry table with special CSS class
     if (Configuration.getInstance().handleTimeEntry()) {
       document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if(e.textContent == 'Time entry') {
           let section = e.closest('.u4-section-container');
           if (section != null) {
-            this.active = true;
+            this.setActive();
             this.processTimeEntry(section);
           }
         }
       });
     }
-  }
-
-  public isActive() {
-    return this.active;
   }
 
   private processTimeEntry(section: Element) {
