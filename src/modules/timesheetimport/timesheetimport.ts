@@ -34,7 +34,7 @@ class ImportWorkOrder {
 
 export class Timesheetimport extends AbstractModule {
   // max waiting time for a field to be available / get focus
-  private static readonly retrySeconds = 20;
+  private static readonly retrySeconds = 10;
 
   private standardAddBtn: Element;
   private dialog: HTMLElement;
@@ -109,9 +109,11 @@ export class Timesheetimport extends AbstractModule {
 
           //create new button
           const button = document.createElement("button");
+          button.setAttribute("id", "json-import-btn");
           button.setAttribute("type", "button");
           button.setAttribute("role", "button");
           button.setAttribute("title", "Import data from JSON");
+          button.setAttribute("onclick", "");
           button.classList.add('BaseButton');
           button.classList.add('SectionButton');
           button.innerHTML = "<span>Import JSON</span>"
@@ -147,15 +149,15 @@ export class Timesheetimport extends AbstractModule {
         {
           "workOrder": "400002-10027", "activity": "100", "description": "Import test #1",
           "time": [
-            { "date": "5/1", "hours": "1.5" },
-            { "date": "5/2", "hours": "0.75" }
+            { "date": "2023-05-01", "hours": "1.5" },
+            { "date": "2023-05-02", "hours": "0.75" }
           ]
         },
         {
           "workOrder": "400002-10025", "activity": "100", "description": "Import test #2",
           "time": [
-            { "date": "5/3", "hours": "1.25" },
-            { "date": "5/5", "hours": "4.75" }
+            { "date": "2023-05-03", "hours": "1.25" },
+            { "date": "2023-05-05", "hours": "4.75" }
           ]
         }
       ]      
@@ -165,15 +167,15 @@ export class Timesheetimport extends AbstractModule {
         {
           workOrder: "400002-10027", activity: "100", description: "Import test #1",
           time: [
-            { date: "5/1", hours: "1.5" },
-            { date: "5/2", hours: "0.75" },
+            { date: "2023-05-01", hours: "1.5" },
+            { date: "2023-05-02", hours: "0.75" },
           ]
         },
         {
           workOrder: "400002-10025", activity: "100", description: "Import test #2",
           time: [
-            { date: "5/3", hours: "1.25" },
-            { date: "5/5", hours: "4.75" },
+            { date: "2023-05-03", hours: "1.25" },
+            { date: "2023-05-05", hours: "4.75" },
           ]
         }
       ];
@@ -184,6 +186,7 @@ export class Timesheetimport extends AbstractModule {
       sessionStorage.setItem("workorder_import_running", "true");
       sessionStorage.setItem("workorder_import_next", JSON.stringify({status: ImportWorkOrderStatus.ADD, workOrder: next}));
       sessionStorage.setItem("workorder_import_pending", JSON.stringify(data));
+      sessionStorage.setItem("workorder_import_failed", "[]");
       // close dialog
       this.actionClose();
       // handle first import item
@@ -211,6 +214,22 @@ export class Timesheetimport extends AbstractModule {
   // store the import object that is currently active (e.g. after status change)
   private storeCurrentImportWorkOrder(next: ImportWorkOrder) {
     sessionStorage.setItem("workorder_import_next", JSON.stringify(next));
+  }
+
+  // add an entry to the failed ones
+  private addFailed(failed: ImportWorkOrder) {
+    // load failed ones    
+    var failedList = this.getFailed();
+    failedList.push(failed);
+    sessionStorage.setItem("workorder_import_failed", JSON.stringify(failedList));
+  }
+  private getFailed(): ImportWorkOrder[] {
+    var rawFailedList = sessionStorage.getItem("workorder_import_failed");
+    var failedList = [];
+    if (rawFailedList !== null && rawFailedList !== "") {
+      failedList = JSON.parse(rawFailedList);
+    }
+    return failedList;
   }
 
   // change status of import object and store in session
@@ -330,9 +349,15 @@ export class Timesheetimport extends AbstractModule {
       this.storeCurrentImportWorkOrder(next);
       const headers = await this.waitForElements('th[data-type=cell-weekday]');
       const fields = await this.waitForElements('.EditRow [data-type=cell-weekday] .InputCell input');
+      // TODO: when workorder is not valid, there is no EditRow InputCell and this throws an Exception
+      // requested date
+      const date = new Date(entry.date);
+      const dateEN = (date.getMonth()+1) + "/" + date.getDate(); // eEN format: M/D
+      const dateDE = date.getDate() + "." + (date.getMonth()+1) + "."; // DE format: D.M.
+
       for(var i=0 ; i<headers.length ; ++i) {
         const head = headers[i] as HTMLElement;
-        if (head.title.includes(entry.date)) {
+        if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
           // seems to match the date
           const field = fields[i] as HTMLInputElement;
           const curr = field.value;
@@ -359,29 +384,71 @@ export class Timesheetimport extends AbstractModule {
       var willReload = false;
 
       // run actions as long as we do not have a page reload
+      var lastAction = "";
+      var recoverable = true;
       do {
         if (next.status === ImportWorkOrderStatus.ADD) {
+          lastAction = "Add a new row";
           willReload = this.addNewRow(next);
         } else if (next.status === ImportWorkOrderStatus.WORKORDER) {
+          lastAction = "Insert workorder";
+          recoverable = false;  // wrong workorders are not recoverable!
           willReload = await this.fillWorkorder(next);
         } else if (next.status === ImportWorkOrderStatus.ACTIVITY) {
+          lastAction = "Insert activity";
           willReload = await this.fillActivity(next);
         } else if (next.status === ImportWorkOrderStatus.DESCRIPTION) {
+          lastAction = "Insert description";
           willReload = await this.fillDescription(next);
         } else if (next.status === ImportWorkOrderStatus.TIME) {
-          willReload = await this.fillTime(next);
-        } else if (next.status === ImportWorkOrderStatus.DONE) {
+          lastAction = "Insert time";
+          try {
+            willReload = await this.fillTime(next);
+          } catch (e) {
+            // time field not found = invalid workorder
+            // skip the whole entry and mark as failed
+            this.addFailed(next);
+            this.updateImportState(next, ImportWorkOrderStatus.DONE);
+          }
+        } else if (next.status === ImportWorkOrderStatus.DONE) {          
           // just reload the frame to finish
+          lastAction = "Reload page";
           window.location.reload();
           willReload = true;
         }
-        //console.log("Will the last action reload the page?", willReload);
+        if (willReload) {
+          // last action should reload the page - if this has not been done for 5s,
+          // log an error and proceed with next action?
+          console.log("Wait for reload");
+          await new Promise(f => setTimeout(f, 5000));
+          alert("Last action (" + lastAction + ") seems to have failed, will retry next action");
+          if (recoverable) {
+            // move to next action
+            willReload = false;
+          } else {
+            // remember this as failed, mark as done and try next one
+            this.addFailed(next);
+            this.updateImportState(next, ImportWorkOrderStatus.DONE);
+          }
+        }
+
       } while(!willReload);
 
     } else if (sessionStorage.getItem("workorder_import_running") === "true") {
       // HOORAY! We are done!
       sessionStorage.setItem("workorder_import_running", "false");
-      alert("JSON import finished");
+      const failed = this.getFailed();
+      if (failed.length === 0) {
+        // no failed rows!
+        alert("JSON import finished without errors");
+      } else {
+        // we had some failed rows, show them in alert
+        var failedMsg = "";
+        failed.forEach(f => {
+          failedMsg += `Failed: ${f.workOrder.workOrder} - ${f.workOrder.description}\n`;
+        })
+        alert("JSON import finished with " + failed.length + " failed workorders:\n" + failedMsg);
+      }
     }
 
   }

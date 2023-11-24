@@ -5,7 +5,6 @@ import { Timesheetactions } from './modules/timesheetactions/timesheetactions';
 import {Global} from "./modules/global/global";
 import {Configuration} from "./configuration";
 import { Timesheetimport } from './modules/timesheetimport/timesheetimport';
-import { AbstractModule } from './modules/AbstractModule';
 
 class Unit4Enhancer {
   // list of modules to use
@@ -22,7 +21,7 @@ class Unit4Enhancer {
 
     var active = false;
     Unit4Enhancer.modules.forEach(m => {
-      active ||= new m().isActive();
+      active = new m().isActive() || active;
     });
 
     if (active) {
