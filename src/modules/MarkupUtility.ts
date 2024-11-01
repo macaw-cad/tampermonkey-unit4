@@ -24,52 +24,55 @@ export class MarkupUtility {
     });
   }
 
-  public static addTypeToTableCells(section: Element) {
-    // since Unit45 changes the DOM frequently (and there are no callbacks or events), we need to check
-    // and re-add the classes on a regular basis
-    window.setInterval(() => {
-      section.querySelectorAll('table.Excel').forEach((table: HTMLTableElement) => {
-        if (!table.classList.contains("tmFix")) {
-          table.classList.add("tmFix");
-          var config = Configuration.getInstance();
-          table.querySelectorAll('th').forEach((th: HTMLElement, col) => {
-            const text = th.innerText.replace(/[_.\s]/g, '').toLowerCase();
-            switch (text) {
-              case '':
-                // ignore headers with empty text
-                break;
-              case 'zoom':
-              case 'status':
-              case 'workorder':
-              case 'project':
-              case 'activity':
-              case 'description':
-              case 'servicelines':
-              case 'finprjtype':
-              case 'timeunit':
-              case 'sum':
-              case 'invunit':
-              case 'value': 
-                // add type for some headers
-                MarkupUtility.markTableCells(table, th, col, 'cell-' + text)
-                break;
-              case 'timecode':
-                // add type for timecode based on config
-                MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
-                break;
-              default:
-                // check if day of week is found
-                // Either "Mon MM/DD" or "Mon DD.MM." (dots are removed above!)
-                if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/?[0-9]+/)) {
-                  MarkupUtility.markTableCells(table, th, col, 'cell-weekday');
-                } else {
-                  console.log("Unknown header '" + text + "'", th);
-                }
-            }
-          });
-        }
-      });
-    }, 100);
+  public static addTypeToTableCells(name: string, section: Element): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // since Unit45 changes the DOM frequently (and there are no callbacks or events), we need to check
+      // and re-add the classes on a regular basis
+      window.setInterval(() => {
+        section.querySelectorAll('table.Excel').forEach((table: HTMLTableElement) => {
+          if (!table.classList.contains("tmFix")) {
+            table.classList.add("tmFix");
+            var config = Configuration.getInstance();
+            table.querySelectorAll('th').forEach((th: HTMLElement, col) => {
+              const text = th.innerText.replace(/[_.\s]/g, '').toLowerCase();
+              switch (text) {
+                case '':
+                  // ignore headers with empty text
+                  break;
+                case 'zoom':
+                case 'status':
+                case 'workorder':
+                case 'project':
+                case 'activity':
+                case 'description':
+                case 'servicelines':
+                case 'finprjtype':
+                case 'timeunit':
+                case 'sum':
+                case 'invunit':
+                case 'value': 
+                  // add type for some headers
+                  MarkupUtility.markTableCells(table, th, col, 'cell-' + text)
+                  break;
+                case 'timecode':
+                  // add type for timecode based on config
+                  MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
+                  break;
+                default:
+                  // check if day of week is found
+                  // Either "Mon MM/DD" or "Mon DD.MM." (dots are removed above!)
+                  if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/?[0-9]+/)) {
+                    MarkupUtility.markTableCells(table, th, col, 'cell-weekday');
+                  } else {
+                    console.log("Unknown header '" + text + "'", th);
+                  }
+              }
+            });
+            resolve();
+          }
+        });
+      }, 100);
+    });
   }
 
 }

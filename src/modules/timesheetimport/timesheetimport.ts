@@ -1,6 +1,7 @@
 import './timesheetimport.less'
 import {Configuration} from "../../configuration";
 import { AbstractModule } from '../AbstractModule';
+import { MarkupUtility } from '../MarkupUtility';
 
 // definition of a time entry with date ("M/D" format) and number of hours
 type DailyHours = {
@@ -44,28 +45,29 @@ export class Timesheetimport extends AbstractModule {
   // Time Entry Screen Action Buttons
   // ----------------------------------------------------------------------
 
-  constructor() {
-    super();
-    // add import button if this feature is enabled in configuration
-    document.querySelectorAll('h2.SectionTitle').forEach(e => {
-      if (Configuration.getInstance().experimentalJsonImport()) {
-        if (e.textContent.startsWith('Time entry')) {
-          let section = e.closest('.u4-section-placeholder');
-          if (section != null) {
-            this.setActive();
-            this.importButton(section);
+  private section: HTMLElement;
+
+  public initModule(): Promise<void> {
+    if (Configuration.getInstance().experimentalJsonImport()) {
+      // add import button if this feature is enabled in configuration
+      document.querySelectorAll('h2.SectionTitle').forEach(e => {
+          if (e.textContent.startsWith('Time entry')) {
+            let section = e.closest('.u4-section-placeholder');
+            if (section != null) {
+              this.section = section as HTMLElement;
+              this.setActive();
+            }
           }
-        }
-      }
-    });
+      });
+    }
+    return Promise.resolve();
   }
 
-  private importButton(tablesection: Element) {
-    if(tablesection){
-      const table = tablesection.querySelector('.TableButtonRow').closest('table');
+  public executeModule(): void {
+    if(this.section){
+      const table = this.section.querySelector('.TableButtonRow').closest('table');
 
       if(table){
-
         //get Instance of original 'Add' btn
         table.querySelectorAll('button').forEach(e => {
           if (e.textContent === 'Add') {
@@ -161,24 +163,6 @@ export class Timesheetimport extends AbstractModule {
           ]
         }
       ]      
-      /*
-      // TODO: remove test data
-      const data: WorkOrder[] = [
-        {
-          workOrder: "400002-10027", activity: "100", description: "Import test #1",
-          time: [
-            { date: "2023-05-01", hours: "1.5" },
-            { date: "2023-05-02", hours: "0.75" },
-          ]
-        },
-        {
-          workOrder: "400002-10025", activity: "100", description: "Import test #2",
-          time: [
-            { date: "2023-05-03", hours: "1.25" },
-            { date: "2023-05-05", hours: "4.75" },
-          ]
-        }
-      ];
       */
 
       // put data in session and start with first entry
@@ -291,6 +275,30 @@ export class Timesheetimport extends AbstractModule {
     throw new Error(`Element field not found for: ${query}`);
   }
 
+  // searches for a matching existing row
+  private searchExistingRow(next: ImportWorkOrder) {
+    // check all rows
+    const rows = this.section.querySelectorAll('tr.ListItem,tr.AltListItem');
+    for (const row of rows) {
+      const workOrder = row.querySelector('td[data-type="cell-workorder"] div.ww.ellipsis')?.textContent;
+      const activity = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent;
+      const description = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent;
+      if (next.workOrder.workOrder === workOrder && next.workOrder.activity === activity && next.workOrder.description === description) {
+        return row;
+      }
+    }
+
+    const editRows = this.section.querySelectorAll('tr.EditRow');
+    for (const row of editRows) {
+      const workOrder = (row.querySelector('td[data-type="cell-workorder"] td.InputCell input') as HTMLInputElement)?.value;
+      const activity = (row.querySelector('td[data-type="cell-activity"] td.InputCell input') as HTMLInputElement)?.value;
+      const description = (row.querySelector('td[data-type="cell-description"] td.InputCell input') as HTMLInputElement)?.value;
+      if (next.workOrder.workOrder === workOrder && next.workOrder.activity === activity && next.workOrder.description === description) {
+        return row;
+      }
+    }
+  }    
+
   // add a new row in timesheet
   private addNewRow(next: ImportWorkOrder) {
     // next state is workorder
@@ -299,6 +307,16 @@ export class Timesheetimport extends AbstractModule {
     //console.log("Add a new row");
     this.standardAddBtn.dispatchEvent(new Event('click'));
     // adding a row will reload the page
+    return true;
+  }
+
+  private activateRow(row: Element, next: ImportWorkOrder) {
+    // next state is time entry
+    this.updateImportState(next, ImportWorkOrderStatus.TIME);
+    // click on description field to activate the row
+    const cell = row.querySelector("td[data-type=cell-description] div.ww.ellipsis") as HTMLElement;
+    cell.click();
+    // activating a row always triggers a page reload
     return true;
   }
 
@@ -388,8 +406,14 @@ export class Timesheetimport extends AbstractModule {
       var recoverable = true;
       do {
         if (next.status === ImportWorkOrderStatus.ADD) {
-          lastAction = "Add a new row";
-          willReload = this.addNewRow(next);
+          const existingRow = this.searchExistingRow(next);
+          if (!existingRow) {
+            lastAction = "Add a new row";
+            willReload = this.addNewRow(next);
+          } else {
+            lastAction = "Activated an existing row";
+            willReload = this.activateRow(existingRow, next);
+          }
         } else if (next.status === ImportWorkOrderStatus.WORKORDER) {
           lastAction = "Insert workorder";
           recoverable = false;  // wrong workorders are not recoverable!
@@ -419,7 +443,6 @@ export class Timesheetimport extends AbstractModule {
         if (willReload) {
           // last action should reload the page - if this has not been done for 5s,
           // log an error and proceed with next action?
-          console.log("Wait for reload");
           await new Promise(f => setTimeout(f, 5000));
           alert("Last action (" + lastAction + ") seems to have failed, will retry next action");
           if (recoverable) {

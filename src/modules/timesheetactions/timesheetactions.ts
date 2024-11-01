@@ -11,26 +11,27 @@ export class Timesheetactions extends AbstractModule {
   // Time Entry Screen Action Buttons
   // ----------------------------------------------------------------------
 
-  constructor() {
-    super();
+  private section: Element;
+
+  public initModule(): Promise<void> {
     // mark time entry table with special CSS class
     document.querySelectorAll('h2.SectionTitle').forEach(e => {
       if (Configuration.getInstance().experimentalNewActionButtons()) {
         if (e.textContent.startsWith('Time entry')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
+            this.section = section;
             this.setActive();
-            this.prependNumberofRowsButton(section);
-            //this.appendDeleteEmptyButton(section);
           }
         }
       }
     });
+    return Promise.resolve();
   }
 
-  prependNumberofRowsButton(tablesection: Element) {
-    if(tablesection){
-      const table = tablesection.querySelector('.TableButtonRow').closest('table');
+  public executeModule(): void {
+    if(this.section){
+      const table = this.section.querySelector('.TableButtonRow').closest('table');
 
       if(table){
 
