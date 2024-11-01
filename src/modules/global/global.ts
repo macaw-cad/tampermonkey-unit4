@@ -8,9 +8,7 @@ export class Global extends AbstractModule {
   // Time Entry Screen
   // ----------------------------------------------------------------------
 
-  constructor() {
-    super();
-
+  public initModule(): Promise<void> {
     const config = Configuration.getInstance();
 
     // allow time entry with "," as separator
@@ -35,7 +33,6 @@ export class Global extends AbstractModule {
         const ele : HTMLElement = <HTMLElement>event.target;
         if(ele.dataset.type && ele !== currentFocus) {
           currentFocus = ele;
-          console.log("Scroll into view", window.scrollY, ele.getBoundingClientRect());
           //ele.scrollIntoView({block: "end", inline: "nearest"});
         }
       });
@@ -51,6 +48,12 @@ export class Global extends AbstractModule {
     // add some CSS classes based on configuration
     if (config.alwaysShowDescriptions()) document.body.classList.add("alwaysShowDescription");
     if (config.alwaysShowActivity()) document.body.classList.add("alwaysShowActivity");
+
+    return Promise.resolve();
+  }
+
+  public executeModule(): void {
+    // no actions required
   }
 
 }

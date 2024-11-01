@@ -8,4 +8,7 @@ export abstract class AbstractModule {
     protected setActive() {
         this.active = true;
     }    
+
+    abstract initModule(): Promise<any>;
+    abstract executeModule(): void;
 }

@@ -5,6 +5,7 @@ import { Timesheetactions } from './modules/timesheetactions/timesheetactions';
 import {Global} from "./modules/global/global";
 import {Configuration} from "./configuration";
 import { Timesheetimport } from './modules/timesheetimport/timesheetimport';
+import { AbstractModule } from './modules/AbstractModule';
 
 class Unit4Enhancer {
   // list of modules to use
@@ -20,18 +21,37 @@ class Unit4Enhancer {
     const version = packageInfo.version;
 
     var active = false;
+    var initialization: Promise<any>[] = [];
+    var modules: AbstractModule[] = [];
     Unit4Enhancer.modules.forEach(m => {
-      active = new m().isActive() || active;
+      const module = new m();
+      initialization.push(module.initModule());
+      modules.push(module);
     });
-
-    if (active) {
-      console.log("Unit4 enhancements " + version + " active ... ");
-    }
 
     if(window.parent == window.self) {
       // only show config button on top level
       Configuration.getInstance().addConfigUI();
     }
+
+    Promise.all(initialization).then(() => {
+      // check if we have active modules at all
+      modules.forEach(module => {
+        if (module.isActive()) {
+          active = true;
+        }
+      });
+
+      // execute all active modules
+      if (active) {
+        console.log("Unit4 enhancements " + version + " active ... ");
+        modules.forEach(m => {
+          if (m.isActive()) {
+            m.executeModule();
+          }
+        });
+      }  
+    });
   }
 
 }

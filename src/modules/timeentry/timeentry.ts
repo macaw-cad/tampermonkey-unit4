@@ -9,36 +9,39 @@ export class TimeEntry extends AbstractModule {
   // Time Entry Screen
   // ----------------------------------------------------------------------
 
-  constructor() {
-    super();
+  private section: Element;
+
+  public initModule(): Promise<any> {
     // mark time entry table with special CSS class
     if (Configuration.getInstance().handleTimeEntry()) {
+      const promises: Promise<void>[] = [];
       document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if(e.textContent == 'Time entry') {
           let section = e.closest('.u4-section-container');
           if (section != null) {
+            this.section = section;
             this.setActive();
-            this.processTimeEntry(section);
+            // add data typ3 attributes to table
+            promises.push(MarkupUtility.addTypeToTableCells('timeentry', section));
           }
         }
       });
+      return Promise.all(promises);
     }
+    return Promise.resolve();
   }
 
-  private processTimeEntry(section: Element) {
-    // add data tape attributes to table
-    MarkupUtility.addTypeToTableCells(section);
-
+  public executeModule(): void {
     const interval = window.setInterval(() => {
-      if (!section.classList.contains("timeEntry")) {
+      if (!this.section.classList.contains("timeEntry")) {
         // cancel interval, since UI is now initialized
         window.clearInterval(interval);
 
         // add CSS class
-        section.classList.add('timeEntry');
+        this.section.classList.add('timeEntry');
 
         // scroll to current entry
-        section.querySelectorAll('input[title="Work order - Mandatory"]').forEach((e: HTMLInputElement) => {
+        this.section.querySelectorAll('input[title="Work order - Mandatory"]').forEach((e: HTMLInputElement) => {
           setTimeout(function () {
             if(document.activeElement === null || document.activeElement.tagName !== "INPUT") {
               e.focus();
@@ -48,7 +51,7 @@ export class TimeEntry extends AbstractModule {
         });
 
         // add all kind of functionality to the table
-        this.add(section);
+        this.add(this.section);
 
         // add observer to get changes after sort
         this.attachMutationObserver();
