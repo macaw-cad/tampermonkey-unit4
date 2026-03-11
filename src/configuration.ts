@@ -53,6 +53,13 @@ export class Configuration {
             type: 'checkbox',
             default: true
           },
+          handleWorkingHours: {
+            label: '[Timesheet Entry]: enable enhancements for working hours<copy>Enable enhancements on time entry screen for working hours. Only active when general time entry screen enhancements are active</copy>',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: true
+          },
+
           handleTimesheetDetails: {
             label: '[Timesheet Approval]: enable enhancements<copy>Enable enhancements on approval / rejection screen</copy>',
             labelPos: 'right',
@@ -115,6 +122,10 @@ export class Configuration {
 
   handleTimeEntry() {
     return GM_config.get('handleTimeEntry');
+  }
+
+  handleWorkingHours() {
+    return GM_config.get('handleWorkingHours');
   }
 
   hideTimeCodeColumn() {

@@ -73,6 +73,11 @@ table.Excel {
     // larger activity
     body.alwaysShowActivity & *[data-type="cell-activity"] { width: 120px !important; }
 
+    // weekdays right aligned, since cell content is too
+    th[data-type="cell-weekday"] > div {
+        text-align: right;
+        padding-inline: 5px;
+    }
 }
 
 // show dialogs fixed and centered on screen

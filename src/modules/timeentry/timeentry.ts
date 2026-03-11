@@ -10,6 +10,7 @@ export class TimeEntry extends AbstractModule {
   // ----------------------------------------------------------------------
 
   private section: Element;
+  private workingHoursSection: Element;
 
   public initModule(): Promise<any> {
     // mark time entry table with special CSS class
@@ -18,11 +19,18 @@ export class TimeEntry extends AbstractModule {
       document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if(e.textContent == 'Time entry') {
           let section = e.closest('.u4-section-container');
-          if (section != null) {
+          if (section != null) { 
             this.section = section;
             this.setActive();
             // add data typ3 attributes to table
-            promises.push(MarkupUtility.addTypeToTableCells('timeentry', section));
+            promises.push(MarkupUtility.addTypeToTableCells('tmTimeentry', section));
+          }
+        } else if (e.textContent == 'Working hours') {
+          let section = e.closest('.u4-section-container');
+          if (section != null) {
+            this.workingHoursSection = section;
+            // add markup to working hours
+            promises.push(MarkupUtility.addTypeToTableCells('tmWorkinghours', section));
           }
         }
       });
