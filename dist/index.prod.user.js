@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.28
+// @version     0.9.29
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -975,7 +975,7 @@ var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n.openConfigBtn {\n  position: fixed;\n  bottom: 0;\n  right: 0;\n  background: #f0f0f0;\n  z-index: 99999;\n  border: 1px solid #888;\n  padding: 4px;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.openConfigBtn:hover {\n  background: #e0e0e0;\n}\n.openConfigBtn:before {\n  content: \"\";\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  height: 14px;\n  width: 25px;\n  display: inline-block;\n  background-repeat: no-repeat;\n  background-position: center;\n  vertical-align: text-top;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-hidden-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel .tmFixDescription .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\nbody.alwaysShowActivity table.Excel *[data-type=\"cell-activity\"] {\n  width: 120px !important;\n}\nbody.fixedDialog [role=dialog] {\n  position: fixed;\n  top: 50% !important;\n  left: 50% !important;\n  transform: translate(-50%, -50%);\n  z-index: 9999 !important;\n}\nbody.fixedDialog #b_modalBackground {\n  z-index: 1000 !important;\n}\nbody.fixedDialog .slcPopup {\n  z-index: 9999 !important;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "body table.MainTable {\n  width: 100% !important;\n}\n.openConfigBtn {\n  position: fixed;\n  bottom: 0;\n  right: 0;\n  background: #f0f0f0;\n  z-index: 99999;\n  border: 1px solid #888;\n  padding: 4px;\n  border-radius: 6px;\n  cursor: pointer;\n}\n.openConfigBtn:hover {\n  background: #e0e0e0;\n}\n.openConfigBtn:before {\n  content: \"\";\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  height: 14px;\n  width: 25px;\n  display: inline-block;\n  background-repeat: no-repeat;\n  background-position: center;\n  vertical-align: text-top;\n}\ntable.Excel {\n  width: 100% !important;\n  position: relative;\n  /*\n    th {\n        position: sticky !important;\n        top: 0;\n        background-color: rgb(245, 246, 246);\n    }\n    */\n}\ntable.Excel .ListDescription {\n  display: none;\n}\ntable.Excel *[data-type=\"cell-zoom\"] {\n  width: 35px !important;\n}\ntable.Excel *[data-type=\"cell-status\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-timecode\"] {\n  width: 70px !important;\n}\ntable.Excel *[data-type=\"cell-hidden-timecode\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-activity\"] {\n  width: 60px !important;\n}\ntable.Excel *[data-type=\"cell-timeunit\"] {\n  width: 50px !important;\n}\ntable.Excel *[data-type=\"cell-weekday\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-sum\"] {\n  width: 55px !important;\n}\ntable.Excel *[data-type=\"cell-workorder\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-project\"] {\n  width: 250px !important;\n}\ntable.Excel *[data-type=\"cell-description\"] {\n  width: auto !important;\n}\ntable.Excel *[data-type=\"cell-servicelines\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-finprjtype\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-invunit\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel *[data-type=\"cell-value\"] {\n  width: 0 !important;\n  pointer-events: none;\n}\ntable.Excel .tmFixDescription .ListDescription {\n  display: block;\n  font-size: 11px;\n  color: #aaa;\n}\nbody.alwaysShowActivity table.Excel *[data-type=\"cell-activity\"] {\n  width: 120px !important;\n}\ntable.Excel th[data-type=\"cell-weekday\"] > div {\n  text-align: right;\n  padding-inline: 5px;\n}\nbody.fixedDialog [role=dialog] {\n  position: fixed;\n  top: 50% !important;\n  left: 50% !important;\n  transform: translate(-50%, -50%);\n  z-index: 9999 !important;\n}\nbody.fixedDialog #b_modalBackground {\n  z-index: 1000 !important;\n}\nbody.fixedDialog .slcPopup {\n  z-index: 9999 !important;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1468,7 +1468,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// CONCATENATED MODULE: ./package.json
-const package_namespaceObject = {"i8":"0.9.28"};
+const package_namespaceObject = {"i8":"0.9.29"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1560,7 +1560,7 @@ class Configuration {
           label: '[Global]: make dialogs sticky and centered',
           labelPos: 'right',
           type: 'checkbox',
-          default: true
+          default: false
         },
         hideTimeCodeColumn: {
           label: '[Global]: hide TimeCode column<copy>If you need the column, disable this option</copy>',
@@ -1570,6 +1570,12 @@ class Configuration {
         },
         handleTimeEntry: {
           label: '[Timesheet Entry]: enable enhancements<copy>Enable enhancements on time entry screen</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: true
+        },
+        handleWorkingHours: {
+          label: '[Timesheet Entry]: enable enhancements for working hours<copy>Enable enhancements on time entry screen for working hours. Only active when general time entry screen enhancements are active</copy>',
           labelPos: 'right',
           type: 'checkbox',
           default: true
@@ -1640,6 +1646,10 @@ class Configuration {
     return GM_config.get('handleTimeEntry');
   }
 
+  handleWorkingHours() {
+    return GM_config.get('handleWorkingHours');
+  }
+
   hideTimeCodeColumn() {
     return GM_config.get('hideTimeCodeColumn');
   }
@@ -1704,56 +1714,122 @@ class MarkupUtility {
       });
     });
   }
+  /**
+   * Hide rows based on content
+   * @param table  DOM element of table
+   * @param search text to search in cell
+   */
+
+
+  static hideRow(table, search) {
+    // iterate over all rows of the table
+    table.querySelectorAll(':scope > tbody > tr').forEach(row => {
+      // iterate over all table data cells of the row
+      row.querySelectorAll(':scope > td').forEach((td, key) => {
+        // if column text matches, hide row
+        if (td.innerText == search) {
+          row.style.display = "none";
+        }
+      });
+    });
+  }
+  /**
+   * Convert time to 24h
+   * @param table  DOM element of table
+   */
+
+
+  static convertTime(table) {
+    // iterate over all rows of the table
+    table.querySelectorAll(':scope > tbody > tr').forEach(row => {
+      // iterate over all table data cells of the row
+      row.querySelectorAll(':scope > td').forEach((td, key) => {
+        // if column matches time, change it
+        var match;
+
+        if ((match = td.innerText.match(/^([0-9]{1,2}):([0-9]{2})([AP]M)$/)) !== null) {
+          // Convert to 24h format
+          const [_, hours, minutes, period] = match;
+          let hour = parseInt(hours, 10);
+
+          if (period === 'PM' && hour !== 12) {
+            hour += 12;
+          } else if (period === 'AM' && hour === 12) {
+            hour = 0;
+          }
+
+          td.innerText = `${hour.toString().padStart(2, '0')}:${minutes}`;
+        }
+      });
+    });
+  }
+  /**
+   * Add CSS classes and attributes to the whole table
+   * 
+   * @param table table
+   */
+
+
+  static addTypes(table) {
+    var config = Configuration.getInstance();
+    table.querySelectorAll('th').forEach((th, col) => {
+      const text = th.innerText.replace(/[_.\s]/g, '').toLowerCase();
+
+      switch (text) {
+        case '':
+          // ignore headers with empty text
+          break;
+
+        case 'zoom':
+        case 'status':
+        case 'workorder':
+        case 'project':
+        case 'activity':
+        case 'description':
+        case 'servicelines':
+        case 'finprjtype':
+        case 'timeunit':
+        case 'sum':
+        case 'invunit':
+        case 'value':
+          // add type for some headers
+          MarkupUtility.markTableCells(table, th, col, 'cell-' + text);
+          break;
+
+        case 'timecode':
+          // add type for timecode based on config
+          MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
+          break;
+
+        default:
+          // check if day of week is found
+          // Either "Mon MM/DD" or "Mon DD.MM." (dots are removed above!)
+          if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/?[0-9]+/)) {
+            MarkupUtility.markTableCells(table, th, col, 'cell-weekday');
+          } else {
+            console.log("Unknown header '" + text + "'", th);
+          }
+
+      }
+    });
+  }
 
   static addTypeToTableCells(name, section) {
     return new Promise((resolve, reject) => {
       // since Unit45 changes the DOM frequently (and there are no callbacks or events), we need to check
       // and re-add the classes on a regular basis
       window.setInterval(() => {
+        var config = Configuration.getInstance();
         section.querySelectorAll('table.Excel').forEach(table => {
           if (!table.classList.contains("tmFix")) {
-            table.classList.add("tmFix");
-            var config = Configuration.getInstance();
-            table.querySelectorAll('th').forEach((th, col) => {
-              const text = th.innerText.replace(/[_.\s]/g, '').toLowerCase();
+            table.classList.add("tmFix", name);
+            MarkupUtility.addTypes(table);
 
-              switch (text) {
-                case '':
-                  // ignore headers with empty text
-                  break;
+            if (config.handleWorkingHours()) {
+              MarkupUtility.hideRow(table, 'Hours remaining');
+              MarkupUtility.convertTime(table);
+            }
 
-                case 'zoom':
-                case 'status':
-                case 'workorder':
-                case 'project':
-                case 'activity':
-                case 'description':
-                case 'servicelines':
-                case 'finprjtype':
-                case 'timeunit':
-                case 'sum':
-                case 'invunit':
-                case 'value':
-                  // add type for some headers
-                  MarkupUtility.markTableCells(table, th, col, 'cell-' + text);
-                  break;
-
-                case 'timecode':
-                  // add type for timecode based on config
-                  MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
-                  break;
-
-                default:
-                  // check if day of week is found
-                  // Either "Mon MM/DD" or "Mon DD.MM." (dots are removed above!)
-                  if (text.match(/(mon|tue|wed|thu|fri|sat|sun)[0-9]+\/?[0-9]+/)) {
-                    MarkupUtility.markTableCells(table, th, col, 'cell-weekday');
-                  } else {
-                    console.log("Unknown header '" + text + "'", th);
-                  }
-
-              }
-            });
             resolve();
           }
         });
@@ -1800,7 +1876,15 @@ class TimeEntry extends AbstractModule {
             this.section = section;
             this.setActive(); // add data typ3 attributes to table
 
-            promises.push(MarkupUtility.addTypeToTableCells('timeentry', section));
+            promises.push(MarkupUtility.addTypeToTableCells('tmTimeentry', section));
+          }
+        } else if (e.textContent == 'Working hours') {
+          let section = e.closest('.u4-section-container');
+
+          if (section != null) {
+            this.workingHoursSection = section; // add markup to working hours
+
+            promises.push(MarkupUtility.addTypeToTableCells('tmWorkinghours', section));
           }
         }
       });
