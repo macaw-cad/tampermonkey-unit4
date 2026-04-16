@@ -39,7 +39,7 @@ export class Configuration {
             label: '[Global]: make dialogs sticky and centered',
             labelPos: 'right',
             type: 'checkbox',
-            default: true
+            default: false
           },
           hideTimeCodeColumn: {
             label: '[Global]: hide TimeCode column<copy>If you need the column, disable this option</copy>',
