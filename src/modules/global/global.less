@@ -2,15 +2,23 @@ body table.MainTable { width: 100% !important }
 
 // configuration
 .openConfigBtn {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    background: #f0f0f0;
+    position: absolute;
+    top: 50px;
+    left: 1040px;
+    width: 75px;
+    background: #fff;
     z-index:99999;
-    border: 1px solid #888;
-    padding: 4px;
-    border-radius: 6px;
+    border: 1px solid #a9b1b5;
+    color: #424747;
+    padding-block: 4px;
+    padding-left: 0;
     cursor: pointer;
+    font-size: 13px;
+    font-family: dagny, arial, tahoma, verdana, sans-serif;
+    @media (min-width: 1260px) {    
+        right: 150px;
+        left: auto;
+    }
 
     &:hover {
         background: #e0e0e0;
@@ -25,6 +33,7 @@ body table.MainTable { width: 100% !important }
         background-repeat: no-repeat;
         background-position: center;
         vertical-align: text-top;
+        opacity: 0.4;
     }
 }
 

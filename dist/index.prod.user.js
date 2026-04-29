@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        userscript-macaw-unit4
 // @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.29
+// @version     0.9.30
 // @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source      https://github.com/macaw-cad/tampermonkey-unit4
 // @license     MIT
@@ -894,15 +894,25 @@ ___CSS_LOADER_EXPORT___.push([module.id, `body table.MainTable {
   width: 100% !important;
 }
 .openConfigBtn {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  background: #f0f0f0;
+  position: absolute;
+  top: 50px;
+  left: 1040px;
+  width: 75px;
+  background: #fff;
   z-index: 99999;
-  border: 1px solid #888;
-  padding: 4px;
-  border-radius: 6px;
+  border: 1px solid #a9b1b5;
+  color: #424747;
+  padding-block: 4px;
+  padding-left: 0;
   cursor: pointer;
+  font-size: 13px;
+  font-family: dagny, arial, tahoma, verdana, sans-serif;
+}
+@media (min-width: 1260px) {
+  .openConfigBtn {
+    right: 150px;
+    left: auto;
+  }
 }
 .openConfigBtn:hover {
   background: #e0e0e0;
@@ -916,6 +926,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `body table.MainTable {
   background-repeat: no-repeat;
   background-position: center;
   vertical-align: text-top;
+  opacity: 0.4;
 }
 table.Excel {
   width: 100% !important;
@@ -1588,7 +1599,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.9.29"};
+const package_namespaceObject = {"rE":"0.9.30"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1727,7 +1738,7 @@ class Configuration {
           default: false
         }
       },
-      css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; }'
+      css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config * { font-size: 13px; font-family: dagny, arial, tahoma, verdana, sans-serif; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; }'
     });
   }
   addConfigUI() {
@@ -2675,6 +2686,12 @@ class Timesheetimport extends AbstractModule {
     } while (--retries > 0);
     throw new Error(`Element field not found for: ${query}`);
   }
+  async focusElement(query) {
+    const elements = await this.waitForElements(query);
+    const ele = elements[0];
+    ele.focus();
+    return ele;
+  }
 
   // searches for a matching existing row
   searchExistingRow(next) {
@@ -2710,7 +2727,6 @@ class Timesheetimport extends AbstractModule {
       this.updateImportState(next, ImportWorkOrderStatus.TIMECODE);
     }
     // click "Add" button
-    //console.log("Add a new row");
     this.standardAddBtn.dispatchEvent(new Event('click'));
     // adding a row will reload the page
     return true;
@@ -2732,18 +2748,23 @@ class Timesheetimport extends AbstractModule {
     // fill in time code
     const input = await this.waitForFocus("Time code");
     const curr = input.value;
-    input.value = next.workOrder.timeCode || "0";
-    input.dispatchEvent(new KeyboardEvent('keydown', {
-      code: "Tab",
-      key: "Tab",
-      keyCode: 9,
-      which: 9,
-      bubbles: true,
-      cancelable: true
-    }));
-    // page reloads if value has changed
-    return false;
-    // return curr !== input.value;
+    const code = next.workOrder.timeCode || "0";
+    if (curr !== code) {
+      // code changed - one tab will reload
+      input.value = code;
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: "Tab",
+        key: "Tab",
+        keyCode: 9,
+        which: 9,
+        bubbles: true,
+        cancelable: true
+      }));
+      return true;
+    } else {
+      // no change = no reload
+      return false;
+    }
   }
 
   // wait for workorder input in current row to get focus and fill in the given text
@@ -2751,7 +2772,7 @@ class Timesheetimport extends AbstractModule {
     // next state is description
     this.updateImportState(next, ImportWorkOrderStatus.ACTIVITY);
     // fill in workorder
-    const input = await this.waitForFocus("Work order");
+    const input = await this.focusElement('.EditRow [title="Work order"] input');
     const curr = input.value;
     input.value = next.workOrder.workOrder;
     input.dispatchEvent(new KeyboardEvent('keydown', {
@@ -2770,20 +2791,25 @@ class Timesheetimport extends AbstractModule {
   async fillActivity(next) {
     // next state is workorder
     this.updateImportState(next, ImportWorkOrderStatus.DESCRIPTION);
-    //console.log("Fill in activity");
     var input = await this.waitForFocus("Activity");
     const curr = input.value;
-    input.value = next.workOrder.activity || "100";
-    input.dispatchEvent(new KeyboardEvent('keydown', {
-      code: "Tab",
-      key: "Tab",
-      keyCode: 9,
-      which: 9,
-      bubbles: true,
-      cancelable: true
-    }));
-    // page reloads if value has changed
-    return curr !== input.value;
+    const act = next.workOrder.activity || "100";
+    if (curr !== act) {
+      // activity changed - one tab will reload
+      input.value = act;
+      input.dispatchEvent(new KeyboardEvent('keydown', {
+        code: "Tab",
+        key: "Tab",
+        keyCode: 9,
+        which: 9,
+        bubbles: true,
+        cancelable: true
+      }));
+      return true;
+    } else {
+      // no change = no reload
+      return false;
+    }
   }
 
   // look for description area in current row and fill in the given text
@@ -2791,8 +2817,7 @@ class Timesheetimport extends AbstractModule {
     // next state is time entry
     this.updateImportState(next, ImportWorkOrderStatus.TIME);
     //console.log("Fill in description", next.workOrder.description);
-    const input = this.standardAddBtn.ownerDocument.querySelector(".EditRow [data-type=cell-description] .InputCell input");
-    input.dispatchEvent(new Event("focus"));
+    const input = await this.focusElement('.EditRow [data-type=cell-description] .InputCell input');
     input.value = next.workOrder.description;
     input.dispatchEvent(new Event("blur"));
     // description changes NEVER trigger a page reload
@@ -2837,7 +2862,6 @@ class Timesheetimport extends AbstractModule {
   // handle the import of the current import item
   async handleImportNextItem() {
     const next = this.getCurrentImportWorkOrder();
-    //console.log("Handle import", next);
     if (next) {
       var willReload = false;
 
