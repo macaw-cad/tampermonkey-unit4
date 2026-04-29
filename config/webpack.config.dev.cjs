@@ -1,7 +1,7 @@
 const path = require('path')
 const { merge } = require('webpack-merge')
 const LiveReloadPlugin = require('webpack-livereload-plugin')
-const UserScriptMetaDataPlugin = require('userscript-metadata-webpack-plugin')
+const { UserScriptMetaDataPlugin } = require('userscript-metadata-webpack-plugin')
 
 const metadata = require('./metadata.cjs')
 const webpackConfig = require('./webpack.config.base.cjs')
@@ -24,6 +24,8 @@ const cfg = merge(webpackConfig, {
   watch: true,
   watchOptions: {
     ignored: /node_modules/,
+    // polling necessary when projects runs in WSL2 but lives on windows drive
+    poll: 1000,
   },
   plugins: [
     new LiveReloadPlugin({

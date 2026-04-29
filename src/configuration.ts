@@ -45,7 +45,7 @@ export class Configuration {
             label: '[Global]: hide TimeCode column<copy>If you need the column, disable this option</copy>',
             labelPos: 'right',
             type: 'checkbox',
-            default: true
+            default: false
           },
           handleTimeEntry: {
             label: '[Timesheet Entry]: enable enhancements<copy>Enable enhancements on time entry screen</copy>',
@@ -91,7 +91,7 @@ export class Configuration {
             default: false
           },
         },
-        css: 'copy { display: block; margin-left: 40px; font-weight: normal }'
+        css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; }'
       });
   }
 

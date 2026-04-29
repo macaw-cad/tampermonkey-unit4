@@ -11,6 +11,7 @@ type DailyHours = {
 
 // definition of a work order entry for Unit4
 type WorkOrder = {
+  timeCode?: string;
   workOrder: string;
   activity: string;
   description: string;
@@ -20,8 +21,9 @@ type WorkOrder = {
 // status of currently imported work order
 enum ImportWorkOrderStatus {
   ADD = 1,            // use "Add" button to create a new row
+  TIMECODE = 6,       // fill in time code
   WORKORDER = 2,      // fill work order
-  ACTIVITY = 3,       // fill in activity (TODO)
+  ACTIVITY = 3,       // fill in activity
   DESCRIPTION = 4,    // fill description
   TIME = 5,           // fill in hours (per day)
   DONE = 100          // import done
@@ -275,6 +277,13 @@ export class Timesheetimport extends AbstractModule {
     throw new Error(`Element field not found for: ${query}`);
   }
 
+  private async focusElement(query: string): Promise<HTMLElement> {
+    const elements = await this.waitForElements(query);
+    const ele = elements[0] as HTMLElement;
+    ele.focus();
+    return ele;
+  }
+
   // searches for a matching existing row
   private searchExistingRow(next: ImportWorkOrder) {
     // check all rows
@@ -301,10 +310,15 @@ export class Timesheetimport extends AbstractModule {
 
   // add a new row in timesheet
   private addNewRow(next: ImportWorkOrder) {
-    // next state is workorder
-    this.updateImportState(next, ImportWorkOrderStatus.WORKORDER);
+    // next state is time code or workorder
+    if (Configuration.getInstance().hideTimeCodeColumn()) {
+      // time code is hidden, next row would be workorder
+      this.updateImportState(next, ImportWorkOrderStatus.WORKORDER);
+    } else {
+      // time code before workorder
+      this.updateImportState(next, ImportWorkOrderStatus.TIMECODE);
+    }
     // click "Add" button
-    //console.log("Add a new row");
     this.standardAddBtn.dispatchEvent(new Event('click'));
     // adding a row will reload the page
     return true;
@@ -320,13 +334,33 @@ export class Timesheetimport extends AbstractModule {
     return true;
   }
 
+  // wait for time code input in current row to get focus and fill in the given text
+  private async fillTimeCode(next: ImportWorkOrder) {
+    // next state is work order
+    this.updateImportState(next, ImportWorkOrderStatus.WORKORDER);
+    // fill in time code
+    const input = await this.waitForFocus("Time code");
+    const curr = input.value;
+    const code = next.workOrder.timeCode || "0";
+    if (curr !== code) {
+      // code changed - one tab will reload
+      input.value = code;
+      input.dispatchEvent(new KeyboardEvent('keydown', {code:"Tab", key:"Tab", keyCode: 9, which: 9, bubbles: true, cancelable: true}));
+      return true;
+    } else {
+      // no change = no reload
+      return false;
+    }
+  }
+
+
   // wait for workorder input in current row to get focus and fill in the given text
   private async fillWorkorder(next: ImportWorkOrder) {
     // next state is description
     this.updateImportState(next, ImportWorkOrderStatus.ACTIVITY);
     // fill in workorder
-    const input = await this.waitForFocus("Work order");
-    const curr = input.value;
+    const input = await this.focusElement('.EditRow [title="Work order"] input') as HTMLInputElement;
+    const curr = input.value;    
     input.value = next.workOrder.workOrder;
     input.dispatchEvent(new KeyboardEvent('keydown', {code:"Tab", key:"Tab", keyCode: 9, which: 9, bubbles: true, cancelable: true}));
     // page reloads if value has changed
@@ -337,13 +371,18 @@ export class Timesheetimport extends AbstractModule {
   private async fillActivity(next: ImportWorkOrder) {
     // next state is workorder
     this.updateImportState(next, ImportWorkOrderStatus.DESCRIPTION);
-    //console.log("Fill in activity");
     var input = await this.waitForFocus("Activity");
     const curr = input.value;
-    input.value = next.workOrder.activity || "100";
-    input.dispatchEvent(new Event("blur"));
-    // page reloads if value has changed
-    return curr !== input.value;
+    const act = next.workOrder.activity || "100";
+    if (curr !== act) {
+      // activity changed - one tab will reload
+      input.value = act;
+      input.dispatchEvent(new KeyboardEvent('keydown', {code:"Tab", key:"Tab", keyCode: 9, which: 9, bubbles: true, cancelable: true}));
+      return true;
+    } else {
+      // no change = no reload
+      return false;
+    }
   }
 
   // look for description area in current row and fill in the given text
@@ -351,8 +390,7 @@ export class Timesheetimport extends AbstractModule {
     // next state is time entry
     this.updateImportState(next, ImportWorkOrderStatus.TIME);
     //console.log("Fill in description", next.workOrder.description);
-    const input = this.standardAddBtn.ownerDocument.querySelector(".EditRow [data-type=cell-description] .InputCell input") as HTMLInputElement;
-    input.dispatchEvent(new Event("focus"));
+    const input = await this.focusElement('.EditRow [data-type=cell-description] .InputCell input') as HTMLInputElement;
     input.value =  next.workOrder.description;
     input.dispatchEvent(new Event("blur"));
     // description changes NEVER trigger a page reload
@@ -360,7 +398,7 @@ export class Timesheetimport extends AbstractModule {
   }
 
   // look for next time entry with matching (date) title and fill in value
-  private async fillTime(next: ImportWorkOrder) {
+  private async fillTime(next: ImportWorkOrder) { 
     if (next.workOrder.time.length > 0) {
       // handle next time entry
       const entry = next.workOrder.time.shift();
@@ -397,7 +435,6 @@ export class Timesheetimport extends AbstractModule {
   // handle the import of the current import item
   private async handleImportNextItem() {
     const next = this.getCurrentImportWorkOrder();
-    //console.log("Handle import", next);
     if (next) {
       var willReload = false;
 
@@ -414,6 +451,9 @@ export class Timesheetimport extends AbstractModule {
             lastAction = "Activated an existing row";
             willReload = this.activateRow(existingRow, next);
           }
+        } else if (next.status === ImportWorkOrderStatus.TIMECODE) {
+          lastAction = "Insert time code";
+          willReload = await this.fillTimeCode(next);
         } else if (next.status === ImportWorkOrderStatus.WORKORDER) {
           lastAction = "Insert workorder";
           recoverable = false;  // wrong workorders are not recoverable!
@@ -439,6 +479,11 @@ export class Timesheetimport extends AbstractModule {
           lastAction = "Reload page";
           window.location.reload();
           willReload = true;
+        } else {
+            // remember this as failed, mark as done and try next one
+            alert("Last action (" + lastAction + ") is unknown");
+            this.addFailed(next);
+            this.updateImportState(next, ImportWorkOrderStatus.DONE);
         }
         if (willReload) {
           // last action should reload the page - if this has not been done for 5s,
