@@ -1,11 +1,12 @@
 import packageInfo from '../package.json';
-import {TimeEntry} from "./modules/timeentry/timeentry";
-import {TimeSheet} from "./modules/timesheet/timesheet";
+import { TimeEntry } from './modules/timeentry/timeentry';
+import { TimeSheet } from "./modules/timesheet/timesheet";
 import { Timesheetactions } from './modules/timesheetactions/timesheetactions';
-import {Global} from "./modules/global/global";
-import {Configuration} from "./configuration";
+import { Global } from "./modules/global/global";
+import { Configuration } from "./configuration";
 import { Timesheetimport } from './modules/timesheetimport/timesheetimport';
-import { AbstractModule } from './modules/AbstractModule';
+import { AbstractModule } from './modules/AbstractModule'; 
+import './global.less'
 
 class Unit4Enhancer {
   // list of modules to use
@@ -45,6 +46,7 @@ class Unit4Enhancer {
       // execute all active modules
       if (active) {
         console.log("Unit4 enhancements " + version + " active ... ");
+
         modules.forEach(m => {
           if (m.isActive()) {
             m.executeModule();

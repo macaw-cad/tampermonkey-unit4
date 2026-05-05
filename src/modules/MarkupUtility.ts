@@ -94,6 +94,7 @@ export class MarkupUtility {
         case 'sum':
         case 'invunit':
         case 'value': 
+        case 'time':
           // add type for some headers
           MarkupUtility.markTableCells(table, th, col, 'cell-' + text)
           break;

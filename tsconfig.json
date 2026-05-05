@@ -4,10 +4,11 @@
     "esModuleInterop": true,
     "noImplicitAny": true,
     "moduleResolution": "nodenext",
-    "module": "ESNext",
+    "module": "nodenext",
     "target": "ES2020",
     "allowJs": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true
   }
 }
