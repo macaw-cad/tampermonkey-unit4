@@ -55,6 +55,7 @@ table.Excel {
         display: none;
     }
 
+    /*
     *[data-type="cell-zoom"] { width: 35px !important; }
     *[data-type="cell-status"] { width: 70px !important; }
     *[data-type="cell-timecode"] { width: 70px !important; }
@@ -65,13 +66,33 @@ table.Excel {
     *[data-type="cell-sum"] { width: 55px !important; }
     *[data-type="cell-workorder"] { width: 250px !important }
     *[data-type="cell-project"] { width: 250px !important }
-    *[data-type="cell-description"] { width: auto !important }
+    *[data-type="cell-description"] { width: auto !important; min-width: 100px !important; }
 
     // hide/disable some columns
     *[data-type="cell-servicelines"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-finprjtype"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-invunit"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-value"] { width: 0 !important; pointer-events: none; }
+    */
+
+    *[data-type="cell-zoom"] { width: 4% !important; }
+    *[data-type="cell-status"] { width: 6% !important; }
+    *[data-type="cell-timecode"] { width: 10% !important; }
+    *[data-type="cell-hidden-timecode"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-workorder"] { width: 15% !important }
+    *[data-type="cell-project"] { width: 15% !important }
+    *[data-type="cell-activity"] { width: 10% !important; }
+    *[data-type="cell-description"] { width: 20% !important; }
+    *[data-type="cell-weekday"] { width: 6% !important; }
+    *[data-type="cell-sum"] { width: 6% !important; }
+
+    // hide/disable some columns
+    *[data-type="cell-servicelines"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-finprjtype"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-invunit"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-value"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-timeunit"] { width: 0 !important; pointer-events: none; }
+
 
     // show descriptions all the time
     .tmFixDescription .ListDescription {
