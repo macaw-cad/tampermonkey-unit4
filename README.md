@@ -34,6 +34,27 @@ More documentation is available in the ```docs``` folder.
 The userscript is build using the Webpack + TypeScript
 template script from https://github.com/Trim21/webpack-userscript-template
 
+Since Tampermonkey runs in your Windows browser, the debug script for
+Tampermonkey needs to be placed on a Windows drive. This project is
+designed for development in WSL2, so there is a configuration in
+package.json, that defines the target folder and required name for
+the development version:
+
+```
+  "extra": {
+    "devtarget": {
+      "folder": "/mnt/c/Projekte/Intern/tampermonkey-unit4/dist",
+      "name": "file://C:/Projekte/Intern/tampermonkey-unit4/dist"
+    }
+  }
+```
+
+Dev builds will copy the compiled file to the devtarget.folder folder
+(usw WSL2 path here) and the file will be references in Tampermonkeys
+metadata with devtarget.name (the windows based file URL).
+The target folder needs to exist, otherwise the dev build will run
+into an error.
+
 ## prepare Tampermonkey in your browser
 
 1. Allow Tampermonkey's access to local file URIs [tampermonkey/faq](https://tampermonkey.net/faq.php?ext=dhdg#Q204)

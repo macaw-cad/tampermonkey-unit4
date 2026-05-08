@@ -39,5 +39,11 @@
     "webpack-cli": "7.0.2",
     "webpack-livereload-plugin": "3.0.2",
     "webpack-merge": "6.0.1"
+  },
+  "extra": {
+    "devtarget": {
+      "folder": "/mnt/c/Projekte/Intern/tampermonkey-unit4/dist",
+      "name": "file://C:/Projekte/Intern/tampermonkey-unit4/dist"
+    }
   }
 }

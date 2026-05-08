@@ -1,4 +1,5 @@
 const path = require('path')
+const { extra } = require('../package.json')
 const { merge } = require('webpack-merge')
 const LiveReloadPlugin = require('webpack-livereload-plugin')
 const { UserScriptMetaDataPlugin } = require('userscript-metadata-webpack-plugin')
@@ -8,7 +9,7 @@ const webpackConfig = require('./webpack.config.base.cjs')
 
 metadata.name = metadata.name + " (debug)";
 metadata.require.push(
-  'file://' + path.resolve(__dirname, '../dist/index.debug.user.js')
+  extra.devtarget.name + '/' + 'index.debug.user.js'
 )
 
 const cfg = merge(webpackConfig, {
@@ -18,7 +19,7 @@ const cfg = merge(webpackConfig, {
   },
   output: {
     filename: 'index.[name].user.js',
-    path: path.resolve(__dirname, '../dist'),
+    path: extra.devtarget.folder,
   },
   devtool: 'eval-source-map',
   watch: true,
