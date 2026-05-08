@@ -42,8 +42,8 @@
   },
   "extra": {
     "devtarget": {
-      "folder": "/mnt/c/Projekte/Intern/tampermonkey-unit4/dist",
-      "name": "file://C:/Projekte/Intern/tampermonkey-unit4/dist"
+      "folder": "/mnt/c/Projekte/Intern/tampermonkey-unit4",
+      "name": "file://C:/Projekte/Intern/tampermonkey-unit4"
     }
   }
 }

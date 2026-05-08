@@ -7,7 +7,7 @@ const { UserScriptMetaDataPlugin } = require('userscript-metadata-webpack-plugin
 const metadata = require('./metadata.cjs')
 const webpackConfig = require('./webpack.config.base.cjs')
 
-metadata.name = metadata.name + " (debug)";
+metadata.name = metadata.name + " (debugX)";
 metadata.require.push(
   extra.devtarget.name + '/' + 'index.debug.user.js'
 )
@@ -36,6 +36,5 @@ const cfg = merge(webpackConfig, {
       metadata,
     }),
   ],
-})
-
+});
 module.exports = cfg

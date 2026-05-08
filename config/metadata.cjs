@@ -1,7 +1,8 @@
-const { name, author, version, repository, extra } = require('../package.json')
+const { name, author, version, repository } = require('../package.json')
 
 module.exports = {
   name: name,
+  description: 'Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)',
   namespace: 'https://ubw.unit4cloud.com/',
   version: version,
   author: author,
