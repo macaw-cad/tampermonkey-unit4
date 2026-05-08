@@ -1,5 +1,6 @@
 /// <reference path="./external/gm_config/types/index.d.ts"/>
 import './external/gm_config/gm_config';
+import packageInfo from '../package.json';
 
 export class Configuration {
   private static instance: Configuration = new Configuration();
@@ -12,7 +13,7 @@ export class Configuration {
     GM_config.init(
       {
         id: 'MacawUnit4Config',
-        title: 'Unit4 enhancements configuration',
+        title: 'Unit4 enhancements configuration (v' + packageInfo.version + ')',
         events: {
           save: () => this.save()
         },
@@ -98,7 +99,7 @@ export class Configuration {
   addConfigUI() {
     const btn = document.createElement("button");
     btn.className = "openConfigBtn";
-    btn.innerText = "Config";
+    btn.innerText = "Configure enhancements";
     btn.title = "Click to configure Unit4 enhancements";
     btn.onclick = () => this.show();
     document.body.appendChild(btn);

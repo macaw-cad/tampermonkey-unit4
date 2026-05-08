@@ -6,7 +6,7 @@ import { Global } from "./modules/global/global";
 import { Configuration } from "./configuration";
 import { Timesheetimport } from './modules/timesheetimport/timesheetimport';
 import { AbstractModule } from './modules/AbstractModule'; 
-import './global.less'
+import './index.less'
 
 class Unit4Enhancer {
   // list of modules to use
