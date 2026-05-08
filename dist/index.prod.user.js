@@ -1,13 +1,14 @@
 // ==UserScript==
-// @name        userscript-macaw-unit4
-// @namespace   https://ubw.unit4cloud.com/
-// @version     0.9.30
-// @author      Carsten Wilhelm <carsten.wilhelm@macaw.net>
-// @source      https://github.com/macaw-cad/tampermonkey-unit4
-// @license     MIT
-// @match       https://ubw.unit4cloud.com/*
-// @match       https://ubw-preview.unit4cloud.com/*
-// @run-at      document-end
+// @name          userscript-macaw-unit4
+// @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
+// @namespace     https://ubw.unit4cloud.com/
+// @version       0.10.1
+// @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
+// @source        https://github.com/macaw-cad/tampermonkey-unit4
+// @license       MIT
+// @match         https://ubw.unit4cloud.com/*
+// @match         https://ubw-preview.unit4cloud.com/*
+// @run-at        document-end
 // ==/UserScript==
 
 /******/ (() => { // webpackBootstrap
@@ -869,7 +870,7 @@ window.GM_config = new GM_configStruct();
 
 /***/ },
 
-/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/global/global.less"
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/index.less"
 (module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -890,14 +891,11 @@ var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, `body table.MainTable {
-  width: 100% !important;
-}
-.openConfigBtn {
+___CSS_LOADER_EXPORT___.push([module.id, `.openConfigBtn {
   position: absolute;
   top: 50px;
   left: 1040px;
-  width: 75px;
+  width: 175px;
   background: #fff;
   z-index: 99999;
   border: 1px solid #a9b1b5;
@@ -910,7 +908,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `body table.MainTable {
 }
 @media (min-width: 1260px) {
   .openConfigBtn {
-    right: 150px;
+    right: 45px;
     left: auto;
   }
 }
@@ -928,6 +926,65 @@ ___CSS_LOADER_EXPORT___.push([module.id, `body table.MainTable {
   vertical-align: text-top;
   opacity: 0.4;
 }
+.modalDialog {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  resize: none;
+  background: #ffffffcc;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 5vh 5vw;
+  z-index: 9999;
+}
+.modalDialog textarea {
+  width: 100%;
+  height: 100%;
+  margin-bottom: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+}
+.modalDialog__buttons {
+  margin-bottom: 10px;
+}
+.modalDialog button {
+  margin: 0 20px 0 0;
+  height: 40px;
+}
+`, ""]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ },
+
+/***/ "./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/global/global.less"
+(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("./node_modules/css-loader/dist/runtime/noSourceMaps.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__("./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+// Imports
+
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, `body table.MainTable {
+  width: 100% !important;
+}
 table.Excel {
   width: 100% !important;
   position: relative;
@@ -938,43 +995,59 @@ table.Excel {
         background-color: rgb(245, 246, 246);
     }
     */
+  /*
+    *[data-type="cell-zoom"] { width: 35px !important; }
+    *[data-type="cell-status"] { width: 70px !important; }
+    *[data-type="cell-timecode"] { width: 70px !important; }
+    *[data-type="cell-hidden-timecode"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-activity"] { width: 60px !important; }
+    *[data-type="cell-timeunit"] { width: 50px !important; }
+    *[data-type="cell-weekday"] { width: 55px !important; }
+    *[data-type="cell-sum"] { width: 55px !important; }
+    *[data-type="cell-workorder"] { width: 250px !important }
+    *[data-type="cell-project"] { width: 250px !important }
+    *[data-type="cell-description"] { width: auto !important; min-width: 100px !important; }
+
+    // hide/disable some columns
+    *[data-type="cell-servicelines"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-finprjtype"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-invunit"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-value"] { width: 0 !important; pointer-events: none; }
+    */
 }
 table.Excel .ListDescription {
   display: none;
 }
 table.Excel *[data-type="cell-zoom"] {
-  width: 35px !important;
+  width: 4% !important;
 }
 table.Excel *[data-type="cell-status"] {
-  width: 70px !important;
+  width: 6% !important;
 }
 table.Excel *[data-type="cell-timecode"] {
-  width: 70px !important;
+  width: 10% !important;
 }
 table.Excel *[data-type="cell-hidden-timecode"] {
   width: 0 !important;
   pointer-events: none;
 }
-table.Excel *[data-type="cell-activity"] {
-  width: 60px !important;
-}
-table.Excel *[data-type="cell-timeunit"] {
-  width: 50px !important;
-}
-table.Excel *[data-type="cell-weekday"] {
-  width: 55px !important;
-}
-table.Excel *[data-type="cell-sum"] {
-  width: 55px !important;
-}
 table.Excel *[data-type="cell-workorder"] {
-  width: 250px !important;
+  width: 15% !important;
 }
 table.Excel *[data-type="cell-project"] {
-  width: 250px !important;
+  width: 15% !important;
+}
+table.Excel *[data-type="cell-activity"] {
+  width: 10% !important;
 }
 table.Excel *[data-type="cell-description"] {
-  width: auto !important;
+  width: 20% !important;
+}
+table.Excel *[data-type="cell-weekday"] {
+  width: 6% !important;
+}
+table.Excel *[data-type="cell-sum"] {
+  width: 6% !important;
 }
 table.Excel *[data-type="cell-servicelines"] {
   width: 0 !important;
@@ -989,6 +1062,10 @@ table.Excel *[data-type="cell-invunit"] {
   pointer-events: none;
 }
 table.Excel *[data-type="cell-value"] {
+  width: 0 !important;
+  pointer-events: none;
+}
+table.Excel *[data-type="cell-timeunit"] {
   width: 0 !important;
   pointer-events: none;
 }
@@ -1203,34 +1280,17 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.timesheetDetails {
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, `.modalDialog {
+___CSS_LOADER_EXPORT___.push([module.id, `.progress {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #ffffffcc;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  padding: 20px;
-  z-index: 9999;
-}
-.modalDialog textarea {
-  width: 100%;
-  height: 100%;
-  margin-bottom: 10px;
-  font-family: 'Courier New', Courier, monospace;
+  top: 10px;
+  right: 0px;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid #888;
+  color: #888;
   font-size: 16px;
-}
-.modalDialog__buttons {
-  margin-bottom: 10px;
-}
-.modalDialog button {
-  margin: 0 20px 0 0;
-  height: 40px;
+  padding: 12px;
+  text-align: right;
 }
 `, ""]);
 // Exports
@@ -1599,7 +1659,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.9.30"};
+const package_namespaceObject = {"rE":"0.10.1"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1652,6 +1712,7 @@ var gm_config = __webpack_require__("./src/external/gm_config/gm_config.js");
 ;// ./src/configuration.ts
 /// <reference path="./external/gm_config/types/index.d.ts"/>
 
+
 class Configuration {
   static instance = new Configuration();
   static getInstance() {
@@ -1660,7 +1721,7 @@ class Configuration {
   constructor() {
     GM_config.init({
       id: 'MacawUnit4Config',
-      title: 'Unit4 enhancements configuration',
+      title: 'Unit4 enhancements configuration (v' + package_namespaceObject.rE + ')',
       events: {
         save: () => this.save()
       },
@@ -1707,6 +1768,18 @@ class Configuration {
           type: 'checkbox',
           default: true
         },
+        experimentalNewActionButtons: {
+          label: '[Timesheet Entry]: Add X rows at once</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: false
+        },
+        experimentalJsonImport: {
+          label: '[Timesheet Entry]: Import data from JSON<copy>This is an experimental feature for now and enabled to fill in workorders based on a JSON document</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: false
+        },
         handleTimesheetDetails: {
           label: '[Timesheet Approval]: enable enhancements<copy>Enable enhancements on approval / rejection screen</copy>',
           labelPos: 'right',
@@ -1724,18 +1797,6 @@ class Configuration {
           labelPos: 'right',
           type: 'checkbox',
           default: true
-        },
-        experimentalNewActionButtons: {
-          label: '[Timesheet Entry]: Add X rows at once</copy>',
-          labelPos: 'right',
-          type: 'checkbox',
-          default: false
-        },
-        experimentalJsonImport: {
-          label: '[Timesheet Entry]: Import data from JSON<copy>This is an experimental feature for now and enabled to fill in workorders based on a JSON document</copy>',
-          labelPos: 'right',
-          type: 'checkbox',
-          default: false
         }
       },
       css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config * { font-size: 13px; font-family: dagny, arial, tahoma, verdana, sans-serif; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; }'
@@ -1744,7 +1805,7 @@ class Configuration {
   addConfigUI() {
     const btn = document.createElement("button");
     btn.className = "openConfigBtn";
-    btn.innerText = "Config";
+    btn.innerText = "Configure enhancements";
     btn.title = "Click to configure Unit4 enhancements";
     btn.onclick = () => this.show();
     document.body.appendChild(btn);
@@ -1890,6 +1951,7 @@ class MarkupUtility {
         case 'sum':
         case 'invunit':
         case 'value':
+        case 'time':
           // add type for some headers
           MarkupUtility.markTableCells(table, th, col, 'cell-' + text);
           break;
@@ -2398,6 +2460,665 @@ class Global extends AbstractModule {
     // no actions required
   }
 }
+;// ./src/modules/global/utils.ts
+class Utils {
+  static waitForElm(selector) {
+    return new Promise(resolve => {
+      const ele = document.querySelector(selector);
+      if (ele) {
+        return resolve(ele);
+      }
+      const observer = new MutationObserver(mutations => {
+        const ele = document.querySelector(selector);
+        if (ele) {
+          observer.disconnect();
+          return resolve(ele);
+        }
+      });
+
+      // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    });
+  }
+  static showDialog(content) {
+    // create modal import dialog
+    const dialog = document.createElement("div");
+    dialog.classList.add("modalDialog");
+    const dialogEntry = document.createElement("textarea");
+    dialogEntry.readOnly = true;
+    dialogEntry.value = content;
+    dialog.appendChild(dialogEntry);
+    const dialogButtons = document.createElement("div");
+    dialogButtons.classList.add("modalDialog__buttons");
+    dialog.appendChild(dialogButtons);
+    const dialogOK = document.createElement("button");
+    dialogOK.setAttribute("type", "button");
+    dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
+    dialogOK.innerHTML = "<span>OK</span>";
+    dialogOK.addEventListener('click', () => {
+      document.body.removeChild(dialog);
+    });
+    dialogButtons.appendChild(dialogOK);
+    document.body.appendChild(dialog);
+  }
+}
+;// ./src/modules/timesheetimport/importer/importtask.ts
+class ImportTask {
+  // max waiting time for a field to be available / get focus
+  static retrySeconds = 10;
+  constructor(groupId) {
+    this.groupId = groupId;
+    if (!ImportTask.section) {
+      throw new Error('Section not set');
+    }
+  }
+  getGroupId() {
+    return this.groupId;
+  }
+  next() {
+    return {
+      done: true
+    };
+  }
+  nextAfterReload(recoverable = true) {
+    return {
+      retry: false,
+      reload: true,
+      recoverable
+    };
+  }
+  retryAfterReload(recoverable = true) {
+    return {
+      retry: true,
+      reload: true,
+      recoverable
+    };
+  }
+  failure(reason) {
+    return {
+      failed: true,
+      task: this,
+      failureReason: reason
+    };
+  }
+  // wait a few seconds
+  wait(seconds) {
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+  }
+
+  //
+  // handling of DOM elements in Unit4
+  //
+
+  static setSection(section) {
+    ImportTask.section = section;
+  }
+
+  // wait for element to be available (queried by CSS selector)
+  async waitForElements(query) {
+    var retries = ImportTask.retrySeconds;
+    do {
+      const res = ImportTask.section.ownerDocument.querySelectorAll(query);
+      if (res !== null && res.length > 0) {
+        return [...res];
+      }
+      await this.wait(1);
+    } while (--retries > 0);
+    throw new Error(`Element field not found for: ${query}`);
+  }
+  async waitForElement(query) {
+    const elements = await this.waitForElements(query);
+    return elements[0];
+  }
+  async waitForField(dataType) {
+    // find the cell for the data type in the current edited row
+    const cell = await this.waitForElement(`.EditRow td[data-type=${dataType}`);
+
+    // check if there is an input field in this cell
+    const input = cell.querySelector('.InputCell input');
+    if (input !== null) {
+      input.focus();
+      return {
+        field: input,
+        value: input.value
+      };
+    }
+    // otherwise return the text of the first div
+    const div = cell.querySelector('& > div');
+    if (div !== null) {
+      return {
+        value: div.textContent
+      };
+    }
+    throw new Error(`Field not found for data-type: ${dataType}`);
+  }
+  async focusElement(query) {
+    const elements = await this.waitForElements(query);
+    const ele = elements[0];
+    ele.focus();
+    return ele;
+  }
+}
+class CloseEditingModeTask extends ImportTask {
+  constructor() {
+    super('close-editing-mode');
+  }
+  async run() {
+    // click on "Close" button to close the editing mode
+    const closeButton = ImportTask.section.ownerDocument.querySelector('[title="Close editing mode"');
+    if (closeButton) {
+      closeButton.click();
+      // try to find another button after reload
+      return this.retryAfterReload();
+    }
+    return this.next();
+  }
+}
+class SanityCheckTask extends ImportTask {
+  constructor(data) {
+    super('sanity-check');
+    this.data = data;
+  }
+  async run() {
+    const errors = [];
+    var sumWorkingTime = 0;
+    Object.entries(this.data).forEach(([dateStr, day]) => {
+      if (day.hours > 9 && day.breaks < 0.75) {
+        errors.push("Break issue: min. 45 min breaks on a day with " + day.hours + " hours of work, date: " + dateStr);
+      } else if (day.hours > 6 && day.breaks < 0.5) {
+        errors.push("Break issue: min. 30 min breaks on a day with " + day.hours + " hours of work, date: " + dateStr);
+      }
+      sumWorkingTime += day.workingTime;
+      if (day.workingTime > 10) {
+        errors.push("Working time issue: more than 10 hours of working time on date: " + dateStr);
+      } else if (day.workingTime <= 0) {
+        errors.push("Working time issue: no working time on date: " + dateStr);
+      }
+    });
+    if (sumWorkingTime < 40) {
+      errors.push("Working time issue: total working time less than 40 hours: " + sumWorkingTime);
+    }
+    return errors.length > 0 ? this.failure("Sanity check issues:\n\n * " + errors.join("\n\n * ")) : this.next();
+  }
+}
+;// ./src/modules/timesheetimport/importer/progress.ts
+class Progress {
+  constructor(parent, pending = 0) {
+    this.progress = parent.ownerDocument.createElement("span");
+    this.progress.classList.add("progress");
+    parent.after(this.progress);
+    const data = sessionStorage.getItem('import_progress');
+    if (data) {
+      this.data = JSON.parse(data);
+    } else {
+      this.data = {
+        pending
+      };
+    }
+    this.updateUI();
+  }
+  save() {
+    sessionStorage.setItem('import_progress', JSON.stringify(this.data));
+  }
+  updatePending(pending) {
+    this.data.pending = pending;
+    this.save();
+    this.updateUI();
+  }
+  updateUI() {
+    if (this.progress) {
+      const text = this.data.pending > 0 ? `${this.data.pending} pending` : '';
+      this.progress.textContent = text;
+      this.progress.style.display = this.data.pending > 0 ? 'inline-block' : 'none';
+    }
+  }
+}
+;// ./src/modules/timesheetimport/importer/workinghours.ts
+
+class WHImportTask extends ImportTask {
+  static createTask(taskData) {
+    switch (taskData.task) {
+      case 'WorkingStartImportTask':
+        return new WorkingStartImportTask(taskData.groupId, new Date(taskData.date), taskData.value);
+      case 'WorkingEndImportTask':
+        return new WorkingEndImportTask(taskData.groupId, new Date(taskData.date), taskData.value);
+    }
+  }
+  constructor(groupId, date, type, value) {
+    super(groupId);
+    this.date = date;
+    this.type = type;
+    this.value = value;
+  }
+  async lookupCell() {
+    const headers = await this.waitForElements('.tmWorkinghours th');
+    const rows = await this.waitForElements('.workinghours-section .ListItem, .workinghours-section .AltListItem, .workinghours-section .EditRow');
+    const date = new Date(this.date);
+    const dateEN = date.getMonth() + 1 + "/" + date.getDate(); // eEN format: M/D
+    const dateDE = date.getDate() + "." + (date.getMonth() + 1) + "."; // DE format: D.M.
+
+    for (var i = 0; i < headers.length; ++i) {
+      const head = headers[i];
+      if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
+        for (var j = 0; j < rows.length; ++j) {
+          const cell = rows[j].querySelector('td:nth-of-type(' + (i + 1) + ')');
+          const input = cell?.querySelector('.InputCell input');
+          if (j === 0 && this.type === "start") {
+            return {
+              cell,
+              input
+            };
+          } else if (j === 1 && this.type === "end") {
+            return {
+              cell,
+              input
+            };
+          }
+        }
+      }
+    }
+    return {};
+  }
+
+  // format time string to AM/PM format
+  formatLocalTime(timeString, field) {
+    // Parse the time string (assuming HH:MM or H:MM format)
+    const [hours, minutes] = timeString.split(':').map(str => parseInt(str, 10));
+    if (field.value.endsWith('AM') || field.value.endsWith('PM')) {
+      // Field used AM/PM - convert to 12 hour format
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const displayMinutes = String(minutes).padStart(2, '0');
+      return `${displayHours}:${displayMinutes}${period}`;
+    }
+
+    // Fallback: 24-hour format
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  }
+  async run() {
+    const cell = await this.lookupCell();
+    if (cell.input) {
+      // fill value
+      cell.input.focus();
+      cell.input.value = this.formatLocalTime(this.value, cell.input);
+      cell.input.blur();
+      return this.next();
+    } else if (cell.cell) {
+      // click to activate and try again
+      cell.cell.click();
+      return this.retryAfterReload();
+    }
+    return this.failure("Could not find cell for date " + this.date);
+  }
+}
+class WorkingStartImportTask extends WHImportTask {
+  constructor(groupId, day, time) {
+    super(groupId, day, "start", time);
+  }
+}
+class WorkingEndImportTask extends WHImportTask {
+  constructor(groupId, day, time) {
+    super(groupId, day, "end", time);
+  }
+}
+;// ./src/modules/timesheetimport/importer/workorders.ts
+
+class WOImportTask extends ImportTask {
+  static setAddButton(button) {
+    WOImportTask.addButton = button;
+  }
+  static createTask(taskData) {
+    switch (taskData.task) {
+      case 'StartWorkOrderImportTask':
+        return new StartWorkOrderImportTask(taskData.groupId, taskData.workOrder);
+      case 'TimecodeImportTask':
+        return new TimecodeImportTask(taskData.groupId, taskData.workOrder);
+      case 'WorkOrderImportTask':
+        return new WorkOrderImportTask(taskData.groupId, taskData.workOrder);
+      case 'ActivityImportTask':
+        return new ActivityImportTask(taskData.groupId, taskData.workOrder);
+      case 'DescriptionImportTask':
+        return new DescriptionImportTask(taskData.groupId, taskData.workOrder);
+      case 'HoursImportTask':
+        return new HoursImportTask(taskData.groupId, taskData.workOrder, new Date(taskData.date), taskData.value);
+      case 'WorkOrderSummaryTask':
+        return new WorkOrderSummaryTask(taskData.sum, taskData.breaks);
+    }
+  }
+  constructor(groupId, workOrder) {
+    super(groupId);
+    this.workOrder = workOrder;
+    if (!WOImportTask.addButton) {
+      throw new Error('Add button not set');
+    }
+  }
+
+  /**
+   * Search a row for the given work order.
+   * 
+   * @returns
+   *   - HTMLElement of the editable row if found
+   *   - true if new row will be created or exising row will be made editable (=> page reload)
+   */
+  async searchExistingRow() {
+    // check all rows
+    const rows = await this.waitForElements('tr.ListItem,tr.AltListItem,tr.EditRow');
+    for (const row of rows) {
+      const workOrder = row.querySelector('td[data-type="cell-workorder"] div.ww.ellipsis')?.textContent;
+      const activity = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent;
+      const description = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent;
+      const timeCode = row.querySelector('td[data-type="cell-timecode"] div.ww.ellipsis')?.textContent;
+      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.description === description && this.workOrder.timeCode === timeCode) {
+        // found existing row (readonly), make editable by clicking on it
+        // => will reload the page
+        const cell = row.querySelector("td[data-type=cell-description] div.ww.ellipsis");
+        cell.click();
+        return true;
+      }
+    }
+    const editRows = WOImportTask.addButton.ownerDocument.querySelectorAll('tr.EditRow');
+    for (const row of editRows) {
+      const workOrder = row.querySelector('td[data-type="cell-workorder"] td.InputCell input')?.value;
+      const activity = row.querySelector('td[data-type="cell-activity"] td.InputCell input')?.value;
+      const description = row.querySelector('td[data-type="cell-description"] td.InputCell input')?.value;
+      const timeCode = row.querySelector('td[data-type="cell-timecode"] td.InputCell input')?.value;
+      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.description === description && this.workOrder.timeCode === timeCode) {
+        // found existing row (editable), use it
+        return row;
+      }
+    }
+
+    // no mathing row found, create one by clicking "Add" button
+    // => this will reload the page
+    WOImportTask.addButton.dispatchEvent(new Event('click'));
+    return true;
+  }
+  async activeRow() {
+    return this.waitForElement('tr.EditRow');
+  }
+}
+class StartWorkOrderImportTask extends WOImportTask {
+  constructor(groupId, workOrder) {
+    super(groupId, workOrder);
+  }
+  async run() {
+    const row = await this.searchExistingRow();
+    if (row instanceof HTMLElement) {
+      // we found an editable row, use it directly
+      return this.next();
+    }
+    // row is not yet ready, retry after page reload
+    return this.nextAfterReload();
+  }
+}
+class WOFieldImportTask extends WOImportTask {
+  constructor(groupId, workOrder, cellType, value, reloads) {
+    super(groupId, workOrder);
+    this.cellType = cellType;
+    this.value = value;
+    this.reloads = reloads;
+  }
+  async lookupField(row) {
+    return this.waitForField(this.cellType);
+  }
+  async run() {
+    const row = await this.activeRow();
+    if (row) {
+      const field = await this.lookupField(row);
+      if (field === null) {
+        // field not found, this should not happen
+        return this.failure(`Could not find field for ${this.cellType}`);
+      } else if (field.value !== this.value) {
+        if (field.field) {
+          field.field.focus();
+          field.field.value = this.value;
+          field.field.dispatchEvent(new KeyboardEvent('keydown', {
+            code: "Tab",
+            key: "Tab",
+            keyCode: 9,
+            which: 9,
+            bubbles: true,
+            cancelable: true
+          }));
+          field.field.dispatchEvent(new Event('blur'));
+          // page may reload if value has changed
+          return this.reloads ? this.nextAfterReload() : this.next();
+        } else {
+          return this.failure(`Read-only field for ${this.cellType} has mismatched values, expected: ${this.value}, actual: ${field.value}`);
+        }
+      } else {
+        // value already set, continue with next field
+        return this.next();
+      }
+    } else {
+      return this.failure("Could not find active row");
+    }
+  }
+}
+class TimecodeImportTask extends WOFieldImportTask {
+  constructor(groupId, workOrder) {
+    super(groupId, workOrder, 'cell-timecode', workOrder.timeCode, true);
+  }
+}
+class WorkOrderImportTask extends WOFieldImportTask {
+  constructor(groupId, workOrder) {
+    super(groupId, workOrder, 'cell-workorder', workOrder.workOrder, true);
+  }
+}
+class ActivityImportTask extends WOFieldImportTask {
+  constructor(groupId, workOrder) {
+    super(groupId, workOrder, 'cell-activity', workOrder.activity, true);
+  }
+}
+class DescriptionImportTask extends WOFieldImportTask {
+  constructor(groupId, workOrder) {
+    super(groupId, workOrder, 'cell-description', workOrder.description, false);
+  }
+}
+class HoursImportTask extends WOFieldImportTask {
+  constructor(groupId, workOrder, day, hours) {
+    super(groupId, workOrder, 'cell-weekday', hours, false);
+    this.date = day;
+  }
+  async lookupField(row) {
+    const headers = await this.waitForElements('th[data-type=cell-weekday]');
+    const fields = await this.waitForElements('.EditRow [data-type=cell-weekday] .InputCell input');
+    // TODO: when workorder is not valid, there is no EditRow InputCell and this throws an Exception
+    // requested date
+    const dateEN = this.date.getMonth() + 1 + "/" + this.date.getDate(); // eEN format: M/D
+    const dateDE = this.date.getDate() + "." + (this.date.getMonth() + 1) + "."; // DE format: D.M.
+
+    for (var i = 0; i < headers.length; ++i) {
+      const head = headers[i];
+      if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
+        // seems to match the date
+        return {
+          field: fields[i],
+          value: fields[i].value
+        };
+      }
+    }
+    return null;
+  }
+}
+class WorkOrderSummaryTask extends ImportTask {
+  constructor(sum, breaks) {
+    super('work-order-summary');
+    this.sum = sum;
+    this.breaks = breaks;
+  }
+  async run() {
+    // get the sum of hours from Unit4 and compare with
+    // given values
+    const sumCells = await this.waitForElements('.SumColumn');
+    const sumCell = sumCells.pop();
+    if (sumCell) {
+      const unit4Sum = parseFloat(sumCell.textContent || "0");
+      if (unit4Sum !== this.sum) {
+        // sum of hours does not match
+        return this.failure(`Sum of hours does not match, expected: ${this.sum}, actual: ${unit4Sum}`);
+      }
+    }
+    return this.next();
+  }
+}
+;// ./src/modules/timesheetimport/importer/importer.ts
+
+
+
+
+
+class Importer {
+  tasks = [];
+  static getInstance() {
+    if (!Importer.instance) {
+      Importer.instance = new Importer();
+      window.addEventListener("beforeunload", event => {
+        console.log("Page gets reloaded ...");
+      });
+    }
+    return Importer.instance;
+  }
+  constructor() {
+    const tasks = sessionStorage.getItem('importerTasks');
+    this.tasks = tasks ? JSON.parse(tasks) : [];
+    this.progress = new Progress(document.querySelector('.PageTitle'));
+  }
+  storeTasks() {
+    const tasks = this.tasks.map(task => task instanceof ImportTask ? {
+      task: task.constructor.name,
+      ...task
+    } : task);
+    sessionStorage.setItem('importerTasks', JSON.stringify(tasks));
+  }
+  addTask(task) {
+    this.tasks.push(task);
+    this.storeTasks();
+  }
+  unshiftTask(task) {
+    this.tasks.unshift(task);
+    this.storeTasks();
+  }
+  clearTaskGroup(groupId) {
+    this.tasks = this.tasks.filter(task => this.obj(task).getGroupId() !== groupId);
+    this.storeTasks();
+  }
+  obj(taskData) {
+    if (taskData instanceof ImportTask) {
+      // already have a full object
+      return taskData;
+    }
+
+    // decide based on task property
+
+    // general tasks
+    switch (taskData.task) {
+      case 'CloseEditingModeTask':
+        return new CloseEditingModeTask();
+      case 'SanityCheckTask':
+        return new SanityCheckTask(taskData.data);
+    }
+
+    // tasks from other modules
+    const task = WOImportTask.createTask(taskData) || WHImportTask.createTask(taskData);
+    if (task) {
+      return task;
+    }
+    throw new Error('Unknown task type: ' + taskData.task + "|" + JSON.stringify(taskData));
+  }
+  currentTask() {
+    const taskData = this.tasks[0];
+    return taskData ? this.obj(taskData) : undefined;
+  }
+  popTask() {
+    const task = this.tasks.shift();
+    this.storeTasks();
+    return task && this.obj(task);
+  }
+  async runTasks() {
+    var task;
+    if (this.tasks.length > 0) {
+      sessionStorage.setItem("show_summary_on_finish", "true");
+      this.progress.updatePending(this.tasks.length);
+      while ((task = this.popTask()) !== undefined) {
+        // run the task
+        const result = await task.run();
+        if (result.reload) {
+          if (result.retry) {
+            // retry the same task again
+            this.unshiftTask(task);
+          }
+          // last action should reload the page - if this has not been done for 5s,
+          // log an error and proceed with next action?
+          await new Promise(f => setTimeout(f, 5000));
+          // page has not yet reloaded
+          if (result.recoverable) {
+            // recoverable => log error and move on with next action                    
+            this.addFailed(result.failureReason);
+          } else {
+            // not recoverable => log error and abort rest of workorder
+            this.addFailed(result.failureReason);
+            // skip tasks for same group
+            this.clearTaskGroup(task.getGroupId());
+          }
+        } else if (result.failed) {
+          // not recoverable => log error and abort rest of workorder
+          this.addFailed(result.failureReason);
+          // skip tasks for same group
+          this.clearTaskGroup(task.getGroupId());
+        }
+        this.progress.updatePending(this.tasks.length);
+      }
+    }
+    if (sessionStorage.getItem("show_summary_on_finish") === "true") {
+      // Show summary when at least one task has been processed
+      sessionStorage.removeItem("show_summary_on_finish");
+      const failed = this.getFailed();
+      var text = '';
+      if (failed.length > 0) {
+        text = "JSON import finished with " + failed.length + " failed imports:\n";
+        failed.forEach(f => {
+          text += f.message;
+          if (f.data) {
+            text += " | data: " + JSON.stringify(f.data);
+          }
+          text += "\n----------------------------------------------------------------------------------------------------\n";
+        });
+      } else {
+        text = "JSON import finished\n";
+      }
+      Utils.showDialog(text);
+    }
+  }
+
+  //
+  // failure handling
+  //
+  // add an entry to the failed ones
+  addFailed(message, data) {
+    if (message) {
+      // load failed ones    
+      var failedList = this.getFailed();
+      failedList.push({
+        message,
+        data
+      });
+      sessionStorage.setItem("import_failed", JSON.stringify(failedList));
+    }
+  }
+  getFailed() {
+    var rawFailedList = sessionStorage.getItem("import_failed");
+    sessionStorage.removeItem("import_failed");
+    var failedList = [];
+    if (rawFailedList !== null && rawFailedList !== "") {
+      failedList = JSON.parse(rawFailedList);
+    }
+    return failedList;
+  }
+}
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheetimport/timesheetimport.less
 var timesheetimport = __webpack_require__("./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheetimport/timesheetimport.less");
 ;// ./src/modules/timesheetimport/timesheetimport.less
@@ -2432,27 +3153,9 @@ var timesheetimport_update = injectStylesIntoStyleTag_default()(timesheetimport/
 
 
 
-// definition of a time entry with date ("M/D" format) and number of hours
 
-// definition of a work order entry for Unit4
-// status of currently imported work order
-var ImportWorkOrderStatus = /*#__PURE__*/function (ImportWorkOrderStatus) {
-  ImportWorkOrderStatus[ImportWorkOrderStatus["ADD"] = 1] = "ADD";
-  // use "Add" button to create a new row
-  ImportWorkOrderStatus[ImportWorkOrderStatus["TIMECODE"] = 6] = "TIMECODE";
-  // fill in time code
-  ImportWorkOrderStatus[ImportWorkOrderStatus["WORKORDER"] = 2] = "WORKORDER";
-  // fill work order
-  ImportWorkOrderStatus[ImportWorkOrderStatus["ACTIVITY"] = 3] = "ACTIVITY";
-  // fill in activity
-  ImportWorkOrderStatus[ImportWorkOrderStatus["DESCRIPTION"] = 4] = "DESCRIPTION";
-  // fill description
-  ImportWorkOrderStatus[ImportWorkOrderStatus["TIME"] = 5] = "TIME";
-  // fill in hours (per day)
-  ImportWorkOrderStatus[ImportWorkOrderStatus["DONE"] = 100] = "DONE"; // import done
-  return ImportWorkOrderStatus;
-}(ImportWorkOrderStatus || {}); // class for storing work orders to import
-class ImportWorkOrder {}
+
+
 class Timesheetimport extends AbstractModule {
   // max waiting time for a field to be available / get focus
   static retrySeconds = 10;
@@ -2461,15 +3164,24 @@ class Timesheetimport extends AbstractModule {
   // Time Entry Screen Action Buttons
   // ----------------------------------------------------------------------
 
+  //private progress!: HTMLElement;
+
   initModule() {
     if (Configuration.getInstance().experimentalJsonImport()) {
-      // add import button if this feature is enabled in configuration
+      // add import button and progress if this feature is enabled in configuration
       document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if (e.textContent.startsWith('Time entry')) {
           let section = e.closest('.u4-section-placeholder');
           if (section != null) {
             this.section = section;
+            this.section.classList.add("timeentry-section");
             this.setActive();
+          }
+        } else if (e.textContent.startsWith('Working hours')) {
+          let section = e.closest('.u4-section-placeholder');
+          if (section != null) {
+            this.sectionWorkingHours = section;
+            this.sectionWorkingHours.classList.add("workinghours-section");
           }
         }
       });
@@ -2478,7 +3190,7 @@ class Timesheetimport extends AbstractModule {
   }
   executeModule() {
     if (this.section) {
-      const table = this.section.querySelector('.TableButtonRow').closest('table');
+      const table = this.section.querySelector('.TableButtonRow')?.closest('table');
       if (table) {
         //get Instance of original 'Add' btn
         table.querySelectorAll('button').forEach(e => {
@@ -2529,8 +3241,11 @@ class Timesheetimport extends AbstractModule {
           buttonCell.appendChild(button);
         }
 
-        // Handle remaining data from last JSON import
-        this.handleImportNextItem();
+        // Run pending tasks from importer
+        const importer = Importer.getInstance();
+        WOImportTask.setSection(this.section);
+        WOImportTask.setAddButton(this.standardAddBtn);
+        importer.runTasks();
       }
     }
   }
@@ -2539,6 +3254,7 @@ class Timesheetimport extends AbstractModule {
   actionDialog() {
     this.dialogEntry.value = '';
     this.dialog.style.display = 'flex';
+    this.dialogEntry.focus();
   }
 
   // close modal dialog
@@ -2550,402 +3266,153 @@ class Timesheetimport extends AbstractModule {
   // start the import
   actionImport() {
     try {
-      const data = JSON.parse(this.dialogEntry.value);
+      const json = JSON.parse(this.dialogEntry.value);
+      var data;
+      var days;
+      if (json.hasOwnProperty('entries')) {
+        // new format, contains work orders and working hours
+        data = json.entries;
+        days = json.days;
+      } else {
+        // old format, contains only working hours
+        data = json;
+        days = {};
+      }
 
       /*
-      [
-        {
-          "workOrder": "400002-10027", "activity": "100", "description": "Import test #1",
-          "time": [
-            { "date": "2023-05-01", "hours": "1.5" },
-            { "date": "2023-05-02", "hours": "0.75" }
-          ]
+      New format (including working times):
+      {
+        "days": {
+            "2026-04-27": {
+                "start": "08:00",
+                "end": "18:00"
+            }
         },
-        {
-          "workOrder": "400002-10025", "activity": "100", "description": "Import test #2",
-          "time": [
-            { "date": "2023-05-03", "hours": "1.25" },
-            { "date": "2023-05-05", "hours": "4.75" }
-          ]
-        }
-      ]      
+        "entries": [
+          {
+            "workOrder": "400002-10027", "activity": "100", "description": "Import test #1",
+            "time": [
+              { "date": "2023-05-01", "hours": "1.5" },
+              { "date": "2023-05-02", "hours": "0.75" }
+            ]
+          },
+          {
+            "workOrder": "400002-10025", "activity": "100", "description": "Import test #2",
+            "time": [
+              { "date": "2023-05-03", "hours": "1.25" },
+              { "date": "2023-05-05", "hours": "4.75" }
+            ]
+          }
+        ]      
+      }
       */
 
-      // put data in session and start with first entry
-      const next = data.shift();
-      sessionStorage.setItem("workorder_import_running", "true");
-      sessionStorage.setItem("workorder_import_next", JSON.stringify({
-        status: ImportWorkOrderStatus.ADD,
-        workOrder: next
-      }));
-      sessionStorage.setItem("workorder_import_pending", JSON.stringify(data));
-      sessionStorage.setItem("workorder_import_failed", "[]");
+      const importer = Importer.getInstance();
+
+      // import work orders
+      WOImportTask.setSection(this.section);
+      WOImportTask.setAddButton(this.standardAddBtn);
+      const daily = {};
+      var sumHours = 0,
+        sumBreaks = 0;
+      data.forEach(entry => {
+        // group all tasks for the same work order together
+        const groupId = ["workorders", entry.timeCode, entry.workOrder, entry.activity, entry.description].join('|');
+        importer.addTask(new StartWorkOrderImportTask(groupId, entry));
+        importer.addTask(new TimecodeImportTask(groupId, entry));
+        importer.addTask(new WorkOrderImportTask(groupId, entry));
+        importer.addTask(new ActivityImportTask(groupId, entry));
+        importer.addTask(new DescriptionImportTask(groupId, entry));
+        entry.time.forEach(timeEntry => {
+          importer.addTask(new HoursImportTask(groupId, entry, new Date(timeEntry.date), timeEntry.hours));
+          // sum hours and breaks
+          sumHours += parseFloat(timeEntry.hours);
+          if (entry.timeCode === "99") {
+            sumBreaks += parseFloat(timeEntry.hours);
+          }
+          // data for sanity check
+          if (!daily[timeEntry.date]) {
+            daily[timeEntry.date] = {
+              hours: 0,
+              breaks: 0,
+              workingTime: 0
+            };
+          }
+          if (entry.timeCode === "99") {
+            daily[timeEntry.date].breaks += parseFloat(timeEntry.hours);
+          } else {
+            daily[timeEntry.date].hours += parseFloat(timeEntry.hours);
+          }
+        });
+      });
+
+      // import working hours
+      Object.entries(days).forEach(([dateStr, day]) => {
+        const date = new Date(dateStr);
+        const groupId = ["workinghours", dateStr].join('|');
+        importer.addTask(new WorkingStartImportTask(groupId, date, day.start));
+        importer.addTask(new WorkingEndImportTask(groupId, date, day.end));
+        // update daily working time for sanity check
+        if (!daily[dateStr]) {
+          daily[dateStr] = {
+            hours: 0,
+            breaks: 0,
+            workingTime: 0
+          };
+        }
+        daily[dateStr].workingTime = (new Date(`1970-01-01T${day.end}:00`).getTime() - new Date(`1970-01-01T${day.start}:00`).getTime()) / 3600000;
+      });
+
+      // close all editing modes at the end
+      importer.addTask(new CloseEditingModeTask());
+
+      // check sum of hours
+      importer.addTask(new WorkOrderSummaryTask(sumHours, sumBreaks));
+
+      // General sanity check
+      importer.addTask(new SanityCheckTask(daily));
+
       // close dialog
       this.actionClose();
       // handle first import item
-      this.handleImportNextItem();
+      importer.runTasks();
     } catch (e) {
       console.error(e);
       alert("Import data must be valid JSON");
     }
   }
-
-  // get the import object that is currently active
-  getCurrentImportWorkOrder() {
-    // do we have a current import object?
-    const rawNext = sessionStorage.getItem("workorder_import_next");
-    if (rawNext !== null && rawNext !== "") {
-      var next = JSON.parse(rawNext);
-      if (next.status === ImportWorkOrderStatus.DONE) {
-        // use next item from remaining list
-        next = this.getNextFromPending();
-      }
-      return next;
-    }
-  }
-
-  // store the import object that is currently active (e.g. after status change)
-  storeCurrentImportWorkOrder(next) {
-    sessionStorage.setItem("workorder_import_next", JSON.stringify(next));
-  }
-
-  // add an entry to the failed ones
-  addFailed(failed) {
-    // load failed ones    
-    var failedList = this.getFailed();
-    failedList.push(failed);
-    sessionStorage.setItem("workorder_import_failed", JSON.stringify(failedList));
-  }
-  getFailed() {
-    var rawFailedList = sessionStorage.getItem("workorder_import_failed");
-    var failedList = [];
-    if (rawFailedList !== null && rawFailedList !== "") {
-      failedList = JSON.parse(rawFailedList);
-    }
-    return failedList;
-  }
-
-  // change status of import object and store in session
-  updateImportState(next, status) {
-    next.status = status;
-    this.storeCurrentImportWorkOrder(next);
-  }
-
-  // get the next import object from the list of pending work orders
-  getNextFromPending() {
-    const raw = sessionStorage.getItem("workorder_import_pending");
-    if (raw !== null && raw !== "") {
-      const data = JSON.parse(raw);
-      if (data.length > 0) {
-        // get next item
-        const next = data.shift();
-        // update shortened list in session
-        sessionStorage.setItem("workorder_import_pending", JSON.stringify(data));
-        // return an import object with initial state
-        return {
-          status: ImportWorkOrderStatus.ADD,
-          workOrder: next
-        };
-      } else {
-        // no pending elements left
-        sessionStorage.setItem("workorder_import_pending", "");
-      }
-    }
-  }
-
-  // wait a few seconds
-  wait(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
-  }
-
-  // wait for a input field to be focussed (queried by title of parent element)
-  async waitForFocus(title) {
-    var retries = Timesheetimport.retrySeconds;
-    do {
-      const act = document.activeElement;
-      if (act && act.nodeName === "INPUT" && act.parentElement.title === title) {
-        return act;
-      }
-      if (act && act.nodeName === "BUTTON" && act.title === title) {
-        return act;
-      }
-      await this.wait(1);
-    } while (--retries > 0);
-    throw new Error(`Input field not found for: ${title}`);
-  }
-
-  // wait for element to be available (queried by CSS selector)
-  async waitForElements(query) {
-    var retries = Timesheetimport.retrySeconds;
-    do {
-      const res = this.standardAddBtn.ownerDocument.querySelectorAll(query);
-      if (res !== null && res.length > 0) {
-        return [...res];
-      }
-      await this.wait(1);
-    } while (--retries > 0);
-    throw new Error(`Element field not found for: ${query}`);
-  }
-  async focusElement(query) {
-    const elements = await this.waitForElements(query);
-    const ele = elements[0];
-    ele.focus();
-    return ele;
-  }
-
-  // searches for a matching existing row
-  searchExistingRow(next) {
-    // check all rows
-    const rows = this.section.querySelectorAll('tr.ListItem,tr.AltListItem');
-    for (const row of rows) {
-      const workOrder = row.querySelector('td[data-type="cell-workorder"] div.ww.ellipsis')?.textContent;
-      const activity = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent;
-      const description = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent;
-      if (next.workOrder.workOrder === workOrder && next.workOrder.activity === activity && next.workOrder.description === description) {
-        return row;
-      }
-    }
-    const editRows = this.section.querySelectorAll('tr.EditRow');
-    for (const row of editRows) {
-      const workOrder = row.querySelector('td[data-type="cell-workorder"] td.InputCell input')?.value;
-      const activity = row.querySelector('td[data-type="cell-activity"] td.InputCell input')?.value;
-      const description = row.querySelector('td[data-type="cell-description"] td.InputCell input')?.value;
-      if (next.workOrder.workOrder === workOrder && next.workOrder.activity === activity && next.workOrder.description === description) {
-        return row;
-      }
-    }
-  }
-
-  // add a new row in timesheet
-  addNewRow(next) {
-    // next state is time code or workorder
-    if (Configuration.getInstance().hideTimeCodeColumn()) {
-      // time code is hidden, next row would be workorder
-      this.updateImportState(next, ImportWorkOrderStatus.WORKORDER);
-    } else {
-      // time code before workorder
-      this.updateImportState(next, ImportWorkOrderStatus.TIMECODE);
-    }
-    // click "Add" button
-    this.standardAddBtn.dispatchEvent(new Event('click'));
-    // adding a row will reload the page
-    return true;
-  }
-  activateRow(row, next) {
-    // next state is time entry
-    this.updateImportState(next, ImportWorkOrderStatus.TIME);
-    // click on description field to activate the row
-    const cell = row.querySelector("td[data-type=cell-description] div.ww.ellipsis");
-    cell.click();
-    // activating a row always triggers a page reload
-    return true;
-  }
-
-  // wait for time code input in current row to get focus and fill in the given text
-  async fillTimeCode(next) {
-    // next state is work order
-    this.updateImportState(next, ImportWorkOrderStatus.WORKORDER);
-    // fill in time code
-    const input = await this.waitForFocus("Time code");
-    const curr = input.value;
-    const code = next.workOrder.timeCode || "0";
-    if (curr !== code) {
-      // code changed - one tab will reload
-      input.value = code;
-      input.dispatchEvent(new KeyboardEvent('keydown', {
-        code: "Tab",
-        key: "Tab",
-        keyCode: 9,
-        which: 9,
-        bubbles: true,
-        cancelable: true
-      }));
-      return true;
-    } else {
-      // no change = no reload
-      return false;
-    }
-  }
-
-  // wait for workorder input in current row to get focus and fill in the given text
-  async fillWorkorder(next) {
-    // next state is description
-    this.updateImportState(next, ImportWorkOrderStatus.ACTIVITY);
-    // fill in workorder
-    const input = await this.focusElement('.EditRow [title="Work order"] input');
-    const curr = input.value;
-    input.value = next.workOrder.workOrder;
-    input.dispatchEvent(new KeyboardEvent('keydown', {
-      code: "Tab",
-      key: "Tab",
-      keyCode: 9,
-      which: 9,
-      bubbles: true,
-      cancelable: true
-    }));
-    // page reloads if value has changed
-    return curr !== input.value;
-  }
-
-  // wait for activity input in current row to get focus and fill in the given text
-  async fillActivity(next) {
-    // next state is workorder
-    this.updateImportState(next, ImportWorkOrderStatus.DESCRIPTION);
-    var input = await this.waitForFocus("Activity");
-    const curr = input.value;
-    const act = next.workOrder.activity || "100";
-    if (curr !== act) {
-      // activity changed - one tab will reload
-      input.value = act;
-      input.dispatchEvent(new KeyboardEvent('keydown', {
-        code: "Tab",
-        key: "Tab",
-        keyCode: 9,
-        which: 9,
-        bubbles: true,
-        cancelable: true
-      }));
-      return true;
-    } else {
-      // no change = no reload
-      return false;
-    }
-  }
-
-  // look for description area in current row and fill in the given text
-  async fillDescription(next) {
-    // next state is time entry
-    this.updateImportState(next, ImportWorkOrderStatus.TIME);
-    //console.log("Fill in description", next.workOrder.description);
-    const input = await this.focusElement('.EditRow [data-type=cell-description] .InputCell input');
-    input.value = next.workOrder.description;
-    input.dispatchEvent(new Event("blur"));
-    // description changes NEVER trigger a page reload
-    return false;
-  }
-
-  // look for next time entry with matching (date) title and fill in value
-  async fillTime(next) {
-    if (next.workOrder.time.length > 0) {
-      // handle next time entry
-      const entry = next.workOrder.time.shift();
-      this.storeCurrentImportWorkOrder(next);
-      const headers = await this.waitForElements('th[data-type=cell-weekday]');
-      const fields = await this.waitForElements('.EditRow [data-type=cell-weekday] .InputCell input');
-      // TODO: when workorder is not valid, there is no EditRow InputCell and this throws an Exception
-      // requested date
-      const date = new Date(entry.date);
-      const dateEN = date.getMonth() + 1 + "/" + date.getDate(); // eEN format: M/D
-      const dateDE = date.getDate() + "." + (date.getMonth() + 1) + "."; // DE format: D.M.
-
-      for (var i = 0; i < headers.length; ++i) {
-        const head = headers[i];
-        if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
-          // seems to match the date
-          const field = fields[i];
-          const curr = field.value;
-          field.dispatchEvent(new Event("focus"));
-          field.value = `${entry.hours}`;
-          field.dispatchEvent(new Event("blur"));
-          // page reloads if value has changed
-          return curr !== field.value;
-        }
-      }
-      return false;
-    }
-
-    // set to done if there are no more time entries left
-    this.updateImportState(next, ImportWorkOrderStatus.DONE);
-    return false;
-  }
-
-  // handle the import of the current import item
-  async handleImportNextItem() {
-    const next = this.getCurrentImportWorkOrder();
-    if (next) {
-      var willReload = false;
-
-      // run actions as long as we do not have a page reload
-      var lastAction = "";
-      var recoverable = true;
-      do {
-        if (next.status === ImportWorkOrderStatus.ADD) {
-          const existingRow = this.searchExistingRow(next);
-          if (!existingRow) {
-            lastAction = "Add a new row";
-            willReload = this.addNewRow(next);
-          } else {
-            lastAction = "Activated an existing row";
-            willReload = this.activateRow(existingRow, next);
-          }
-        } else if (next.status === ImportWorkOrderStatus.TIMECODE) {
-          lastAction = "Insert time code";
-          willReload = await this.fillTimeCode(next);
-        } else if (next.status === ImportWorkOrderStatus.WORKORDER) {
-          lastAction = "Insert workorder";
-          recoverable = false; // wrong workorders are not recoverable!
-          willReload = await this.fillWorkorder(next);
-        } else if (next.status === ImportWorkOrderStatus.ACTIVITY) {
-          lastAction = "Insert activity";
-          willReload = await this.fillActivity(next);
-        } else if (next.status === ImportWorkOrderStatus.DESCRIPTION) {
-          lastAction = "Insert description";
-          willReload = await this.fillDescription(next);
-        } else if (next.status === ImportWorkOrderStatus.TIME) {
-          lastAction = "Insert time";
-          try {
-            willReload = await this.fillTime(next);
-          } catch (e) {
-            // time field not found = invalid workorder
-            // skip the whole entry and mark as failed
-            this.addFailed(next);
-            this.updateImportState(next, ImportWorkOrderStatus.DONE);
-          }
-        } else if (next.status === ImportWorkOrderStatus.DONE) {
-          // just reload the frame to finish
-          lastAction = "Reload page";
-          window.location.reload();
-          willReload = true;
-        } else {
-          // remember this as failed, mark as done and try next one
-          alert("Last action (" + lastAction + ") is unknown");
-          this.addFailed(next);
-          this.updateImportState(next, ImportWorkOrderStatus.DONE);
-        }
-        if (willReload) {
-          // last action should reload the page - if this has not been done for 5s,
-          // log an error and proceed with next action?
-          await new Promise(f => setTimeout(f, 5000));
-          alert("Last action (" + lastAction + ") seems to have failed, will retry next action");
-          if (recoverable) {
-            // move to next action
-            willReload = false;
-          } else {
-            // remember this as failed, mark as done and try next one
-            this.addFailed(next);
-            this.updateImportState(next, ImportWorkOrderStatus.DONE);
-          }
-        }
-      } while (!willReload);
-    } else if (sessionStorage.getItem("workorder_import_running") === "true") {
-      // HOORAY! We are done!
-      sessionStorage.setItem("workorder_import_running", "false");
-      const failed = this.getFailed();
-      if (failed.length === 0) {
-        // no failed rows!
-        alert("JSON import finished without errors");
-      } else {
-        // we had some failed rows, show them in alert
-        var failedMsg = "";
-        failed.forEach(f => {
-          failedMsg += `Failed: ${f.workOrder.workOrder} - ${f.workOrder.description}\n`;
-        });
-        alert("JSON import finished with " + failed.length + " failed workorders:\n" + failedMsg);
-      }
-    }
-  }
 }
+// EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/index.less
+var cjs_js_src = __webpack_require__("./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/index.less");
+;// ./src/index.less
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+var src_options = {};
+
+src_options.styleTagTransform = (styleTagTransform_default());
+src_options.setAttributes = (setAttributesWithoutAttributes_default());
+src_options.insert = insertBySelector_default().bind(null, "head");
+src_options.domAPI = (styleDomAPI_default());
+src_options.insertStyleElement = (insertStyleElement_default());
+
+var src_update = injectStylesIntoStyleTag_default()(cjs_js_src/* default */.A, src_options);
+
+
+
+
+       /* harmony default export */ const src = (cjs_js_src/* default */.A && cjs_js_src/* default */.A.locals ? cjs_js_src/* default */.A.locals : undefined);
+
 ;// ./src/index.ts
+
 
 
 
