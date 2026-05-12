@@ -2,7 +2,7 @@ import { Utils } from "../../global/utils";
 import { CloseEditingModeTask, ImportTask, SanityCheckTask } from "./importtask";
 import { Progress } from "./progress";
 import { WHImportTask } from "./workinghours";
-import { WOImportTask } from "./workorders";
+import { StartWorkOrderImportTask, WOImportTask } from "./workorders";
 
 type FailedImport = {
   data: any
@@ -86,16 +86,18 @@ export class Importer {
             this.progress.updatePending(this.tasks.length);
 
             while ((task = this.popTask()) !== undefined) {
+
                 // run the task
                 const result = await task.run();
                 if (result.reload) {
+                    console.log("Expect page reload after running task: " + task.constructor.name);
                     if (result.retry) {
                         // retry the same task again
                         this.unshiftTask(task);
                     }
                     // last action should reload the page - if this has not been done for 5s,
                     // log an error and proceed with next action?
-                    await new Promise(f => setTimeout(f, 5000));
+                    await this.wait(5000);
                     // page has not yet reloaded
                     if (result.recoverable) {
                         // recoverable => log error and move on with next action                    
@@ -111,6 +113,8 @@ export class Importer {
                     this.addFailed(result.failureReason);
                     // skip tasks for same group
                     this.clearTaskGroup(task.getGroupId());
+                } else if (result.done) {
+                    await this.wait(250);
                 }
                 this.progress.updatePending(this.tasks.length);
             }
@@ -157,6 +161,10 @@ export class Importer {
             failedList = JSON.parse(rawFailedList);
         }
         return failedList;
+    }
+
+    private async wait(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
 }

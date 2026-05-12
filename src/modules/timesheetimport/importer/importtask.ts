@@ -42,9 +42,9 @@ export abstract class ImportTask {
     protected failure(reason: string): ImportTaskResult {
         return { failed: true, task: this, failureReason: reason };
     }
-    // wait a few seconds
-    protected wait(seconds: number) {
-        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    // wait a few milliseconds
+    protected wait(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     //
@@ -64,7 +64,7 @@ export abstract class ImportTask {
         if (res !== null && res.length > 0) {
             return [...res] as HTMLElement[];
         }
-        await this.wait(1);
+        await this.wait(1000);
         } while(--retries > 0);    
         throw new Error(`Element field not found for: ${query}`);
     }
@@ -128,6 +128,7 @@ export class SanityCheckTask extends ImportTask {
     async run(): Promise<ImportTaskResult> {
         const errors: string[] = [];
         var sumWorkingTime = 0;
+        var sumBookedHours = 0;
         Object.entries(this.data).forEach(([dateStr, day]) => {
             if (day.hours > 9 && day.breaks < 0.75) {
                 errors.push("Break issue: min. 45 min breaks on a day with " + day.hours + " hours of work, date: " + dateStr);
@@ -135,15 +136,23 @@ export class SanityCheckTask extends ImportTask {
                 errors.push("Break issue: min. 30 min breaks on a day with " + day.hours + " hours of work, date: " + dateStr);
             }
 
-            sumWorkingTime += day.workingTime;
-            if (day.workingTime > 10) {
-                errors.push("Working time issue: more than 10 hours of working time on date: " + dateStr);
+            const workingTime = day.workingTime - day.breaks;
+            sumWorkingTime += workingTime;
+            sumBookedHours += (day.hours - day.breaks);
+            if (workingTime > 10) {
+                errors.push(
+                    "Working time issue: more than 10 hours of working time on date: " + dateStr
+                    + "\n   Working time: " + workingTime.toFixed(2) + " hours, breaks: " + day.breaks.toFixed(2) + " hours"
+                );
             } else if (day.workingTime <= 0) {
                 errors.push("Working time issue: no working time on date: " + dateStr);
             }
         });
         if (sumWorkingTime < 40) {
             errors.push("Working time issue: total working time less than 40 hours: " + sumWorkingTime);
+        }
+        if (sumBookedHours < 40) {
+            errors.push("Booked hours issue: total booked hours less than 40 hours: " + sumBookedHours);
         }
 
         return (errors.length > 0) ? this.failure("Sanity check issues:\n\n * " + errors.join("\n\n * ")) : this.next();

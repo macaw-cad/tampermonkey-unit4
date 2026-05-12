@@ -49,4 +49,18 @@ export class Utils {
 
           document.body.appendChild(dialog); 
     }
+
+    public static difference(from: string, to: string): number {
+        const startParts = from.split(':');
+        const endParts = to.split(':');
+        const startTime = parseInt(startParts[0]) + parseInt(startParts[1]) / 60;
+        const endTime = parseInt(endParts[0]) + parseInt(endParts[1]) / 60;
+        return endTime - startTime;
+    }
+
+    public static formatHours(hours: number): string {
+        const h = Math.floor(hours);
+        const m = Math.round((hours - h) * 60);
+        return (m > 0)  ?`${h}h ${m}m` : `${h}h`;
+    }
 }

@@ -54,7 +54,7 @@ export abstract class WOImportTask extends ImportTask {
             const activity = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent;
             const description = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent;
             const timeCode = row.querySelector('td[data-type="cell-timecode"] div.ww.ellipsis')?.textContent;
-            if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.description === description && this.workOrder.timeCode === timeCode) {
+            if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
                 // found existing row (readonly), make editable by clicking on it
                 // => will reload the page
                 const cell = row.querySelector("td[data-type=cell-description] div.ww.ellipsis") as HTMLElement;
@@ -69,7 +69,7 @@ export abstract class WOImportTask extends ImportTask {
             const activity = (row.querySelector('td[data-type="cell-activity"] td.InputCell input') as HTMLInputElement)?.value;
             const description = (row.querySelector('td[data-type="cell-description"] td.InputCell input') as HTMLInputElement)?.value;
             const timeCode = (row.querySelector('td[data-type="cell-timecode"] td.InputCell input') as HTMLInputElement)?.value;
-            if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.description === description && this.workOrder.timeCode === timeCode) {
+            if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
                 // found existing row (editable), use it
                 return row;
             }
@@ -94,12 +94,12 @@ export class StartWorkOrderImportTask extends WOImportTask {
 
     public async run(): Promise<ImportTaskResult> {
         const row = await this.searchExistingRow();
-        if (row instanceof HTMLElement) {
-            // we found an editable row, use it directly
-            return this.next();
+        if (row === true) {
+            // row is not yet ready, retry after page reload
+            return this.nextAfterReload();
         }
-        // row is not yet ready, retry after page reload
-        return this.nextAfterReload();
+        // we found an editable row, use it directly
+        return this.next();
     }
 }
 
@@ -126,10 +126,11 @@ abstract class WOFieldImportTask extends WOImportTask {
                 return this.failure(`Could not find field for ${this.cellType}`);
             } else if (field.value !== this.value) {
                 if (field.field) {
-                    field.field.focus();
+                    field.field.dispatchEvent(new Event('focus'));
                     field.field.value = this.value;
-                    field.field.dispatchEvent(new KeyboardEvent('keydown', {code:"Tab", key:"Tab", keyCode: 9, which: 9, bubbles: true, cancelable: true}));
                     field.field.dispatchEvent(new Event('blur'));
+                    field.field.dispatchEvent(new KeyboardEvent('keydown', {code:"Tab", key:"Tab", keyCode: 9, which: 9, bubbles: true, cancelable: true}));
+                    await this.wait(100);
                     // page may reload if value has changed
                     return this.reloads ? this.nextAfterReload() : this.next();
                 } else {
@@ -167,7 +168,7 @@ export class DescriptionImportTask extends WOFieldImportTask {
 export class HoursImportTask extends WOFieldImportTask {
     private date: Date;
     constructor(groupId: string, workOrder: WorkOrder, day: Date, hours: string) {
-        super(groupId, workOrder, 'cell-weekday', hours, false);
+        super(groupId, workOrder, 'cell-weekday', hours, true);
         this.date = day;
     }
     protected async lookupField(row: HTMLElement): Promise<FoundField|null> {

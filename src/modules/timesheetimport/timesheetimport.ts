@@ -1,5 +1,6 @@
 import { Configuration } from "../../configuration";
 import { AbstractModule } from '../AbstractModule';
+import { Utils } from "../global/utils";
 import { Importer } from './importer/importer';
 import { CloseEditingModeTask, SanityCheckTask } from "./importer/importtask";
 import { WorkingEndImportTask, WorkingStartImportTask } from "./importer/workinghours";
@@ -158,14 +159,16 @@ export class Timesheetimport extends AbstractModule {
   private actionImport() {
     try {
       const json = JSON.parse(this.dialogEntry.value) as ImportFormat|ImportFormatOld;
-      var data: ImportWorkOrder[];
-      var days: ImportWorkingHours;
-      if (json.hasOwnProperty('entries')) {
-        // new format, contains work orders and working hours
-        data = (json as ImportFormat).entries;
-        days = (json as ImportFormat).days;
+      // check if we have old or new format
+      var data: ImportWorkOrder[] = [];
+      var days: ImportWorkingHours = {};
+
+      if (json.hasOwnProperty('days') || json.hasOwnProperty('entries')) {
+        // new format
+        data = (json as ImportFormat).entries ?? [];
+        days = (json as ImportFormat).days ?? {};
       } else {
-        // old format, contains only working hours
+        // old format
         data = json as ImportFormatOld;
         days = {};
       }
@@ -207,6 +210,7 @@ export class Timesheetimport extends AbstractModule {
       const daily: SanityDaily = {};
 
       var sumHours = 0, sumBreaks = 0;
+      console.log(data, days);
       data.forEach((entry: any) => {
         // group all tasks for the same work order together
         const groupId = ["workorders", entry.timeCode, entry.workOrder, entry.activity, entry.description].join('|');
@@ -244,7 +248,8 @@ export class Timesheetimport extends AbstractModule {
         if (!daily[dateStr]) {
             daily[dateStr] = { hours: 0, breaks: 0, workingTime: 0 };
         }
-        daily[dateStr].workingTime = (new Date(`1970-01-01T${day.end}:00`).getTime() - new Date(`1970-01-01T${day.start}:00`).getTime()) / 3600000;
+        // calculate working time based on start and end time (format: HH:MM)
+        daily[dateStr].workingTime = Utils.difference(day.start, day.end);
       });
 
       // close all editing modes at the end
