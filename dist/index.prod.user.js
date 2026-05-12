@@ -2,7 +2,7 @@
 // @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
-// @version       0.10.1
+// @version       0.10.2
 // @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source        https://github.com/macaw-cad/tampermonkey-unit4
 // @license       MIT
@@ -1282,6 +1282,7 @@ var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBP
 // Module
 ___CSS_LOADER_EXPORT___.push([module.id, `.progress {
   position: fixed;
+  z-index: 999999;
   top: 10px;
   right: 0px;
   transform: translateX(-50%);
@@ -1659,7 +1660,7 @@ var __webpack_exports__ = {};
 "use strict";
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.10.1"};
+const package_namespaceObject = {"rE":"0.10.2"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1797,6 +1798,13 @@ class Configuration {
           labelPos: 'right',
           type: 'checkbox',
           default: true
+        },
+        workingHours: {
+          label: 'Working hours per week: ',
+          labelPos: 'left',
+          type: 'text',
+          title: 'Enter your working hours, e.g. 40 hours per week',
+          default: '40'
         }
       },
       css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config * { font-size: 13px; font-family: dagny, arial, tahoma, verdana, sans-serif; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; }'
@@ -1845,6 +1853,17 @@ class Configuration {
   }
   experimentalJsonImport() {
     return GM_config.get('experimentalJsonImport');
+  }
+  myWorkingHours() {
+    const value = GM_config.get('workingHours');
+    if (typeof value === 'string') {
+      const hours = parseFloat(value);
+      if (!isNaN(hours)) {
+        return hours;
+      }
+    }
+    // use 40 as fallback
+    return 40;
   }
   show() {
     GM_config.open();
@@ -2001,7 +2020,65 @@ class AbstractModule {
     this.active = true;
   }
 }
+;// ./src/modules/global/utils.ts
+class Utils {
+  static waitForElm(selector) {
+    return new Promise(resolve => {
+      const ele = document.querySelector(selector);
+      if (ele) {
+        return resolve(ele);
+      }
+      const observer = new MutationObserver(mutations => {
+        const ele = document.querySelector(selector);
+        if (ele) {
+          observer.disconnect();
+          return resolve(ele);
+        }
+      });
+
+      // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    });
+  }
+  static showDialog(content) {
+    // create modal import dialog
+    const dialog = document.createElement("div");
+    dialog.classList.add("modalDialog");
+    const dialogEntry = document.createElement("textarea");
+    dialogEntry.readOnly = true;
+    dialogEntry.value = content;
+    dialog.appendChild(dialogEntry);
+    const dialogButtons = document.createElement("div");
+    dialogButtons.classList.add("modalDialog__buttons");
+    dialog.appendChild(dialogButtons);
+    const dialogOK = document.createElement("button");
+    dialogOK.setAttribute("type", "button");
+    dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
+    dialogOK.innerHTML = "<span>OK</span>";
+    dialogOK.addEventListener('click', () => {
+      document.body.removeChild(dialog);
+    });
+    dialogButtons.appendChild(dialogOK);
+    document.body.appendChild(dialog);
+  }
+  static difference(from, to) {
+    const startParts = from.split(':');
+    const endParts = to.split(':');
+    const startTime = parseInt(startParts[0]) + parseInt(startParts[1]) / 60;
+    const endTime = parseInt(endParts[0]) + parseInt(endParts[1]) / 60;
+    return endTime - startTime;
+  }
+  static formatHours(hours) {
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+}
 ;// ./src/modules/timeentry/timeentry.ts
+
 
 
 
@@ -2021,7 +2098,7 @@ class TimeEntry extends AbstractModule {
           if (section != null) {
             this.section = section;
             this.setActive();
-            // add data typ3 attributes to table
+            // add data type attributes to table
             promises.push(MarkupUtility.addTypeToTableCells('tmTimeentry', section));
           }
         } else if (e.textContent == 'Working hours') {
@@ -2048,16 +2125,19 @@ class TimeEntry extends AbstractModule {
 
         // scroll to current entry
         this.section.querySelectorAll('input[title="Work order - Mandatory"]').forEach(e => {
-          setTimeout(function () {
-            if (document.activeElement === null || document.activeElement.tagName !== "INPUT") {
-              e.focus();
-            }
-            e.scrollIntoView();
-          }, 100);
+          if (e instanceof HTMLInputElement) {
+            setTimeout(function () {
+              if (document.activeElement === null || document.activeElement.tagName !== "INPUT") {
+                e.focus();
+              }
+              e.scrollIntoView();
+            }, 100);
+          }
         });
 
         // add all kind of functionality to the table
         this.add(this.section);
+        this.summarize();
 
         // add observer to get changes after sort
         this.attachMutationObserver();
@@ -2068,8 +2148,10 @@ class TimeEntry extends AbstractModule {
     // really disable some fields to avoid errors
     if (Configuration.getInstance().hideTimeCodeColumn()) {
       section.querySelectorAll('input[title="Time code"]').forEach(e => {
-        e.disabled = true;
-        e.readOnly = true;
+        if (e instanceof HTMLInputElement) {
+          e.disabled = true;
+          e.readOnly = true;
+        }
       });
     }
 
@@ -2077,15 +2159,17 @@ class TimeEntry extends AbstractModule {
     const showDescriptions = Configuration.getInstance().alwaysShowDescriptions();
     const showActivity = Configuration.getInstance().alwaysShowActivity();
     section.querySelectorAll('tr.ListItem td[title], tr.ListItem td[title], tr.AltListItem td[title]').forEach(e => {
-      const add = showDescriptions && (e.getAttribute("data-type") === "cell-workorder" || e.getAttribute("data-type") === "cell-project") || showActivity && e.getAttribute("data-type") === "cell-activity";
-      if (add) {
-        if (!e.classList.contains('.tmFixDescription')) {
-          let x = document.createElement('div');
-          x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
-          x.style.whiteSpace = "break-spaces";
-          x.appendChild(document.createTextNode(e.getAttribute('title')));
-          e.appendChild(x);
-          e.classList.add('tmFixDescription');
+      if (e instanceof HTMLElement) {
+        const add = showDescriptions && (e.getAttribute("data-type") === "cell-workorder" || e.getAttribute("data-type") === "cell-project") || showActivity && e.getAttribute("data-type") === "cell-activity";
+        if (add) {
+          if (!e.classList.contains('.tmFixDescription')) {
+            let x = document.createElement('div');
+            x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
+            x.style.whiteSpace = "break-spaces";
+            x.appendChild(document.createTextNode(e.getAttribute('title') ?? ''));
+            e.appendChild(x);
+            e.classList.add('tmFixDescription');
+          }
         }
       }
     });
@@ -2098,11 +2182,203 @@ class TimeEntry extends AbstractModule {
         this.add(section);
       });
       // get the parent element of the table and start observing
-      const e = section.querySelector(".Excel").parentNode;
-      observer.observe(e, {
-        childList: true
-      });
+      const e = section.querySelector(".Excel")?.parentNode;
+      if (e) {
+        observer.observe(e, {
+          childList: true
+        });
+      }
     }
+  }
+  summarize() {
+    if (this.workingHoursSection) {
+      try {
+        const tableWorking = this.workingHoursSection.querySelector('table.tmWorkinghours tbody');
+        if (tableWorking) {
+          // iterate over whole table and calculate the numbers of breaks and other hours
+          // for each day
+          const sumWorking = [];
+          const sumBreaks = [];
+          const timeWorking = [];
+          const isHoliday = [];
+          var numHolidays = 0;
+          var overallWorking = 0;
+          var overallBooked = 0;
+          const hoursPerWeek = Configuration.getInstance().myWorkingHours();
+
+          // iterate over header to find time code column and first weekday column
+          const columns = Array.from(this.section.querySelectorAll('table.Excel th'));
+          var colTimeCode = Number.MAX_VALUE;
+          var colWeekdays = Number.MAX_VALUE;
+          for (var col = 0; col < columns.length; col++) {
+            const cell = columns[col];
+            const headlineCell = cell.querySelector('& > div');
+            switch (columns[col].getAttribute("data-type")) {
+              case 'cell-weekday':
+                colWeekdays = Math.min(col, colWeekdays);
+                break;
+              case 'cell-timecode':
+                colTimeCode = col;
+                break;
+            }
+          }
+
+          // identify holidays
+          for (var i = 0; i < 7; i++) {
+            const headlineCell = columns[colWeekdays + i].querySelector('& > div');
+            const headline = headlineCell?.textContent ?? '';
+            if (headlineCell?.style.color == 'rgb(50, 205, 50)') {
+              isHoliday[i] = true;
+              ++numHolidays;
+            } else if (headline.includes('Sat') || headline.includes('Sun')) {
+              isHoliday[i] = true;
+            }
+          }
+
+          // iterate over data
+          this.section.querySelectorAll('table.Excel > tbody > tr:is(.ListItem, .AltListItem, .EditRow)').forEach(row => {
+            const cells = Array.from(row.querySelectorAll('& > td'));
+            const timeCode = this.getValueFromCell(cells[colTimeCode]);
+            for (var i = 0; i < 7; ++i) {
+              const hours = this.getValueFromCell(cells[colWeekdays + i]);
+              if (timeCode === '99') {
+                sumBreaks[i] = (sumBreaks[i] ?? 0) + Number(hours);
+              } else {
+                sumWorking[i] = (sumWorking[i] ?? 0) + Number(hours);
+                overallBooked += Number(hours);
+              }
+            }
+          });
+
+          // iterate over working hours
+          const working = Array.from(tableWorking.querySelectorAll('tr:is(.ListItem,.AltListItem)'));
+          const rowFrom = Array.from(working[0].querySelectorAll('& > td'));
+          const rowTo = Array.from(working[1].querySelectorAll('& > td'));
+          for (var i = 0; i < 7; ++i) {
+            const start = this.getValueFromCell(rowFrom[i + 2]);
+            const end = this.getValueFromCell(rowTo[i + 2]);
+            const diff = Utils.difference(start, end);
+            timeWorking[i] = diff;
+            overallWorking += diff;
+          }
+
+          // add summary
+          const lastRow = tableWorking.querySelector('tr[role="presentation"]');
+          if (lastRow) {
+            // hours from start and end of day
+            var row = document.createElement('tr');
+            row.className = "ListItem";
+            lastRow.before(row);
+            this.addCell(row, "");
+            this.addCell(row, "Working hours (From > To)", "left");
+            var sum = 0;
+            for (var i = 0; i < 7; ++i) {
+              var value = timeWorking[i] ?? 0;
+              sum += value;
+              this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {
+                background: '#dcdcdc'
+              } : {});
+            }
+            this.addCell(row, Utils.formatHours(sum));
+
+            // breaks
+            row = document.createElement('tr');
+            row.className = "AltListItem";
+            lastRow.before(row);
+            this.addCell(row, "");
+            this.addCell(row, "Total booked breaks", "left");
+            var sum = 0;
+            for (var i = 0; i < 7; ++i) {
+              var value = sumBreaks[i] ?? 0;
+              sum += value;
+              const cell = this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {
+                background: '#dcdcdc'
+              } : {});
+              if (timeWorking[i] >= 8 && sumBreaks[0] < 0.5) {
+                cell.style.color = "red";
+                cell.style.fontWeight = "700";
+                cell.title = 'You need at least 30 minutes break';
+              } else if (timeWorking[i] >= 9 && sumBreaks[0] < 0.75) {
+                cell.style.color = "red";
+                cell.style.fontWeight = "700";
+                cell.title = 'You need at least 45 minutes break';
+              } else if (timeWorking[i] > 10) {
+                cell.style.color = "red";
+                cell.style.fontWeight = "700";
+                cell.title = 'You must not work more than 10 hours a day';
+              }
+            }
+            this.addCell(row, Utils.formatHours(sum));
+
+            // working hours
+            row = document.createElement('tr');
+            row.className = "ListItem";
+            lastRow.before(row);
+            this.addCell(row, "");
+            this.addCell(row, "Total booked working", "left");
+            var sum = 0;
+            for (var i = 0; i < 7; ++i) {
+              var value = sumWorking[i] ?? 0;
+              sum += value;
+              this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {
+                background: '#dcdcdc'
+              } : {});
+            }
+            const cell = this.addCell(row, Utils.formatHours(sum));
+            if (overallBooked < overallWorking) {
+              cell.style.color = "red";
+              cell.style.fontWeight = "700";
+              cell.title = 'Missing booked hours: ' + Utils.formatHours(overallWorking - overallBooked);
+            }
+
+            // hours from start and end of day w/o breaks
+            var row = document.createElement('tr');
+            row.className = "ListItem";
+            lastRow.before(row);
+            this.addCell(row, "");
+            this.addCell(row, "Working hours (From > To) w/o breaks", "left");
+            var sum = 0;
+            for (var i = 0; i < 7; ++i) {
+              var value = (timeWorking[i] ?? 0) - (sumBreaks[i] ?? 0);
+              sum += value;
+              this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {
+                background: '#dcdcdc'
+              } : {});
+            }
+            const cellSum = this.addCell(row, Utils.formatHours(sum));
+            const holidayTime = numHolidays * hoursPerWeek / 5.0;
+            if (sum + holidayTime < hoursPerWeek) {
+              cellSum.style.color = "red";
+              cellSum.style.fontWeight = "700";
+              cellSum.title = 'Missing number of hours: ' + Utils.formatHours(hoursPerWeek - sum - holidayTime);
+            } else {
+              cellSum.style.color = "green";
+              cellSum.title = 'Additional hours: ' + Utils.formatHours(sum + holidayTime - hoursPerWeek);
+            }
+          }
+        }
+      } catch (e) {
+        // in case of any error, just ignore the summary
+        console.error("Error while summarizing working hours: ", e.message);
+      }
+    }
+  }
+  getValueFromCell(cell) {
+    const input = cell.querySelector('.InputCell input');
+    return input ? input.value : cell.textContent ?? '';
+  }
+  addCell(row, value, align = "right", style = {}) {
+    const cell = document.createElement('td');
+    cell.className = "GridCell";
+    cell.innerText = value;
+    Object.entries(style).forEach(([key, value]) => {
+      if (value !== undefined) {
+        cell.style.setProperty(key, '' + value);
+      }
+    });
+    cell.style.textAlign = align;
+    row.appendChild(cell);
+    return cell;
   }
 }
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheet/timesheet.less
@@ -2460,51 +2736,6 @@ class Global extends AbstractModule {
     // no actions required
   }
 }
-;// ./src/modules/global/utils.ts
-class Utils {
-  static waitForElm(selector) {
-    return new Promise(resolve => {
-      const ele = document.querySelector(selector);
-      if (ele) {
-        return resolve(ele);
-      }
-      const observer = new MutationObserver(mutations => {
-        const ele = document.querySelector(selector);
-        if (ele) {
-          observer.disconnect();
-          return resolve(ele);
-        }
-      });
-
-      // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-    });
-  }
-  static showDialog(content) {
-    // create modal import dialog
-    const dialog = document.createElement("div");
-    dialog.classList.add("modalDialog");
-    const dialogEntry = document.createElement("textarea");
-    dialogEntry.readOnly = true;
-    dialogEntry.value = content;
-    dialog.appendChild(dialogEntry);
-    const dialogButtons = document.createElement("div");
-    dialogButtons.classList.add("modalDialog__buttons");
-    dialog.appendChild(dialogButtons);
-    const dialogOK = document.createElement("button");
-    dialogOK.setAttribute("type", "button");
-    dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
-    dialogOK.innerHTML = "<span>OK</span>";
-    dialogOK.addEventListener('click', () => {
-      document.body.removeChild(dialog);
-    });
-    dialogButtons.appendChild(dialogOK);
-    document.body.appendChild(dialog);
-  }
-}
 ;// ./src/modules/timesheetimport/importer/importtask.ts
 class ImportTask {
   // max waiting time for a field to be available / get focus
@@ -2544,9 +2775,9 @@ class ImportTask {
       failureReason: reason
     };
   }
-  // wait a few seconds
-  wait(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+  // wait a few milliseconds
+  wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   //
@@ -2565,7 +2796,7 @@ class ImportTask {
       if (res !== null && res.length > 0) {
         return [...res];
       }
-      await this.wait(1);
+      await this.wait(1000);
     } while (--retries > 0);
     throw new Error(`Element field not found for: ${query}`);
   }
@@ -2625,21 +2856,27 @@ class SanityCheckTask extends ImportTask {
   async run() {
     const errors = [];
     var sumWorkingTime = 0;
+    var sumBookedHours = 0;
     Object.entries(this.data).forEach(([dateStr, day]) => {
       if (day.hours > 9 && day.breaks < 0.75) {
         errors.push("Break issue: min. 45 min breaks on a day with " + day.hours + " hours of work, date: " + dateStr);
       } else if (day.hours > 6 && day.breaks < 0.5) {
         errors.push("Break issue: min. 30 min breaks on a day with " + day.hours + " hours of work, date: " + dateStr);
       }
-      sumWorkingTime += day.workingTime;
-      if (day.workingTime > 10) {
-        errors.push("Working time issue: more than 10 hours of working time on date: " + dateStr);
+      const workingTime = day.workingTime - day.breaks;
+      sumWorkingTime += workingTime;
+      sumBookedHours += day.hours - day.breaks;
+      if (workingTime > 10) {
+        errors.push("Working time issue: more than 10 hours of working time on date: " + dateStr + "\n   Working time: " + workingTime.toFixed(2) + " hours, breaks: " + day.breaks.toFixed(2) + " hours");
       } else if (day.workingTime <= 0) {
         errors.push("Working time issue: no working time on date: " + dateStr);
       }
     });
     if (sumWorkingTime < 40) {
       errors.push("Working time issue: total working time less than 40 hours: " + sumWorkingTime);
+    }
+    if (sumBookedHours < 40) {
+      errors.push("Booked hours issue: total booked hours less than 40 hours: " + sumBookedHours);
     }
     return errors.length > 0 ? this.failure("Sanity check issues:\n\n * " + errors.join("\n\n * ")) : this.next();
   }
@@ -2811,7 +3048,7 @@ class WOImportTask extends ImportTask {
       const activity = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent;
       const description = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent;
       const timeCode = row.querySelector('td[data-type="cell-timecode"] div.ww.ellipsis')?.textContent;
-      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.description === description && this.workOrder.timeCode === timeCode) {
+      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
         // found existing row (readonly), make editable by clicking on it
         // => will reload the page
         const cell = row.querySelector("td[data-type=cell-description] div.ww.ellipsis");
@@ -2825,7 +3062,7 @@ class WOImportTask extends ImportTask {
       const activity = row.querySelector('td[data-type="cell-activity"] td.InputCell input')?.value;
       const description = row.querySelector('td[data-type="cell-description"] td.InputCell input')?.value;
       const timeCode = row.querySelector('td[data-type="cell-timecode"] td.InputCell input')?.value;
-      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.description === description && this.workOrder.timeCode === timeCode) {
+      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
         // found existing row (editable), use it
         return row;
       }
@@ -2846,12 +3083,12 @@ class StartWorkOrderImportTask extends WOImportTask {
   }
   async run() {
     const row = await this.searchExistingRow();
-    if (row instanceof HTMLElement) {
-      // we found an editable row, use it directly
-      return this.next();
+    if (row === true) {
+      // row is not yet ready, retry after page reload
+      return this.nextAfterReload();
     }
-    // row is not yet ready, retry after page reload
-    return this.nextAfterReload();
+    // we found an editable row, use it directly
+    return this.next();
   }
 }
 class WOFieldImportTask extends WOImportTask {
@@ -2873,8 +3110,9 @@ class WOFieldImportTask extends WOImportTask {
         return this.failure(`Could not find field for ${this.cellType}`);
       } else if (field.value !== this.value) {
         if (field.field) {
-          field.field.focus();
+          field.field.dispatchEvent(new Event('focus'));
           field.field.value = this.value;
+          field.field.dispatchEvent(new Event('blur'));
           field.field.dispatchEvent(new KeyboardEvent('keydown', {
             code: "Tab",
             key: "Tab",
@@ -2883,7 +3121,7 @@ class WOFieldImportTask extends WOImportTask {
             bubbles: true,
             cancelable: true
           }));
-          field.field.dispatchEvent(new Event('blur'));
+          await this.wait(100);
           // page may reload if value has changed
           return this.reloads ? this.nextAfterReload() : this.next();
         } else {
@@ -2920,7 +3158,7 @@ class DescriptionImportTask extends WOFieldImportTask {
 }
 class HoursImportTask extends WOFieldImportTask {
   constructor(groupId, workOrder, day, hours) {
-    super(groupId, workOrder, 'cell-weekday', hours, false);
+    super(groupId, workOrder, 'cell-weekday', hours, true);
     this.date = day;
   }
   async lookupField(row) {
@@ -3047,13 +3285,14 @@ class Importer {
         // run the task
         const result = await task.run();
         if (result.reload) {
+          console.log("Expect page reload after running task: " + task.constructor.name);
           if (result.retry) {
             // retry the same task again
             this.unshiftTask(task);
           }
           // last action should reload the page - if this has not been done for 5s,
           // log an error and proceed with next action?
-          await new Promise(f => setTimeout(f, 5000));
+          await this.wait(5000);
           // page has not yet reloaded
           if (result.recoverable) {
             // recoverable => log error and move on with next action                    
@@ -3069,6 +3308,8 @@ class Importer {
           this.addFailed(result.failureReason);
           // skip tasks for same group
           this.clearTaskGroup(task.getGroupId());
+        } else if (result.done) {
+          await this.wait(250);
         }
         this.progress.updatePending(this.tasks.length);
       }
@@ -3118,6 +3359,9 @@ class Importer {
     }
     return failedList;
   }
+  async wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 }
 // EXTERNAL MODULE: ./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheetimport/timesheetimport.less
 var timesheetimport = __webpack_require__("./node_modules/css-loader/dist/cjs.js!./node_modules/less-loader/dist/cjs.js!./src/modules/timesheetimport/timesheetimport.less");
@@ -3149,6 +3393,7 @@ var timesheetimport_update = injectStylesIntoStyleTag_default()(timesheetimport/
        /* harmony default export */ const timesheetimport_timesheetimport = (timesheetimport/* default */.A && timesheetimport/* default */.A.locals ? timesheetimport/* default */.A.locals : undefined);
 
 ;// ./src/modules/timesheetimport/timesheetimport.ts
+
 
 
 
@@ -3267,14 +3512,15 @@ class Timesheetimport extends AbstractModule {
   actionImport() {
     try {
       const json = JSON.parse(this.dialogEntry.value);
-      var data;
-      var days;
-      if (json.hasOwnProperty('entries')) {
-        // new format, contains work orders and working hours
-        data = json.entries;
-        days = json.days;
+      // check if we have old or new format
+      var data = [];
+      var days = {};
+      if (json.hasOwnProperty('days') || json.hasOwnProperty('entries')) {
+        // new format
+        data = json.entries ?? [];
+        days = json.days ?? {};
       } else {
-        // old format, contains only working hours
+        // old format
         data = json;
         days = {};
       }
@@ -3315,6 +3561,7 @@ class Timesheetimport extends AbstractModule {
       const daily = {};
       var sumHours = 0,
         sumBreaks = 0;
+      console.log(data, days);
       data.forEach(entry => {
         // group all tasks for the same work order together
         const groupId = ["workorders", entry.timeCode, entry.workOrder, entry.activity, entry.description].join('|');
@@ -3360,7 +3607,8 @@ class Timesheetimport extends AbstractModule {
             workingTime: 0
           };
         }
-        daily[dateStr].workingTime = (new Date(`1970-01-01T${day.end}:00`).getTime() - new Date(`1970-01-01T${day.start}:00`).getTime()) / 3600000;
+        // calculate working time based on start and end time (format: HH:MM)
+        daily[dateStr].workingTime = Utils.difference(day.start, day.end);
       });
 
       // close all editing modes at the end
