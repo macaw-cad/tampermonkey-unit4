@@ -74,22 +74,27 @@ export abstract class ImportTask {
         return elements[0];
     }
 
+    protected fieldElement(cell: HTMLElement, fieldType: string): FoundField {
+        // check if there is an input field in this cell
+        const input = cell.querySelector('.InputCell input') as HTMLInputElement;
+        if (input !== null) {
+            input.focus();
+            return { field: input, value: input.value };
+        }
+        // otherwise return the text of the first div
+        const div = cell.querySelector('& > div') as HTMLElement;
+        if (div !== null) {
+            return { value: div.textContent };
+        }
+        throw new Error(`Field not found for: ${fieldType}`);
+    }
+
     protected async waitForField(dataType: string): Promise<FoundField> {
         // find the cell for the data type in the current edited row
         const cell = await this.waitForElement(`.EditRow td[data-type=${dataType}`);
 
         // check if there is an input field in this cell
-        const input = cell.querySelector('.InputCell input') as HTMLInputElement;
-        if (input !== null) {
-        input.focus();
-        return { field: input, value: input.value };
-        }
-        // otherwise return the text of the first div
-        const div = cell.querySelector('& > div') as HTMLElement;
-        if (div !== null) {
-        return { value: div.textContent };
-        }
-        throw new Error(`Field not found for data-type: ${dataType}`);
+        return this.fieldElement(cell, dataType);
     }
 
     protected async focusElement(query: string): Promise<HTMLElement> {

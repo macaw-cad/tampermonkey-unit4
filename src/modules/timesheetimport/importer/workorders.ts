@@ -173,8 +173,8 @@ export class HoursImportTask extends WOFieldImportTask {
     }
     protected async lookupField(row: HTMLElement): Promise<FoundField|null> {
       const headers = await this.waitForElements('th[data-type=cell-weekday]');
-      const fields = await this.waitForElements('.EditRow [data-type=cell-weekday] .InputCell input');
-      // TODO: when workorder is not valid, there is no EditRow InputCell and this throws an Exception
+      const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
+
       // requested date
       const dateEN = (this.date.getMonth()+1) + "/" + this.date.getDate(); // eEN format: M/D
       const dateDE = this.date.getDate() + "." + (this.date.getMonth()+1) + "."; // DE format: D.M.
@@ -182,8 +182,8 @@ export class HoursImportTask extends WOFieldImportTask {
       for(var i=0 ; i<headers.length ; ++i) {
         const head = headers[i] as HTMLElement;        
         if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
-          // seems to match the date
-          return { field: fields[i] as HTMLInputElement, value: (fields[i] as HTMLInputElement).value };
+          // seems to match the date          
+          return await this.fieldElement(cells[i] as HTMLElement, 'cell-weekday['+i+']');
         }
       }
       return null;

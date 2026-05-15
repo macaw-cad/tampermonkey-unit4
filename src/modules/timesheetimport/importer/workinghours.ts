@@ -1,3 +1,4 @@
+import { trans } from "../../global/trans";
 import { ImportTask, ImportTaskResult } from "./importtask";
 
 export type WorkingHours = {
@@ -49,21 +50,15 @@ export abstract class WHImportTask extends ImportTask {
       return {};
     }
 
-    // format time string to AM/PM format
+    // format time string based on naviogator.language (e.g. AM/PM format)
     protected formatLocalTime(timeString: string, field: HTMLInputElement): string {
         // Parse the time string (assuming HH:MM or H:MM format)
         const [hours, minutes] = timeString.split(':').map(str => parseInt(str, 10));
-
-        if (field.value.endsWith('AM') || field.value.endsWith('PM')) { 
-        // Field used AM/PM - convert to 12 hour format
-        const period = hours >= 12 ? 'PM' : 'AM';
-        const displayHours = hours % 12 || 12;
-        const displayMinutes = String(minutes).padStart(2, '0');
-        return `${displayHours}:${displayMinutes}${period}`;
-        }
-
-        // Fallback: 24-hour format
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        // create date object with the time
+        const date = new Date();
+        date.setHours(hours, minutes);
+        // Format the time based on the user's locale
+        return new Intl.DateTimeFormat(navigator.language, { hour: "numeric", minute: "numeric" }).format(date);
     }
 
 
@@ -80,7 +75,7 @@ export abstract class WHImportTask extends ImportTask {
             cell.cell.click();
             return this.retryAfterReload();
         }
-        return this.failure("Could not find cell for date " + this.date);
+        return this.failure(trans('error_date_cell_not_found', this.date.toLocaleDateString()));
     }
 }
 
