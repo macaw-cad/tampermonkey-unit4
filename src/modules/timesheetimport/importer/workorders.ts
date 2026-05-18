@@ -1,3 +1,4 @@
+import { Utils } from "../../global/utils";
 import { FoundField, ImportTask, ImportTaskResult } from "./importtask";
 
 export type WorkOrder = {
@@ -167,8 +168,8 @@ export class DescriptionImportTask extends WOFieldImportTask {
 }
 export class HoursImportTask extends WOFieldImportTask {
     private date: Date;
-    constructor(groupId: string, workOrder: WorkOrder, day: Date, hours: string) {
-        super(groupId, workOrder, 'cell-weekday', hours, true);
+    constructor(groupId: string, workOrder: WorkOrder, day: Date, hours: number) {
+        super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
         this.date = day;
     }
     protected async lookupField(row: HTMLElement): Promise<FoundField|null> {
@@ -177,7 +178,8 @@ export class HoursImportTask extends WOFieldImportTask {
 
       // requested date
       const dateEN = (this.date.getMonth()+1) + "/" + this.date.getDate(); // eEN format: M/D
-      const dateDE = this.date.getDate() + "." + (this.date.getMonth()+1) + "."; // DE format: D.M.
+      const month = String(this.date.getMonth()+1).padStart(2, '0');
+      const dateDE = this.date.getDate() + "." + month; // DE format: DD.MM.
 
       for(var i=0 ; i<headers.length ; ++i) {
         const head = headers[i] as HTMLElement;        

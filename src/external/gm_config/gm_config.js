@@ -24,6 +24,8 @@ GM_config is distributed under the terms of the GNU Lesser General Public Licens
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { Utils } from "../../modules/global/utils";
+
 // ==UserScript==
 // @exclude       *
 // @author        Mike Medley <medleymind@gmail.com> (https://github.com/sizzlemctwizzle/GM_config)
@@ -749,7 +751,7 @@ GM_configField.prototype = {
         break;
       case 'int': case 'integer':
       case 'float': case 'number':
-        var num = Number(node.value);
+        var num = Utils.toNumber(node.value);
         var warn = 'Field labeled "' + field.label + '" expects a' +
           (unsigned ? ' positive ' : 'n ') + 'integer value';
 

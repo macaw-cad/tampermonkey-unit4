@@ -210,7 +210,6 @@ export class Timesheetimport extends AbstractModule {
       const daily: SanityDaily = {};
 
       var sumHours = 0, sumBreaks = 0;
-      console.log(data, days);
       data.forEach((entry: any) => {
         // group all tasks for the same work order together
         const groupId = ["workorders", entry.timeCode, entry.workOrder, entry.activity, entry.description].join('|');
@@ -220,20 +219,21 @@ export class Timesheetimport extends AbstractModule {
         importer.addTask(new ActivityImportTask(groupId, entry));
         importer.addTask(new DescriptionImportTask(groupId, entry));
         entry.time.forEach((timeEntry: any) => {
-          importer.addTask(new HoursImportTask(groupId, entry, new Date(timeEntry.date), timeEntry.hours));
+          const hours = Utils.toNumber(timeEntry.hours);
+          importer.addTask(new HoursImportTask(groupId, entry, new Date(timeEntry.date), hours));
           // sum hours and breaks
-          sumHours += parseFloat(timeEntry.hours);
+          sumHours += hours;
           if (entry.timeCode === "99") {
-            sumBreaks += parseFloat(timeEntry.hours);
+            sumBreaks += hours;
           }
           // data for sanity check
           if (!daily[timeEntry.date]) {
               daily[timeEntry.date] = { hours: 0, breaks: 0, workingTime: 0 };
           }
           if (entry.timeCode === "99") {
-              daily[timeEntry.date].breaks += parseFloat(timeEntry.hours);
+              daily[timeEntry.date].breaks += hours;
           } else {
-              daily[timeEntry.date].hours += parseFloat(timeEntry.hours);
+              daily[timeEntry.date].hours += hours;
           }
         });
       });

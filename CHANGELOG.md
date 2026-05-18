@@ -1,3 +1,7 @@
+# V0.10.4 - 2026-05-18
+
+* Fixed issues when used with german locale in browser (NaN, import not working)
+
 # V0.10.3 - 2026-05-15
 
 * JSON import: better handling of unknown work orders

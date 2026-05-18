@@ -1,3 +1,4 @@
+import { Utils } from "../../global/utils";
 import { ImportWorkingHours, ImportWorkOrder, SanityDaily } from "../timesheetimport";
 
 export type FoundField = {
@@ -74,11 +75,12 @@ export abstract class ImportTask {
         return elements[0];
     }
 
-    protected fieldElement(cell: HTMLElement, fieldType: string): FoundField {
+    protected async fieldElement(cell: HTMLElement, fieldType: string): Promise<FoundField> {
         // check if there is an input field in this cell
         const input = cell.querySelector('.InputCell input') as HTMLInputElement;
         if (input !== null) {
             input.focus();
+            await this.wait(100);
             return { field: input, value: input.value };
         }
         // otherwise return the text of the first div
@@ -147,7 +149,7 @@ export class SanityCheckTask extends ImportTask {
             if (workingTime > 10) {
                 errors.push(
                     "Working time issue: more than 10 hours of working time on date: " + dateStr
-                    + "\n   Working time: " + workingTime.toFixed(2) + " hours, breaks: " + day.breaks.toFixed(2) + " hours"
+                    + "\n   Working time: " + Utils.toLocaleString(workingTime) + " hours, breaks: " + Utils.toLocaleString(day.breaks) + " hours"
                 );
             } else if (day.workingTime <= 0) {
                 errors.push("Working time issue: no working time on date: " + dateStr);

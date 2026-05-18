@@ -169,12 +169,12 @@ export class TimeEntry extends AbstractModule {
             const timeCode = this.getValueFromCell(cells[colTimeCode]);
 
             for(var i=0 ; i<7 ; ++i) {
-              const hours = this.getValueFromCell(cells[colWeekdays + i]);
+              const hours = Utils.toNumber(this.getValueFromCell(cells[colWeekdays + i]));
               if (timeCode === '99') {
-                sumBreaks[i] = (sumBreaks[i] ?? 0) + Number(hours);
+                sumBreaks[i] = (sumBreaks[i] ?? 0) + hours;
               } else {
-                sumWorking[i] = (sumWorking[i] ?? 0) + Number(hours);
-                overallBooked += Number(hours);
+                sumWorking[i] = (sumWorking[i] ?? 0) + hours;
+                overallBooked += hours;
               }
             }
           });
@@ -194,9 +194,9 @@ export class TimeEntry extends AbstractModule {
             for(var i=0 ; i<7 ; ++i) {
               var value = sumBreaks[i] ?? 0;
               sum += value;
-              this.addCell(row, value.toFixed(2), "right");
+              this.addCell(row, Utils.toLocaleString(value), "right");
             }
-            this.addCell(row, sum.toFixed(2));
+            this.addCell(row, Utils.toLocaleString(sum));
 
             // working only
             row = document.createElement('tr');
@@ -211,9 +211,9 @@ export class TimeEntry extends AbstractModule {
             for(var i=0 ; i<7 ; ++i) {
               var value = sumWorking[i] ?? 0;
               sum += value;
-              this.addCell(row, value.toFixed(2), "right");
+              this.addCell(row, Utils.toLocaleString(value), "right");
             }
-            this.addCell(row, sum.toFixed(2));
+            this.addCell(row, Utils.toLocaleString(sum));
 
           }
         }

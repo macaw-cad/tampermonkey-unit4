@@ -30,8 +30,10 @@ export abstract class WHImportTask extends ImportTask {
       const headers = await this.waitForElements('.tmWorkinghours th');
       const rows = await this.waitForElements('.workinghours-section .ListItem, .workinghours-section .AltListItem, .workinghours-section .EditRow');
       const date = new Date(this.date);
-      const dateEN = (date.getMonth()+1) + "/" + date.getDate(); // eEN format: M/D
-      const dateDE = date.getDate() + "." + (date.getMonth()+1) + "."; // DE format: D.M.
+      const dateEN = (date.getMonth()+1) + "/" + date.getDate(); // eEN format: M/D      
+
+      const month = String(date.getMonth()+1).padStart(2, '0');
+      const dateDE = date.getDate() + "." + month; // DE format: DD.MM.
 
       for(var i=0 ; i<headers.length ; ++i) {
         const head = headers[i] as HTMLElement;        
