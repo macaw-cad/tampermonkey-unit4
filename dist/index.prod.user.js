@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name          userscript-macaw-unit4 (test)
+// @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
 // @version       0.10.4
