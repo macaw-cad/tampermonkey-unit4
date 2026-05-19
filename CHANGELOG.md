@@ -1,3 +1,8 @@
+# V0.10.5 - 2026-05-19
+
+* some small enhancements (daily breaks warnings)
+* use "normal hours" from timesheet for calculations
+
 # V0.10.4 - 2026-05-18
 
 * Fixed issues when used with german locale in browser (NaN, import not working)

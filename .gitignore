@@ -1,4 +1,4 @@
-node_modules
-.idea
-.vscode
-dist
+/.vscode
+/node_modules
+/dist
+!/dist/index.prod.user.js

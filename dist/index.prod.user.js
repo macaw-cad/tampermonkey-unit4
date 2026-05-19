@@ -2,7 +2,7 @@
 // @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
-// @version       0.10.4
+// @version       0.10.5
 // @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source        https://github.com/macaw-cad/tampermonkey-unit4
 // @license       MIT
@@ -923,7 +923,7 @@ module.exports = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%
 var __webpack_exports__ = {};
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.10.4"};
+const package_namespaceObject = {"rE":"0.10.5"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1849,7 +1849,8 @@ class Configuration {
           labelPos: 'right',
           type: 'checkbox',
           default: true
-        },
+        }
+        /* will be read from "Normal hours" field, since that contains only working days excluded bank holidays and start/end of month
         workingHours: {
           label: 'Working hours per week: ',
           labelPos: 'left',
@@ -1857,6 +1858,7 @@ class Configuration {
           title: 'Enter your working hours, e.g. 40 hours per week',
           default: '40'
         }
+        */
       },
       css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config * { font-size: 13px; font-family: dagny, arial, tahoma, verdana, sans-serif; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; }'
     });
@@ -1905,6 +1907,8 @@ class Configuration {
   experimentalJsonImport() {
     return GM_config.get('experimentalJsonImport');
   }
+
+  /*
   myWorkingHours() {
     const value = GM_config.get('workingHours');
     if (typeof value === 'string') {
@@ -1916,6 +1920,8 @@ class Configuration {
     // use 40 as fallback
     return 40;
   }
+  */
+
   show() {
     GM_config.open();
   }
@@ -2080,6 +2086,7 @@ const translations = {
     'summary_booked_breaks': 'Total booked breaks',
     'summary_booked_working': 'Total booked time entries',
     'missing_booked_hours': '%1 less booked hours than working hours',
+    'missing_weekly_hours': '%1 less hours than expected (%2)',
     'summary_hours_working': 'Working hours (From > To w/o breaks)',
     'missing_working_hours': 'Missing booked hours: %1',
     'additional_hours': 'Additional hours: %1',
@@ -2093,6 +2100,7 @@ const translations = {
     'summary_booked_breaks': 'Gebuchte Pausen',
     'summary_booked_working': 'Gebuchte Zeiteinträge',
     'missing_booked_hours': '%1 weniger Zeiteinträge als Arbeitsstunden',
+    'missing_weekly_hours': '%1 weniger Stunden als erwartet (%2)',
     'summary_hours_working': 'Arbeitsstunden (Von > Bis ohne Pausen)',
     'missing_working_hours': 'Fehlende Arbeitsstunden: %1',
     'additional_hours': 'Zusätzliche Stunden: %1',
@@ -2128,6 +2136,7 @@ class TimeEntry extends AbstractModule {
   // Time Entry Screen
   // ----------------------------------------------------------------------
 
+  normalHours = 40;
   initModule() {
     // mark time entry table with special CSS class
     if (Configuration.getInstance().handleTimeEntry()) {
@@ -2147,6 +2156,21 @@ class TimeEntry extends AbstractModule {
             this.workingHoursSection = section;
             // add markup to working hours
             promises.push(MarkupUtility.addTypeToTableCells('tmWorkinghours', section));
+          }
+        } else if (e.textContent == 'Timesheet for') {
+          let section = e.closest('.u4-section-container');
+          if (section != null) {
+            this.timesheetDetailsSection = section;
+            // add markup to timesheet details
+            section.classList.add('tmTimesheetDetails');
+            section.querySelectorAll('td.label').forEach(td => {
+              if (td.textContent.includes('Normal hours')) {
+                const input = td.nextElementSibling?.querySelector('input[type="text"]');
+                if (input) {
+                  this.normalHours = Utils.toNumber(input.value);
+                }
+              }
+            });
           }
         }
       });
@@ -2238,9 +2262,8 @@ class TimeEntry extends AbstractModule {
         const sumWorking = [];
         const sumBreaks = [];
         const isHoliday = [];
-        var numHolidays = 0;
         var overallBooked = 0;
-        const hoursPerWeek = Configuration.getInstance().myWorkingHours();
+        var cellSumWorking = null;
         if (tableEntry) {
           // iterate over header to find time code column and first weekday column
           const columns = Array.from(this.section.querySelectorAll('table.Excel th'));
@@ -2265,7 +2288,6 @@ class TimeEntry extends AbstractModule {
             const headline = headlineCell?.textContent ?? '';
             if (headlineCell?.style.color == 'rgb(50, 205, 50)') {
               isHoliday[i] = true;
-              ++numHolidays;
             } else if (headline.includes('Sat') || headline.includes('Sun')) {
               isHoliday[i] = true;
             }
@@ -2300,7 +2322,19 @@ class TimeEntry extends AbstractModule {
             for (var i = 0; i < 7; ++i) {
               var value = sumBreaks[i] ?? 0;
               sum += value;
-              this.addCell(row, Utils.toLocaleString(value), "right");
+              const cell = this.addCell(row, Utils.toLocaleString(value), "right");
+              if (isHoliday[i]) {
+                cell.style.setProperty("background-color", "#dcdcdc", "important");
+              }
+              if (sumWorking[i] > 0) {
+                if (sumWorking[i] > 9 && value < 0.75 || sumWorking[i] > 6 && value < 0.5 || sumWorking[i] > 10) {
+                  cell.style.color = "red";
+                  cell.style.fontWeight = "700";
+                } else {
+                  cell.style.color = "green";
+                  cell.style.fontWeight = "700";
+                }
+              }
             }
             this.addCell(row, Utils.toLocaleString(sum));
 
@@ -2317,9 +2351,25 @@ class TimeEntry extends AbstractModule {
             for (var i = 0; i < 7; ++i) {
               var value = sumWorking[i] ?? 0;
               sum += value;
-              this.addCell(row, Utils.toLocaleString(value), "right");
+              const cell = this.addCell(row, Utils.toLocaleString(value), "right");
+              if (isHoliday[i]) {
+                cell.style.setProperty("background-color", "#dcdcdc", "important");
+              }
+              if (sumWorking[i] > 10) {
+                cell.style.color = "red";
+                cell.style.fontWeight = "700";
+              } else if (sumWorking[i] > 0) {
+                cell.style.color = "green";
+                cell.style.fontWeight = "700";
+              }
             }
-            this.addCell(row, Utils.toLocaleString(sum));
+            cellSumWorking = this.addCell(row, Utils.toLocaleString(sum));
+            const missingBooked = this.normalHours - overallBooked;
+            if (cellSumWorking && missingBooked > 0) {
+              cellSumWorking.style.color = 'red';
+              cellSumWorking.style.fontWeight = '700';
+              cellSumWorking.title = trans('missing_weekly_hours', Utils.formatHours(missingBooked), Utils.formatHours(this.normalHours));
+            }
           }
         }
         if (tableWorking) {
@@ -2427,14 +2477,13 @@ class TimeEntry extends AbstractModule {
               } : {});
             }
             const cellSum = this.addCell(row, Utils.formatHours(sum));
-            const holidayTime = numHolidays * hoursPerWeek / 5.0;
-            if (sum + holidayTime < hoursPerWeek) {
+            if (sum < this.normalHours) {
               cellSum.style.color = "red";
               cellSum.style.fontWeight = "700";
-              cellSum.title = trans('missing_working_hours', Utils.formatHours(hoursPerWeek - sum - holidayTime));
+              cellSum.title = trans('missing_working_hours', Utils.formatHours(this.normalHours - sum));
             } else {
               cellSum.style.color = "green";
-              cellSum.title = trans('additional_hours', Utils.formatHours(sum + holidayTime - hoursPerWeek));
+              cellSum.title = trans('additional_hours', Utils.formatHours(sum - this.normalHours));
             }
           }
         }
@@ -2554,7 +2603,7 @@ class TimeSheet extends AbstractModule {
 
         // mark complete rows for locked cells
         this.sectionTimesheet.querySelectorAll('.GridCell.Locked').forEach(e => {
-          e.closest('tr').classList.add('LockedRow');
+          e.closest('tr')?.classList.add('LockedRow');
         });
 
         // always show work item & project descriptions in timesheet details
@@ -2563,7 +2612,7 @@ class TimeSheet extends AbstractModule {
             let x = document.createElement('div');
             x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
             x.style.whiteSpace = "break-spaces";
-            x.appendChild(document.createTextNode(e.getAttribute('title')));
+            x.appendChild(document.createTextNode(e.getAttribute('title') || ''));
             e.appendChild(x);
           });
         }
@@ -2833,11 +2882,13 @@ class ImportTask {
   }
   next() {
     return {
+      task: this,
       done: true
     };
   }
   nextAfterReload(recoverable = true) {
     return {
+      task: this,
       retry: false,
       reload: true,
       recoverable
@@ -2845,6 +2896,7 @@ class ImportTask {
   }
   retryAfterReload(recoverable = true) {
     return {
+      task: this,
       retry: true,
       reload: true,
       recoverable
@@ -2852,8 +2904,8 @@ class ImportTask {
   }
   failure(reason) {
     return {
-      failed: true,
       task: this,
+      failed: true,
       failureReason: reason
     };
   }
@@ -2924,6 +2976,9 @@ class CloseEditingModeTask extends ImportTask {
   constructor() {
     super('close-editing-mode');
   }
+  actionDescription() {
+    return "Close editing mode";
+  }
   async run() {
     // click on "Close" button to close the editing mode
     const closeButton = ImportTask.section.ownerDocument.querySelector('[title="Close editing mode"');
@@ -2939,6 +2994,9 @@ class SanityCheckTask extends ImportTask {
   constructor(data) {
     super('sanity-check');
     this.data = data;
+  }
+  actionDescription() {
+    return "Final sanity check";
   }
   async run() {
     const errors = [];
@@ -2965,7 +3023,11 @@ class SanityCheckTask extends ImportTask {
     if (sumBookedHours < 40) {
       errors.push("Booked hours issue: total booked hours less than 40 hours: " + sumBookedHours);
     }
-    return errors.length > 0 ? this.failure("Sanity check issues:\n\n * " + errors.join("\n\n * ")) : this.next();
+    if (errors.length > 0) {
+      return this.failure(errors.join("\n\n * "));
+    } else {
+      return this.next();
+    }
   }
 }
 ;// ./src/modules/timesheetimport/importer/progress.ts
@@ -3083,10 +3145,16 @@ class WorkingStartImportTask extends WHImportTask {
   constructor(groupId, day, time) {
     super(groupId, day, "start", time);
   }
+  actionDescription() {
+    return "Enter working time (From) for " + this.date.toLocaleDateString();
+  }
 }
 class WorkingEndImportTask extends WHImportTask {
   constructor(groupId, day, time) {
     super(groupId, day, "end", time);
+  }
+  actionDescription() {
+    return "Enter working time (To) for " + this.date.toLocaleDateString();
   }
 }
 ;// ./src/modules/timesheetimport/importer/workorders.ts
@@ -3170,6 +3238,9 @@ class StartWorkOrderImportTask extends WOImportTask {
   constructor(groupId, workOrder) {
     super(groupId, workOrder);
   }
+  actionDescription() {
+    return "Begin new work order entry for " + this.workOrder.workOrder;
+  }
   async run() {
     const row = await this.searchExistingRow();
     if (row === true) {
@@ -3229,26 +3300,41 @@ class TimecodeImportTask extends WOFieldImportTask {
   constructor(groupId, workOrder) {
     super(groupId, workOrder, 'cell-timecode', workOrder.timeCode, true);
   }
+  actionDescription() {
+    return "Enter time code for " + this.workOrder.workOrder;
+  }
 }
 class WorkOrderImportTask extends WOFieldImportTask {
   constructor(groupId, workOrder) {
     super(groupId, workOrder, 'cell-workorder', workOrder.workOrder, true);
+  }
+  actionDescription() {
+    return "Enter work order for " + this.workOrder.workOrder;
   }
 }
 class ActivityImportTask extends WOFieldImportTask {
   constructor(groupId, workOrder) {
     super(groupId, workOrder, 'cell-activity', workOrder.activity, true);
   }
+  actionDescription() {
+    return "Enter activity for " + this.workOrder.workOrder;
+  }
 }
 class DescriptionImportTask extends WOFieldImportTask {
   constructor(groupId, workOrder) {
     super(groupId, workOrder, 'cell-description', workOrder.description, false);
+  }
+  actionDescription() {
+    return "Enter description for " + this.workOrder.workOrder;
   }
 }
 class HoursImportTask extends WOFieldImportTask {
   constructor(groupId, workOrder, day, hours) {
     super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
     this.date = day;
+  }
+  actionDescription() {
+    return "Enter hours for " + this.workOrder.workOrder + " on " + this.date.toLocaleDateString();
   }
   async lookupField(row) {
     const headers = await this.waitForElements('th[data-type=cell-weekday]');
@@ -3274,6 +3360,9 @@ class WorkOrderSummaryTask extends ImportTask {
     super('work-order-summary');
     this.sum = sum;
     this.breaks = breaks;
+  }
+  actionDescription() {
+    return "Final check of work order summary";
   }
   async run() {
     // get the sum of hours from Unit4 and compare with
@@ -3383,16 +3472,16 @@ class Importer {
           // page has not yet reloaded
           if (result.recoverable) {
             // recoverable => log error and move on with next action                    
-            this.addFailed(result.failureReason);
+            this.addFailed(task.actionDescription(), result.failureReason);
           } else {
             // not recoverable => log error and abort rest of workorder
-            this.addFailed(result.failureReason);
+            this.addFailed(task.actionDescription(), result.failureReason);
             // skip tasks for same group
             this.clearTaskGroup(task.getGroupId());
           }
         } else if (result.failed) {
           // not recoverable => log error and abort rest of workorder
-          this.addFailed(result.failureReason);
+          this.addFailed(task.actionDescription(), result.failureReason);
           // skip tasks for same group
           this.clearTaskGroup(task.getGroupId());
         } else if (result.done) {
@@ -3407,16 +3496,22 @@ class Importer {
       const failed = this.getFailed();
       var text = '';
       if (failed.length > 0) {
-        text = "JSON import finished with " + failed.length + " failed imports:\n";
+        text = failed.length + ' failed actions from import (' + new Date().toLocaleString() + "):\n";
         failed.forEach(f => {
+          text += "\n----------------------------------------------------------------------------------------------------\n\n";
+          text += f.action + "\n";
           text += f.message;
           if (f.data) {
             text += " | data: " + JSON.stringify(f.data);
           }
-          text += "\n----------------------------------------------------------------------------------------------------\n";
+          text += "\n";
         });
+        // store last failures in storage
+        sessionStorage.setItem("import_failed_summary", text);
       } else {
         text = "JSON import finished\n";
+        // clear any previous failures from storage
+        sessionStorage.removeItem("import_failed_summary");
       }
       Utils.showDialog(text);
     }
@@ -3426,11 +3521,12 @@ class Importer {
   // failure handling
   //
   // add an entry to the failed ones
-  addFailed(message, data) {
+  addFailed(action, message, data) {
     if (message) {
       // load failed ones    
       var failedList = this.getFailed();
       failedList.push({
+        action,
         message,
         data
       });
@@ -3445,6 +3541,10 @@ class Importer {
       failedList = JSON.parse(rawFailedList);
     }
     return failedList;
+  }
+  clearFailed() {
+    sessionStorage.removeItem("import_failed");
+    sessionStorage.removeItem("import_failed_summary");
   }
   async wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -3554,32 +3654,54 @@ class Timesheetimport extends AbstractModule {
           dialogButtons.appendChild(dialogCancel);
           document.body.appendChild(this.dialog);
 
-          //create new table cell
-          const buttonCell = document.createElement("td");
-          table.rows[0].insertBefore(buttonCell, this.standardAddBtn.parentElement);
-          buttonCell.classList.add('Button');
+          // create new button for import
+          const buttonImportCell = document.createElement("td");
+          table.rows[0].insertBefore(buttonImportCell, this.standardAddBtn.parentElement);
+          buttonImportCell.classList.add('Button');
+          buttonImportCell.style.paddingRight = "0";
+          const buttonImport = document.createElement("button");
+          buttonImport.setAttribute("id", "json-import-btn");
+          buttonImport.setAttribute("type", "button");
+          buttonImport.setAttribute("role", "button");
+          buttonImport.setAttribute("title", "Import data from JSON");
+          buttonImport.setAttribute("onclick", "");
+          buttonImport.classList.add('BaseButton');
+          buttonImport.classList.add('SectionButton');
+          buttonImport.innerHTML = "<span>Import JSON</span>";
+          buttonImport.addEventListener("click", this.actionDialog.bind(this));
+          buttonImportCell.appendChild(buttonImport);
 
-          //create new button
-          const button = document.createElement("button");
-          button.setAttribute("id", "json-import-btn");
-          button.setAttribute("type", "button");
-          button.setAttribute("role", "button");
-          button.setAttribute("title", "Import data from JSON");
-          button.setAttribute("onclick", "");
-          button.classList.add('BaseButton');
-          button.classList.add('SectionButton');
-          button.innerHTML = "<span>Import JSON</span>";
-          button.addEventListener("click", this.actionDialog.bind(this));
-          buttonCell.appendChild(button);
+          // create new button for last errors
+          const buttonFailedCell = document.createElement("td");
+          table.rows[0].insertBefore(buttonFailedCell, this.standardAddBtn.parentElement);
+          buttonFailedCell.classList.add('Button');
+          buttonFailedCell.style.paddingLeft = "0";
+          this.buttonFailed = document.createElement("button");
+          this.buttonFailed.setAttribute("id", "json-import-failed-btn");
+          this.buttonFailed.setAttribute("type", "button");
+          this.buttonFailed.setAttribute("role", "button");
+          this.buttonFailed.setAttribute("title", "Show last failed imports");
+          this.buttonFailed.setAttribute("onclick", "");
+          this.buttonFailed.classList.add('BaseButton');
+          this.buttonFailed.classList.add('SectionButton');
+          this.buttonFailed.innerHTML = "<span>failed</span>";
+          this.buttonFailed.addEventListener("click", () => {
+            Utils.showDialog(sessionStorage.getItem("import_failed_summary") ?? 'No failed actions');
+          });
+          this.failedUpdate();
+          buttonFailedCell.appendChild(this.buttonFailed);
         }
 
         // Run pending tasks from importer
         const importer = Importer.getInstance();
         WOImportTask.setSection(this.section);
         WOImportTask.setAddButton(this.standardAddBtn);
-        importer.runTasks();
+        this.runTasks();
       }
     }
+  }
+  failedUpdate() {
+    this.buttonFailed.disabled = sessionStorage.getItem("import_failed_summary") === null;
   }
 
   // show modal dialog
@@ -3593,6 +3715,12 @@ class Timesheetimport extends AbstractModule {
   actionClose() {
     this.dialog.style.display = 'none';
     this.dialogEntry.value = '';
+  }
+  runTasks() {
+    const importer = Importer.getInstance();
+    importer.runTasks().then(() => {
+      this.failedUpdate();
+    });
   }
 
   // start the import
@@ -3710,6 +3838,7 @@ class Timesheetimport extends AbstractModule {
       // close dialog
       this.actionClose();
       // handle first import item
+      importer.clearFailed();
       importer.runTasks();
     } catch (e) {
       console.error(e);

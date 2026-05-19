@@ -93,6 +93,10 @@ export class StartWorkOrderImportTask extends WOImportTask {
         super(groupId, workOrder);
     }
 
+    actionDescription(): string {
+        return "Begin new work order entry for " + this.workOrder.workOrder;
+    }
+
     public async run(): Promise<ImportTaskResult> {
         const row = await this.searchExistingRow();
         if (row === true) {
@@ -150,20 +154,36 @@ export class TimecodeImportTask extends WOFieldImportTask {
     constructor(groupId: string, workOrder: WorkOrder) {
         super(groupId, workOrder, 'cell-timecode', workOrder.timeCode, true);
     }
+
+    actionDescription(): string {
+        return "Enter time code for " + this.workOrder.workOrder;
+    }
 }
 export class WorkOrderImportTask extends WOFieldImportTask {
     constructor(groupId: string, workOrder: WorkOrder) {
         super(groupId, workOrder, 'cell-workorder', workOrder.workOrder, true);
+    }
+
+    actionDescription(): string {
+        return "Enter work order for " + this.workOrder.workOrder;
     }
 }
 export class ActivityImportTask extends WOFieldImportTask {
     constructor(groupId: string, workOrder: WorkOrder) {
         super(groupId, workOrder, 'cell-activity', workOrder.activity, true);
     }
+
+    actionDescription(): string {
+        return "Enter activity for " + this.workOrder.workOrder;
+    }
 }
 export class DescriptionImportTask extends WOFieldImportTask {
     constructor(groupId: string, workOrder: WorkOrder) {
         super(groupId, workOrder, 'cell-description', workOrder.description, false);
+    }
+
+    actionDescription(): string {
+        return "Enter description for " + this.workOrder.workOrder;
     }
 }
 export class HoursImportTask extends WOFieldImportTask {
@@ -172,6 +192,11 @@ export class HoursImportTask extends WOFieldImportTask {
         super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
         this.date = day;
     }
+
+    actionDescription(): string {
+        return "Enter hours for " + this.workOrder.workOrder + " on " + this.date.toLocaleDateString();
+    }
+
     protected async lookupField(row: HTMLElement): Promise<FoundField|null> {
       const headers = await this.waitForElements('th[data-type=cell-weekday]');
       const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
@@ -196,6 +221,10 @@ export class HoursImportTask extends WOFieldImportTask {
 export class WorkOrderSummaryTask extends ImportTask {
     constructor(private sum: number, private breaks: number) {
         super('work-order-summary');
+    }
+
+    actionDescription(): string {
+        return "Final check of work order summary";
     }
 
     async run(): Promise<ImportTaskResult> {

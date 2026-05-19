@@ -6,6 +6,7 @@ import { StartWorkOrderImportTask, WOImportTask } from "./workorders";
 
 type FailedImport = {
   data: any
+  action: string;
   message: string;
 }
 
@@ -101,16 +102,16 @@ export class Importer {
                     // page has not yet reloaded
                     if (result.recoverable) {
                         // recoverable => log error and move on with next action                    
-                        this.addFailed(result.failureReason);
+                        this.addFailed(task.actionDescription(), result.failureReason);
                     } else { 
                         // not recoverable => log error and abort rest of workorder
-                        this.addFailed(result.failureReason);
+                        this.addFailed(task.actionDescription(), result.failureReason);
                         // skip tasks for same group
                         this.clearTaskGroup(task.getGroupId());
                     }
                 } else if (result.failed) { 
                     // not recoverable => log error and abort rest of workorder
-                    this.addFailed(result.failureReason);
+                    this.addFailed(task.actionDescription(), result.failureReason);
                     // skip tasks for same group
                     this.clearTaskGroup(task.getGroupId());
                 } else if (result.done) {
@@ -126,16 +127,22 @@ export class Importer {
             const failed = this.getFailed();
             var text = '';
             if (failed.length > 0) {
-                text = "JSON import finished with " + failed.length + " failed imports:\n";
+                text = failed.length + ' failed actions from import (' + (new Date()).toLocaleString() + "):\n";
                 failed.forEach((f: FailedImport) => {
+                    text += "\n----------------------------------------------------------------------------------------------------\n\n";
+                    text += f.action + "\n";
                     text += f.message;
                     if (f.data) {
                         text += " | data: " + JSON.stringify(f.data);
-                    } 
-                    text += "\n----------------------------------------------------------------------------------------------------\n";
+                    }
+                    text += "\n";
                 });
+                // store last failures in storage
+                sessionStorage.setItem("import_failed_summary", text);
             } else { 
                 text = "JSON import finished\n";
+                // clear any previous failures from storage
+                sessionStorage.removeItem("import_failed_summary");
             }
             Utils.showDialog(text);
         }
@@ -145,11 +152,11 @@ export class Importer {
     // failure handling
     //
     // add an entry to the failed ones
-    public addFailed(message?: string, data?: any) {
+    public addFailed(action: string, message?: string, data?: any) {
         if (message) {
             // load failed ones    
             var failedList = this.getFailed();
-            failedList.push({ message, data });
+            failedList.push({ action, message, data });
             sessionStorage.setItem("import_failed", JSON.stringify(failedList));
         }
     }
@@ -161,6 +168,10 @@ export class Importer {
             failedList = JSON.parse(rawFailedList);
         }
         return failedList;
+    }
+    public clearFailed() {
+        sessionStorage.removeItem("import_failed");
+        sessionStorage.removeItem("import_failed_summary");
     }
 
     private async wait(ms: number) {

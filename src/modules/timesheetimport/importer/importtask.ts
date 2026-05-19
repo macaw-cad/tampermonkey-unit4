@@ -7,17 +7,20 @@ export type FoundField = {
 }
 
 export type ImportTaskResult = {
+    task: ImportTask;
     done?: boolean;
     retry?: boolean;
     reload?: boolean;
     recoverable?: boolean;
     failed?: boolean;
     failureReason?: string;
-    task?: ImportTask;
 }
+
 export abstract class ImportTask {
     // max waiting time for a field to be available / get focus
     private static readonly retrySeconds = 10;
+
+    abstract actionDescription(): string;
 
     abstract run(): Promise<ImportTaskResult>;
 
@@ -32,16 +35,16 @@ export abstract class ImportTask {
     }
 
     protected next(): ImportTaskResult {
-        return { done: true };
+        return { task: this, done: true };
     }
     protected nextAfterReload(recoverable: boolean = true): ImportTaskResult {
-        return { retry: false, reload: true, recoverable };
+        return { task: this, retry: false, reload: true, recoverable };
     }
     protected retryAfterReload(recoverable: boolean = true): ImportTaskResult {
-        return { retry: true, reload: true, recoverable };
+        return { task: this, retry: true, reload: true, recoverable };
     }
     protected failure(reason: string): ImportTaskResult {
-        return { failed: true, task: this, failureReason: reason };
+        return { task: this, failed: true, failureReason: reason };
     }
     // wait a few milliseconds
     protected wait(ms: number) {
@@ -115,6 +118,10 @@ export class CloseEditingModeTask extends ImportTask {
         super('close-editing-mode');
     }
 
+    actionDescription(): string {
+        return "Close editing mode";
+    }
+
     async run(): Promise<ImportTaskResult> {
         // click on "Close" button to close the editing mode
         const closeButton = ImportTask.section.ownerDocument.querySelector('[title="Close editing mode"') as HTMLButtonElement;
@@ -130,6 +137,10 @@ export class CloseEditingModeTask extends ImportTask {
 export class SanityCheckTask extends ImportTask {
     constructor(private data: SanityDaily) {
         super('sanity-check');
+    }
+
+    actionDescription(): string {
+        return "Final sanity check";
     }
 
     async run(): Promise<ImportTaskResult> {
@@ -162,6 +173,10 @@ export class SanityCheckTask extends ImportTask {
             errors.push("Booked hours issue: total booked hours less than 40 hours: " + sumBookedHours);
         }
 
-        return (errors.length > 0) ? this.failure("Sanity check issues:\n\n * " + errors.join("\n\n * ")) : this.next();
+        if (errors.length > 0) {
+            return this.failure(errors.join("\n\n * "));
+        } else {
+            return this.next();
+        }
     }
 }

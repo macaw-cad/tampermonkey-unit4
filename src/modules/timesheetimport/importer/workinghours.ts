@@ -79,15 +79,24 @@ export abstract class WHImportTask extends ImportTask {
         }
         return this.failure(trans('error_date_cell_not_found', this.date.toLocaleDateString()));
     }
+
 }
 
 export class WorkingStartImportTask extends WHImportTask {
     constructor(groupId: string, day: Date, time: string) {
         super(groupId, day, "start", time);
     }
+
+    actionDescription(): string {
+        return "Enter working time (From) for " + this.date.toLocaleDateString();
+    }
 }
 export class WorkingEndImportTask extends WHImportTask {
     constructor(groupId: string, day: Date, time: string) {
         super(groupId, day, "end", time);
+    }
+
+    actionDescription(): string {
+        return "Enter working time (To) for " + this.date.toLocaleDateString();
     }
 }

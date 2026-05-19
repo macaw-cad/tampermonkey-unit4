@@ -40,6 +40,7 @@ export class Timesheetimport extends AbstractModule {
   private standardAddBtn!: HTMLButtonElement;
   private dialog!: HTMLElement;
   private dialogEntry!: HTMLTextAreaElement;
+  private buttonFailed!: HTMLButtonElement;
 
   // ----------------------------------------------------------------------
   // Time Entry Screen Action Buttons
@@ -114,32 +115,56 @@ export class Timesheetimport extends AbstractModule {
 
           document.body.appendChild(this.dialog);
 
-          //create new table cell
-          const buttonCell = document.createElement("td");
-          table.rows[0].insertBefore(buttonCell, this.standardAddBtn.parentElement);
-          buttonCell.classList.add('Button');
+          // create new button for import
+          const buttonImportCell = document.createElement("td");
+          table.rows[0].insertBefore(buttonImportCell, this.standardAddBtn.parentElement);
+          buttonImportCell.classList.add('Button');
+          buttonImportCell.style.paddingRight = "0";
+          const buttonImport = document.createElement("button");
+          buttonImport.setAttribute("id", "json-import-btn");
+          buttonImport.setAttribute("type", "button");
+          buttonImport.setAttribute("role", "button");
+          buttonImport.setAttribute("title", "Import data from JSON");
+          buttonImport.setAttribute("onclick", "");
+          buttonImport.classList.add('BaseButton');
+          buttonImport.classList.add('SectionButton');
+          buttonImport.innerHTML = "<span>Import JSON</span>"
+          buttonImport.addEventListener("click", this.actionDialog.bind(this));        
+          buttonImportCell.appendChild(buttonImport);
 
-          //create new button
-          const button = document.createElement("button");
-          button.setAttribute("id", "json-import-btn");
-          button.setAttribute("type", "button");
-          button.setAttribute("role", "button");
-          button.setAttribute("title", "Import data from JSON");
-          button.setAttribute("onclick", "");
-          button.classList.add('BaseButton');
-          button.classList.add('SectionButton');
-          button.innerHTML = "<span>Import JSON</span>"
-          button.addEventListener("click", this.actionDialog.bind(this));        
-          buttonCell.appendChild(button);
+          // create new button for last errors
+          const buttonFailedCell = document.createElement("td");
+          table.rows[0].insertBefore(buttonFailedCell, this.standardAddBtn.parentElement);
+          buttonFailedCell.classList.add('Button');
+          buttonFailedCell.style.paddingLeft = "0";
+          this.buttonFailed = document.createElement("button");
+          this.buttonFailed.setAttribute("id", "json-import-failed-btn");
+          this.buttonFailed.setAttribute("type", "button");
+          this.buttonFailed.setAttribute("role", "button");
+          this.buttonFailed.setAttribute("title", "Show last failed imports");
+          this.buttonFailed.setAttribute("onclick", "");
+          this.buttonFailed.classList.add('BaseButton');
+          this.buttonFailed.classList.add('SectionButton');          
+          this.buttonFailed.innerHTML = "<span>failed</span>"
+          this.buttonFailed.addEventListener("click", () => {
+            Utils.showDialog(sessionStorage.getItem("import_failed_summary") ?? 'No failed actions');
+          });
+          this.failedUpdate();
+          buttonFailedCell.appendChild(this.buttonFailed);
+
         }
 
         // Run pending tasks from importer
         const importer = Importer.getInstance();
         WOImportTask.setSection(this.section);
         WOImportTask.setAddButton(this.standardAddBtn);
-        importer.runTasks();
+        this.runTasks();
       }
     }
+  }
+
+  private failedUpdate() {
+    this.buttonFailed.disabled = sessionStorage.getItem("import_failed_summary") === null;
   }
 
   // show modal dialog
@@ -153,6 +178,13 @@ export class Timesheetimport extends AbstractModule {
   private actionClose() {
     this.dialog.style.display = 'none';
     this.dialogEntry.value = '';
+  }
+
+  private runTasks() {
+    const importer = Importer.getInstance();
+    importer.runTasks().then(() => {
+      this.failedUpdate();
+    })
   }
 
   // start the import
@@ -264,6 +296,7 @@ export class Timesheetimport extends AbstractModule {
       // close dialog
       this.actionClose();
       // handle first import item
+      importer.clearFailed();
       importer.runTasks();
     } catch (e) {
       console.error(e);

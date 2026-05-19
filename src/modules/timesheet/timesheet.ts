@@ -9,8 +9,8 @@ export class TimeSheet extends AbstractModule {
   // Time Entry Screen
   // ----------------------------------------------------------------------
 
-  private sectionWorkflow: Element;
-  private sectionTimesheet: Element;
+  private sectionWorkflow!: Element;
+  private sectionTimesheet!: Element;
 
   public initModule(): Promise<any> {
     // mark time entry table with special CSS class
@@ -67,7 +67,7 @@ export class TimeSheet extends AbstractModule {
 
         // mark complete rows for locked cells
         this.sectionTimesheet.querySelectorAll('.GridCell.Locked').forEach(e => {
-          e.closest('tr').classList.add('LockedRow');
+          e.closest('tr')?.classList.add('LockedRow');
         });
 
         // always show work item & project descriptions in timesheet details
@@ -76,7 +76,7 @@ export class TimeSheet extends AbstractModule {
             let x = document.createElement('div');
             x.className = 'Message DivOverflowNoWrap Ellipsis Description ListDescription';
             x.style.whiteSpace = "break-spaces";
-            x.appendChild(document.createTextNode(e.getAttribute('title')));
+            x.appendChild(document.createTextNode(e.getAttribute('title') || ''));
             e.appendChild(x);
           });
         }
