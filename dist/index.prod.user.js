@@ -2,7 +2,7 @@
 // @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
-// @version       0.10.5
+// @version       0.10.6
 // @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source        https://github.com/macaw-cad/tampermonkey-unit4
 // @license       MIT
@@ -923,7 +923,7 @@ module.exports = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%
 var __webpack_exports__ = {};
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.10.5"};
+const package_namespaceObject = {"rE":"0.10.6"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -2091,7 +2091,9 @@ const translations = {
     'missing_working_hours': 'Missing booked hours: %1',
     'additional_hours': 'Additional hours: %1',
     'break_min': 'You need at least %1 minutes break',
-    'maxhours_exceeded': 'You must not work more than %1 hours a day'
+    'maxhours_exceeded': 'You must not work more than %1 hours a day',
+    'sum_breaks': '∑ breaks',
+    'sum_working': '∑ working'
   },
   'de': {
     'error_date_cell_not_found': 'Zelle für Datum %1 wurde nicht gefunden',
@@ -2105,7 +2107,9 @@ const translations = {
     'missing_working_hours': 'Fehlende Arbeitsstunden: %1',
     'additional_hours': 'Zusätzliche Stunden: %1',
     'break_min': 'Du benötigst mindestens %1 Minuten Pause',
-    'maxhours_exceeded': 'Du darfst nicht mehr als %1 Stunden pro Tag arbeiten'
+    'maxhours_exceeded': 'Du darfst nicht mehr als %1 Stunden pro Tag arbeiten',
+    'sum_breaks': '∑ Pausen',
+    'sum_working': '∑ Arbeit'
   }
 };
 
@@ -2316,7 +2320,7 @@ class TimeEntry extends AbstractModule {
             for (var i = 0; i < 8; ++i) {
               this.addCell(row, "");
             }
-            this.addCell(row, "∑ breaks");
+            this.addCell(row, trans('sum_breaks'));
             this.addCell(row, "");
             var sum = 0;
             for (var i = 0; i < 7; ++i) {
@@ -2345,7 +2349,7 @@ class TimeEntry extends AbstractModule {
             for (var i = 0; i < 8; ++i) {
               this.addCell(row, "");
             }
-            this.addCell(row, "∑ working");
+            this.addCell(row, trans('sum_working'));
             this.addCell(row, "");
             var sum = 0;
             for (var i = 0; i < 7; ++i) {
@@ -2380,17 +2384,19 @@ class TimeEntry extends AbstractModule {
           var overallWorking = 0;
 
           // iterate over working hours
-          const working = Array.from(tableWorking.querySelectorAll('tr:is(.ListItem,.AltListItem)'));
-          const rowFrom = Array.from(working[0].querySelectorAll('& > td'));
-          const rowTo = Array.from(working[1].querySelectorAll('& > td'));
-          for (var i = 0; i < 7; ++i) {
-            const start = this.getValueFromCell(rowFrom[i + 2]);
-            const end = this.getValueFromCell(rowTo[i + 2]);
-            const diff = Utils.difference(start, end);
-            const diff2 = diff - (sumBreaks[i] ?? 0);
-            timePresent[i] = diff;
-            timeWorking[i] = diff2;
-            overallWorking += diff2;
+          const working = Array.from(tableWorking.querySelectorAll('tr:is(.EditRow,.ListItem,.AltListItem)'));
+          if (working.length == 2) {
+            const rowFrom = Array.from(working[0].querySelectorAll('& > td'));
+            const rowTo = Array.from(working[1].querySelectorAll('& > td'));
+            for (var i = 0; i < 7; ++i) {
+              const start = this.getValueFromCell(rowFrom[i + 2]);
+              const end = this.getValueFromCell(rowTo[i + 2]);
+              const diff = Utils.difference(start, end);
+              const diff2 = diff - (sumBreaks[i] ?? 0);
+              timePresent[i] = diff;
+              timeWorking[i] = diff2;
+              overallWorking += diff2;
+            }
           }
 
           // add summary
@@ -3056,7 +3062,7 @@ class Progress {
   }
   updateUI() {
     if (this.progress) {
-      const text = this.data.pending > 0 ? `${this.data.pending} pending` : '';
+      const text = this.data.pending > 0 ? `${this.data.pending} actions pending` : '';
       this.progress.textContent = text;
       this.progress.style.display = this.data.pending > 0 ? 'inline-block' : 'none';
     }

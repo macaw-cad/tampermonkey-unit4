@@ -12,6 +12,9 @@ const translations: {[key: string]: {[key: string]: string}} = {
         'additional_hours': 'Additional hours: %1',
         'break_min': 'You need at least %1 minutes break',
         'maxhours_exceeded': 'You must not work more than %1 hours a day',
+        'sum_breaks': '∑ breaks',
+        'sum_working': '∑ working'
+    
     },
     'de': {
         'error_date_cell_not_found': 'Zelle für Datum %1 wurde nicht gefunden',
@@ -26,6 +29,8 @@ const translations: {[key: string]: {[key: string]: string}} = {
         'additional_hours': 'Zusätzliche Stunden: %1',
         'break_min': 'Du benötigst mindestens %1 Minuten Pause',
         'maxhours_exceeded': 'Du darfst nicht mehr als %1 Stunden pro Tag arbeiten',
+        'sum_breaks': '∑ Pausen',
+        'sum_working': '∑ Arbeit'
     }
 };
 

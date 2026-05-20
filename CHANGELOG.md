@@ -1,3 +1,7 @@
+# V0.10.6 - 2026-05-20
+
+* bugfix: summary for working hours broken when in edit mode
+
 # V0.10.5 - 2026-05-19
 
 * some small enhancements (daily breaks warnings)

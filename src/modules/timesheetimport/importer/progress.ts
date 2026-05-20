@@ -31,7 +31,7 @@ export class Progress {
 
     private updateUI() {
         if (this.progress) {
-            const text = this.data.pending > 0 ? `${this.data.pending} pending` : '';
+            const text = this.data.pending > 0 ? `${this.data.pending} actions pending` : '';
             this.progress.textContent = text;
             this.progress.style.display = (this.data.pending > 0) ? 'inline-block' : 'none';
         }

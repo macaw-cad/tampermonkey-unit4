@@ -204,7 +204,7 @@ export class TimeEntry extends AbstractModule {
             for(var i=0 ; i<8 ; ++i) {
               this.addCell(row, "");
             }
-            this.addCell(row, "∑ breaks");
+            this.addCell(row, trans('sum_breaks'));
             this.addCell(row, "");            
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
@@ -233,7 +233,7 @@ export class TimeEntry extends AbstractModule {
             for(var i=0 ; i<8 ; ++i) {
               this.addCell(row, "");
             }
-            this.addCell(row, "∑ working");
+            this.addCell(row, trans('sum_working'));
             this.addCell(row, "");            
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
@@ -270,19 +270,21 @@ export class TimeEntry extends AbstractModule {
           var overallWorking = 0;
 
           // iterate over working hours
-          const working = Array.from(tableWorking.querySelectorAll('tr:is(.ListItem,.AltListItem)'));
-          const rowFrom = Array.from(working[0].querySelectorAll('& > td'));
-          const rowTo = Array.from(working[1].querySelectorAll('& > td'));
-          for(var i=0 ; i<7 ; ++i) {
-            const start = this.getValueFromCell(rowFrom[i+2]);
-            const end = this.getValueFromCell(rowTo[i+2]);
-            const diff = Utils.difference(start, end);
-            const diff2 = diff - (sumBreaks[i] ?? 0);
-            timePresent[i] = diff;
-            timeWorking[i] = diff2;
-            overallWorking += diff2;
+          const working = Array.from(tableWorking.querySelectorAll('tr:is(.EditRow,.ListItem,.AltListItem)'));
+          if (working.length == 2) {
+            const rowFrom = Array.from(working[0].querySelectorAll('& > td'));
+            const rowTo = Array.from(working[1].querySelectorAll('& > td'));
+            for(var i=0 ; i<7 ; ++i) {
+              const start = this.getValueFromCell(rowFrom[i+2]);
+              const end = this.getValueFromCell(rowTo[i+2]);
+              const diff = Utils.difference(start, end);
+              const diff2 = diff - (sumBreaks[i] ?? 0);
+              timePresent[i] = diff;
+              timeWorking[i] = diff2;
+              overallWorking += diff2;
+            }
           }
-
+          
           // add summary
           const lastRow = tableWorking.querySelector('tr[role="presentation"]');
           if (lastRow) {
