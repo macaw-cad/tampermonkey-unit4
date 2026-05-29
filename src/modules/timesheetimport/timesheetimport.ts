@@ -241,6 +241,26 @@ export class Timesheetimport extends AbstractModule {
 
       const daily: SanityDaily = {};
 
+      // close all editing modes before import (so that no edit row is still active)
+      importer.addTask(new CloseEditingModeTask());
+
+      // import working hours
+      Object.entries(days).forEach(([dateStr, day]: [string, ImportWorkingHoursDay]) => {
+        const date = new Date(dateStr);
+        const groupId = ["workinghours", dateStr].join('|');
+        importer.addTask(new WorkingStartImportTask(groupId, date, day.start));
+        importer.addTask(new WorkingEndImportTask(groupId, date, day.end));
+        // update daily working time for sanity check
+        if (!daily[dateStr]) {
+            daily[dateStr] = { hours: 0, breaks: 0, workingTime: 0 };
+        }
+        // calculate working time based on start and end time (format: HH:MM)
+        daily[dateStr].workingTime = Utils.difference(day.start, day.end);
+      });
+
+      // close all editing modes after storing working hours
+      importer.addTask(new CloseEditingModeTask());
+
       var sumHours = 0, sumBreaks = 0;
       data.forEach((entry: any) => {
         // group all tasks for the same work order together
@@ -270,20 +290,6 @@ export class Timesheetimport extends AbstractModule {
         });
       });
 
-      // import working hours
-      Object.entries(days).forEach(([dateStr, day]: [string, ImportWorkingHoursDay]) => {
-        const date = new Date(dateStr);
-        const groupId = ["workinghours", dateStr].join('|');
-        importer.addTask(new WorkingStartImportTask(groupId, date, day.start));
-        importer.addTask(new WorkingEndImportTask(groupId, date, day.end));
-        // update daily working time for sanity check
-        if (!daily[dateStr]) {
-            daily[dateStr] = { hours: 0, breaks: 0, workingTime: 0 };
-        }
-        // calculate working time based on start and end time (format: HH:MM)
-        daily[dateStr].workingTime = Utils.difference(day.start, day.end);
-      });
-
       // close all editing modes at the end
       importer.addTask(new CloseEditingModeTask());
 
@@ -295,6 +301,7 @@ export class Timesheetimport extends AbstractModule {
 
       // close dialog
       this.actionClose();
+      
       // handle first import item
       importer.clearFailed();
       importer.runTasks();

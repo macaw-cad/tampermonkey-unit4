@@ -157,7 +157,6 @@ export class TimeEntry extends AbstractModule {
           var colWeekdays = Number.MAX_VALUE;
           for(var col = 0 ; col < columns.length; col++) {
             const cell = columns[col];
-            const headlineCell = cell.querySelector('& > div');
             switch(columns[col].getAttribute("data-type")) {
               case 'cell-weekday':
                 colWeekdays = Math.min(col, colWeekdays);
@@ -299,11 +298,11 @@ export class TimeEntry extends AbstractModule {
               var value = sumBreaks[i] ?? 0;
               sum += value;
               const cell = this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
-              if (timeWorking[i] > 6 && sumBreaks[0] < 0.5) {
+              if (timeWorking[i] > 6 && value < 0.5) {
                 cell.style.color = "red";
                 cell.style.fontWeight = "700";
                 cell.title = trans('break_min', '30');
-              } else if (timeWorking[i] > 9 && sumBreaks[0] < 0.75) {
+              } else if (timeWorking[i] > 9 && value < 0.75) {
                 cell.style.color = "red";
                 cell.style.fontWeight = "700";
                 cell.title = trans('break_min', '45');

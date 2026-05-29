@@ -1,3 +1,9 @@
+# V0.10.7 - 2026-05-29
+
+* bugfix: hiding the timeCode column killed summary of hours
+* bugfix: check of breaks in working hours section
+* bugfix: hidden columns no longer in tab-order (added inert)
+
 # V0.10.6 - 2026-05-20
 
 * bugfix: summary for working hours broken when in edit mode

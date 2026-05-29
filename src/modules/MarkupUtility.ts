@@ -9,16 +9,25 @@ export class MarkupUtility {
    * @param col    column number of header cell
    * @param type   type for data attribute
    */
-  public static markTableCells(table: HTMLTableElement, th: HTMLElement, col: number, type: string) {
+  public static markTableCells(table: HTMLTableElement, th: HTMLElement, col: number, type: string, hidden = false) {
     // add type to header cell
     th.dataset.type = type;
+    if (hidden) {
+      th.dataset.hidden = "true";
+      th.inert = true;
+    }
+
     // iterate over all rows of the table
     table.querySelectorAll(':scope > tbody > tr').forEach(row => {
       // iterate over all table data cells of the row
-      row.querySelectorAll(':scope > td').forEach((td: HTMLElement, key) => {
+      row.querySelectorAll(':scope > td').forEach((td: Element, key) => {
         // if column number matches, set type data attribute on data cell as well
-        if (key == col) {
+        if (td instanceof HTMLElement && key == col) {
           td.dataset.type = type;
+          if (hidden) {
+            td.dataset.hidden = "true";
+            td.inert = true;
+          }
         }
       });
     });
@@ -31,14 +40,16 @@ export class MarkupUtility {
    */
   public static hideRow(table: HTMLTableElement, search: string) {
     // iterate over all rows of the table
-    table.querySelectorAll(':scope > tbody > tr').forEach((row: HTMLTableRowElement) => {
+    table.querySelectorAll(':scope > tbody > tr').forEach((row: Element) => {
       // iterate over all table data cells of the row
-      row.querySelectorAll(':scope > td').forEach((td: HTMLElement, key) => {
-        // if column text matches, hide row
-        if (td.innerText == search) {
-          row.style.display = "none";
-        }
-      });
+      if (row instanceof HTMLTableRowElement) {
+        row.querySelectorAll(':scope > td').forEach((td: Element, key) => {
+          // if column text matches, hide row
+          if (td instanceof HTMLElement && td.innerText == search) {
+            row.style.display = "none";
+          }
+        });
+      }
     });
   }
 
@@ -48,23 +59,27 @@ export class MarkupUtility {
    */
   public static convertTime(table: HTMLTableElement) {
     // iterate over all rows of the table
-    table.querySelectorAll(':scope > tbody > tr').forEach((row: HTMLTableRowElement) => {
+    table.querySelectorAll(':scope > tbody > tr').forEach((row: Element) => {
       // iterate over all table data cells of the row
-      row.querySelectorAll(':scope > td').forEach((td: HTMLElement, key) => {
-        // if column matches time, change it
-        var match;
-        if ((match = td.innerText.match(/^([0-9]{1,2}):([0-9]{2})([AP]M)$/)) !== null) {
-          // Convert to 24h format
-          const [_, hours, minutes, period] = match;
-          let hour = parseInt(hours, 10);
-          if (period === 'PM' && hour !== 12) {
-            hour += 12;
-          } else if (period === 'AM' && hour === 12) {
-            hour = 0;
+      if (row instanceof HTMLTableRowElement) {
+        row.querySelectorAll(':scope > td').forEach((td: Element, key) => {
+          // if column matches time, change it
+          if (td instanceof HTMLElement) {
+            var match;
+            if ((match = td.innerText.match(/^([0-9]{1,2}):([0-9]{2})([AP]M)$/)) !== null) {
+              // Convert to 24h format
+              const [_, hours, minutes, period] = match;
+              let hour = parseInt(hours, 10);
+              if (period === 'PM' && hour !== 12) {
+                hour += 12;
+              } else if (period === 'AM' && hour === 12) {
+                hour = 0;
+              }
+              td.innerText = `${hour.toString().padStart(2, '0')}:${minutes}`;
+            }
           }
-          td.innerText = `${hour.toString().padStart(2, '0')}:${minutes}`;
-        }
-      });
+        });
+      }
     });
   }
 
@@ -100,7 +115,7 @@ export class MarkupUtility {
           break;
         case 'timecode':
           // add type for timecode based on config
-          MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
+          MarkupUtility.markTableCells(table, th, col, 'cell-timecode', !!config.hideTimeCodeColumn());
           break;
         default:
           // check if day of week is found
@@ -121,8 +136,8 @@ export class MarkupUtility {
       // and re-add the classes on a regular basis
       window.setInterval(() => {
         var config = Configuration.getInstance();
-        section.querySelectorAll('table.Excel').forEach((table: HTMLTableElement) => {
-          if (!table.classList.contains("tmFix")) {
+        section.querySelectorAll('table.Excel').forEach((table: Element) => {
+          if (table instanceof HTMLTableElement &&!table.classList.contains("tmFix")) {
             table.classList.add("tmFix", name);
 
             MarkupUtility.addTypes(table);

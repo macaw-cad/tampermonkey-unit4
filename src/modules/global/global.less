@@ -22,7 +22,7 @@ table.Excel {
     *[data-type="cell-zoom"] { width: 35px !important; }
     *[data-type="cell-status"] { width: 70px !important; }
     *[data-type="cell-timecode"] { width: 70px !important; }
-    *[data-type="cell-hidden-timecode"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-timecode"][data-hidden="true"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-activity"] { width: 60px !important; }
     *[data-type="cell-timeunit"] { width: 50px !important; }
     *[data-type="cell-weekday"] { width: 55px !important; }
@@ -41,7 +41,6 @@ table.Excel {
     *[data-type="cell-zoom"] { width: 4% !important; }
     *[data-type="cell-status"] { width: 6% !important; }
     *[data-type="cell-timecode"] { width: 10% !important; }
-    *[data-type="cell-hidden-timecode"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-workorder"] { width: 15% !important }
     *[data-type="cell-project"] { width: 15% !important }
     *[data-type="cell-activity"] { width: 10% !important; }
@@ -50,6 +49,7 @@ table.Excel {
     *[data-type="cell-sum"] { width: 6% !important; }
 
     // hide/disable some columns
+    *[data-hidden="true"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-servicelines"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-finprjtype"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-invunit"] { width: 0 !important; pointer-events: none; }

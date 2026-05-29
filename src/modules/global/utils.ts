@@ -50,11 +50,25 @@ export class Utils {
           document.body.appendChild(dialog); 
     }
 
+    public static hoursFromTimestring(time: string): number {
+        // parse time string in format "hh:mm AM/PM" or "hh:mm" in 24h format
+        // and return hours as decimal number, e.g. "1:30 PM" => 13.5
+
+        const parts = time.split(':');
+        let hours = parseInt(parts[0]) + parseInt(parts[1]) / 60;        
+        if (time.endsWith('PM') && parts[0] !== "12") {
+            // add 12 hours for PM times, except for 12:mm PM which is 12:mm in 24h format
+            hours += 12;
+        } else if (time.endsWith('AM') && parts[0] === "12") {
+            // 12:mm AM is 0:mm in 24h format
+            hours -= 12;
+        }
+        return hours;
+    }
+
     public static difference(from: string, to: string): number {
-        const startParts = from.split(':');
-        const endParts = to.split(':');
-        const startTime = parseInt(startParts[0]) + parseInt(startParts[1]) / 60;
-        const endTime = parseInt(endParts[0]) + parseInt(endParts[1]) / 60;
+        const startTime = Utils.hoursFromTimestring(from);
+        const endTime = Utils.hoursFromTimestring(to);
         return endTime - startTime;
     }
 

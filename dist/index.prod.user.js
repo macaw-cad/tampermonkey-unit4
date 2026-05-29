@@ -2,7 +2,7 @@
 // @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
-// @version       0.10.6
+// @version       0.10.7
 // @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source        https://github.com/macaw-cad/tampermonkey-unit4
 // @license       MIT
@@ -276,7 +276,7 @@ table.Excel {
     *[data-type="cell-zoom"] { width: 35px !important; }
     *[data-type="cell-status"] { width: 70px !important; }
     *[data-type="cell-timecode"] { width: 70px !important; }
-    *[data-type="cell-hidden-timecode"] { width: 0 !important; pointer-events: none; }
+    *[data-type="cell-timecode"][data-hidden="true"] { width: 0 !important; pointer-events: none; }
     *[data-type="cell-activity"] { width: 60px !important; }
     *[data-type="cell-timeunit"] { width: 50px !important; }
     *[data-type="cell-weekday"] { width: 55px !important; }
@@ -304,10 +304,6 @@ table.Excel *[data-type="cell-status"] {
 table.Excel *[data-type="cell-timecode"] {
   width: 10% !important;
 }
-table.Excel *[data-type="cell-hidden-timecode"] {
-  width: 0 !important;
-  pointer-events: none;
-}
 table.Excel *[data-type="cell-workorder"] {
   width: 15% !important;
 }
@@ -325,6 +321,10 @@ table.Excel *[data-type="cell-weekday"] {
 }
 table.Excel *[data-type="cell-sum"] {
   width: 6% !important;
+}
+table.Excel *[data-hidden="true"] {
+  width: 0 !important;
+  pointer-events: none;
 }
 table.Excel *[data-type="cell-servicelines"] {
   width: 0 !important;
@@ -923,7 +923,7 @@ module.exports = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%
 var __webpack_exports__ = {};
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.10.6"};
+const package_namespaceObject = {"rE":"0.10.7"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1015,11 +1015,24 @@ class Utils {
     dialogButtons.appendChild(dialogOK);
     document.body.appendChild(dialog);
   }
+  static hoursFromTimestring(time) {
+    // parse time string in format "hh:mm AM/PM" or "hh:mm" in 24h format
+    // and return hours as decimal number, e.g. "1:30 PM" => 13.5
+
+    const parts = time.split(':');
+    let hours = parseInt(parts[0]) + parseInt(parts[1]) / 60;
+    if (time.endsWith('PM') && parts[0] !== "12") {
+      // add 12 hours for PM times, except for 12:mm PM which is 12:mm in 24h format
+      hours += 12;
+    } else if (time.endsWith('AM') && parts[0] === "12") {
+      // 12:mm AM is 0:mm in 24h format
+      hours -= 12;
+    }
+    return hours;
+  }
   static difference(from, to) {
-    const startParts = from.split(':');
-    const endParts = to.split(':');
-    const startTime = parseInt(startParts[0]) + parseInt(startParts[1]) / 60;
-    const endTime = parseInt(endParts[0]) + parseInt(endParts[1]) / 60;
+    const startTime = Utils.hoursFromTimestring(from);
+    const endTime = Utils.hoursFromTimestring(to);
     return endTime - startTime;
   }
   static formatHours(hours) {
@@ -1943,16 +1956,25 @@ class MarkupUtility {
    * @param col    column number of header cell
    * @param type   type for data attribute
    */
-  static markTableCells(table, th, col, type) {
+  static markTableCells(table, th, col, type, hidden = false) {
     // add type to header cell
     th.dataset.type = type;
+    if (hidden) {
+      th.dataset.hidden = "true";
+      th.inert = true;
+    }
+
     // iterate over all rows of the table
     table.querySelectorAll(':scope > tbody > tr').forEach(row => {
       // iterate over all table data cells of the row
       row.querySelectorAll(':scope > td').forEach((td, key) => {
         // if column number matches, set type data attribute on data cell as well
-        if (key == col) {
+        if (td instanceof HTMLElement && key == col) {
           td.dataset.type = type;
+          if (hidden) {
+            td.dataset.hidden = "true";
+            td.inert = true;
+          }
         }
       });
     });
@@ -1967,12 +1989,14 @@ class MarkupUtility {
     // iterate over all rows of the table
     table.querySelectorAll(':scope > tbody > tr').forEach(row => {
       // iterate over all table data cells of the row
-      row.querySelectorAll(':scope > td').forEach((td, key) => {
-        // if column text matches, hide row
-        if (td.innerText == search) {
-          row.style.display = "none";
-        }
-      });
+      if (row instanceof HTMLTableRowElement) {
+        row.querySelectorAll(':scope > td').forEach((td, key) => {
+          // if column text matches, hide row
+          if (td instanceof HTMLElement && td.innerText == search) {
+            row.style.display = "none";
+          }
+        });
+      }
     });
   }
 
@@ -1984,21 +2008,25 @@ class MarkupUtility {
     // iterate over all rows of the table
     table.querySelectorAll(':scope > tbody > tr').forEach(row => {
       // iterate over all table data cells of the row
-      row.querySelectorAll(':scope > td').forEach((td, key) => {
-        // if column matches time, change it
-        var match;
-        if ((match = td.innerText.match(/^([0-9]{1,2}):([0-9]{2})([AP]M)$/)) !== null) {
-          // Convert to 24h format
-          const [_, hours, minutes, period] = match;
-          let hour = parseInt(hours, 10);
-          if (period === 'PM' && hour !== 12) {
-            hour += 12;
-          } else if (period === 'AM' && hour === 12) {
-            hour = 0;
+      if (row instanceof HTMLTableRowElement) {
+        row.querySelectorAll(':scope > td').forEach((td, key) => {
+          // if column matches time, change it
+          if (td instanceof HTMLElement) {
+            var match;
+            if ((match = td.innerText.match(/^([0-9]{1,2}):([0-9]{2})([AP]M)$/)) !== null) {
+              // Convert to 24h format
+              const [_, hours, minutes, period] = match;
+              let hour = parseInt(hours, 10);
+              if (period === 'PM' && hour !== 12) {
+                hour += 12;
+              } else if (period === 'AM' && hour === 12) {
+                hour = 0;
+              }
+              td.innerText = `${hour.toString().padStart(2, '0')}:${minutes}`;
+            }
           }
-          td.innerText = `${hour.toString().padStart(2, '0')}:${minutes}`;
-        }
-      });
+        });
+      }
     });
   }
 
@@ -2033,7 +2061,7 @@ class MarkupUtility {
           break;
         case 'timecode':
           // add type for timecode based on config
-          MarkupUtility.markTableCells(table, th, col, config.hideTimeCodeColumn() ? 'cell-hidden-timecode' : 'cell-timecode');
+          MarkupUtility.markTableCells(table, th, col, 'cell-timecode', !!config.hideTimeCodeColumn());
           break;
         default:
           // check if day of week is found
@@ -2053,7 +2081,7 @@ class MarkupUtility {
       window.setInterval(() => {
         var config = Configuration.getInstance();
         section.querySelectorAll('table.Excel').forEach(table => {
-          if (!table.classList.contains("tmFix")) {
+          if (table instanceof HTMLTableElement && !table.classList.contains("tmFix")) {
             table.classList.add("tmFix", name);
             MarkupUtility.addTypes(table);
             if (config.handleWorkingHours()) {
@@ -2275,7 +2303,6 @@ class TimeEntry extends AbstractModule {
           var colWeekdays = Number.MAX_VALUE;
           for (var col = 0; col < columns.length; col++) {
             const cell = columns[col];
-            const headlineCell = cell.querySelector('& > div');
             switch (columns[col].getAttribute("data-type")) {
               case 'cell-weekday':
                 colWeekdays = Math.min(col, colWeekdays);
@@ -2415,11 +2442,11 @@ class TimeEntry extends AbstractModule {
               const cell = this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {
                 background: '#dcdcdc'
               } : {});
-              if (timeWorking[i] > 6 && sumBreaks[0] < 0.5) {
+              if (timeWorking[i] > 6 && value < 0.5) {
                 cell.style.color = "red";
                 cell.style.fontWeight = "700";
                 cell.title = trans('break_min', '30');
-              } else if (timeWorking[i] > 9 && sumBreaks[0] < 0.75) {
+              } else if (timeWorking[i] > 9 && value < 0.75) {
                 cell.style.color = "red";
                 cell.style.fontWeight = "700";
                 cell.title = trans('break_min', '45');
@@ -3780,6 +3807,30 @@ class Timesheetimport extends AbstractModule {
       WOImportTask.setSection(this.section);
       WOImportTask.setAddButton(this.standardAddBtn);
       const daily = {};
+
+      // close all editing modes before import (so that no edit row is still active)
+      importer.addTask(new CloseEditingModeTask());
+
+      // import working hours
+      Object.entries(days).forEach(([dateStr, day]) => {
+        const date = new Date(dateStr);
+        const groupId = ["workinghours", dateStr].join('|');
+        importer.addTask(new WorkingStartImportTask(groupId, date, day.start));
+        importer.addTask(new WorkingEndImportTask(groupId, date, day.end));
+        // update daily working time for sanity check
+        if (!daily[dateStr]) {
+          daily[dateStr] = {
+            hours: 0,
+            breaks: 0,
+            workingTime: 0
+          };
+        }
+        // calculate working time based on start and end time (format: HH:MM)
+        daily[dateStr].workingTime = Utils.difference(day.start, day.end);
+      });
+
+      // close all editing modes after storing working hours
+      importer.addTask(new CloseEditingModeTask());
       var sumHours = 0,
         sumBreaks = 0;
       data.forEach(entry => {
@@ -3814,24 +3865,6 @@ class Timesheetimport extends AbstractModule {
         });
       });
 
-      // import working hours
-      Object.entries(days).forEach(([dateStr, day]) => {
-        const date = new Date(dateStr);
-        const groupId = ["workinghours", dateStr].join('|');
-        importer.addTask(new WorkingStartImportTask(groupId, date, day.start));
-        importer.addTask(new WorkingEndImportTask(groupId, date, day.end));
-        // update daily working time for sanity check
-        if (!daily[dateStr]) {
-          daily[dateStr] = {
-            hours: 0,
-            breaks: 0,
-            workingTime: 0
-          };
-        }
-        // calculate working time based on start and end time (format: HH:MM)
-        daily[dateStr].workingTime = Utils.difference(day.start, day.end);
-      });
-
       // close all editing modes at the end
       importer.addTask(new CloseEditingModeTask());
 
@@ -3843,6 +3876,7 @@ class Timesheetimport extends AbstractModule {
 
       // close dialog
       this.actionClose();
+
       // handle first import item
       importer.clearFailed();
       importer.runTasks();
