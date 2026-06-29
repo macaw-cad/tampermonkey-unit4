@@ -13,6 +13,7 @@ const translations: {[key: string]: {[key: string]: string}} = {
         'break_min': 'You need at least %1 minutes break',
         'maxhours_exceeded': 'You must not work more than %1 hours a day',
         'sum_breaks': '∑ breaks',
+        'sum_compensation': '∑ compensation',
         'sum_working': '∑ working'
     
     },
@@ -30,6 +31,7 @@ const translations: {[key: string]: {[key: string]: string}} = {
         'break_min': 'Du benötigst mindestens %1 Minuten Pause',
         'maxhours_exceeded': 'Du darfst nicht mehr als %1 Stunden pro Tag arbeiten',
         'sum_breaks': '∑ Pausen',
+        'sum_compensation': '∑ Kompensation',
         'sum_working': '∑ Arbeit'
     }
 };

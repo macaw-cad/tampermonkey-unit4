@@ -136,6 +136,15 @@ export class TimeEntry extends AbstractModule {
       }
     }
   }
+  private category(timecode: string, activity: string): string {
+    if (timecode === '99') {
+      return 'break';
+    }
+    if (activity === '908') {
+      return 'compensation';
+    }
+    return 'working';
+  }
 
   private summarize() {
     if (this.workingHoursSection) {
@@ -145,15 +154,18 @@ export class TimeEntry extends AbstractModule {
 
         const sumWorking: number[] = [];
         const sumBreaks: number[] = [];
+        const sumCompensation: number[] = [];
         const isHoliday: boolean[] = [];
+        const dayAvailable: boolean[] = [];
         var overallBooked = 0;
-
+        var overallCompensation = 0;
         var cellSumWorking: HTMLElement|null = null;
 
         if (tableEntry) {
           // iterate over header to find time code column and first weekday column
           const columns = Array.from(this.section.querySelectorAll('table.Excel th'));
           var colTimeCode = Number.MAX_VALUE;
+          var colActivity = Number.MAX_VALUE;
           var colWeekdays = Number.MAX_VALUE;
           for(var col = 0 ; col < columns.length; col++) {
             const cell = columns[col];
@@ -164,32 +176,51 @@ export class TimeEntry extends AbstractModule {
               case 'cell-timecode':
                 colTimeCode = col;
                 break;
+              case 'cell-activity':
+                colActivity = col;
+                break;
             }
+          }
+
+          // identify existing days
+          for(var i = 0 ; i < 7; i++) {
+            dayAvailable[i] = columns[colWeekdays + i]?.getAttribute("data-type") === 'cell-weekday';
           }
 
           // identify holidays
           for(var i = 0 ; i < 7; i++) {
-            const headlineCell = columns[colWeekdays + i].querySelector('& > div') as HTMLElement;
-            const headline = headlineCell?.textContent ?? '';
-            if (headlineCell?.style.color == 'rgb(50, 205, 50)') {
-              isHoliday[i] = true;
-            } else if (headline.includes('Sat') || headline.includes('Sun')) {
-              isHoliday[i] = true;
+            if (dayAvailable[i]) {
+              const headlineCell = columns[colWeekdays + i].querySelector('& > div') as HTMLElement;
+              const headline = headlineCell?.textContent ?? '';
+              if (headlineCell?.style.color == 'rgb(50, 205, 50)') {
+                isHoliday[i] = true;
+              } else if (headline.includes('Sat') || headline.includes('Sun')) {
+                isHoliday[i] = true;
+              }
             }
           }
 
           // iterate over data
           tableEntry.querySelectorAll('& > tr:is(.ListItem, .AltListItem, .EditRow)').forEach(row => {
             const cells = Array.from(row.querySelectorAll('& > td'));
-            const timeCode = this.getValueFromCell(cells[colTimeCode]);
+            if (cells[colTimeCode]) {
+              const timeCode = this.getValueFromCell(cells[colTimeCode]);
+              const activity = this.getValueFromCell(cells[colActivity]);
 
-            for(var i=0 ; i<7 ; ++i) {
-              const hours = Utils.toNumber(this.getValueFromCell(cells[colWeekdays + i]));
-              if (timeCode === '99') {
-                sumBreaks[i] = (sumBreaks[i] ?? 0) + hours;
-              } else {
-                sumWorking[i] = (sumWorking[i] ?? 0) + hours;
-                overallBooked += hours;
+              for(var i=0 ; i<7 ; ++i) {
+                if (dayAvailable[i]) {
+                  const hours = Utils.toNumber(this.getValueFromCell(cells[colWeekdays + i]));
+                  const cat = this.category(timeCode, activity);
+                  if (cat === 'break') {
+                    sumBreaks[i] = (sumBreaks[i] ?? 0) + hours;
+                  } else if (cat === 'compensation') {
+                    sumCompensation[i] = (sumCompensation[i] ?? 0) + hours;
+                    overallCompensation += hours;
+                  } else {
+                    sumWorking[i] = (sumWorking[i] ?? 0) + hours;
+                    overallBooked += hours;
+                  }
+                }
               }
             }
           });
@@ -200,26 +231,50 @@ export class TimeEntry extends AbstractModule {
             row = document.createElement('tr');
             row.className = "SumItem";
             lastRow.before(row);
-            for(var i=0 ; i<8 ; ++i) {
+            for(var i=0 ; i<8 ; ++i) {                            
               this.addCell(row, "");
             }
             this.addCell(row, trans('sum_breaks'));
             this.addCell(row, "");            
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
-              var value = sumBreaks[i] ?? 0;
-              sum += value;
-              const cell = this.addCell(row, Utils.toLocaleString(value), "right");
-              if (isHoliday[i]) {
-                cell.style.setProperty("background-color", "#dcdcdc", "important");
+              if (dayAvailable[i]) {
+                var value = sumBreaks[i] ?? 0;
+                sum += value;
+                const cell = this.addCell(row, Utils.toLocaleString(value), "right");
+                if (isHoliday[i]) {
+                  cell.style.setProperty("background-color", "#dcdcdc", "important");
+                }
+                if (sumWorking[i] > 0) {
+                  if ( (sumWorking[i] > 9 && value < 0.75) || (sumWorking[i] > 6 && value < 0.5)) {
+                    cell.style.color = "red";
+                    cell.style.fontWeight = "700";
+                  } else {
+                    cell.style.color = "green";
+                    cell.style.fontWeight = "700";
+                  }
+                }
               }
-              if (sumWorking[i] > 0) {
-                if ( (sumWorking[i] > 9 && value < 0.75) || (sumWorking[i] > 6 && value < 0.5) || (sumWorking[i] > 10)) {
-                  cell.style.color = "red";
-                  cell.style.fontWeight = "700";
-                } else {
-                  cell.style.color = "green";
-                  cell.style.fontWeight = "700";
+            }
+            this.addCell(row, Utils.toLocaleString(sum));
+
+            // compensation only
+            row = document.createElement('tr');
+            row.className = "SumItem";
+            lastRow.before(row);
+            for(var i=0 ; i<8 ; ++i) {                            
+              this.addCell(row, "");
+            }
+            this.addCell(row, trans('sum_compensation'));
+            this.addCell(row, "");            
+            var sum = 0;
+            for(var i=0 ; i<7 ; ++i) {
+              if (dayAvailable[i]) {
+                var value = sumCompensation[i] ?? 0;
+                sum += value;
+                const cell = this.addCell(row, Utils.toLocaleString(value), "right");
+                if (isHoliday[i]) {
+                  cell.style.setProperty("background-color", "#dcdcdc", "important");
                 }
               }
             }
@@ -236,22 +291,24 @@ export class TimeEntry extends AbstractModule {
             this.addCell(row, "");            
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
-              var value = sumWorking[i] ?? 0;
-              sum += value;
-              const cell = this.addCell(row, Utils.toLocaleString(value), "right");
-              if (isHoliday[i]) {
-                cell.style.setProperty("background-color", "#dcdcdc", "important");
-              }
-              if (sumWorking[i] > 10) {
-                cell.style.color = "red";
-                cell.style.fontWeight = "700";
-              } else if (sumWorking[i] > 0) {
-                cell.style.color = "green";
-                cell.style.fontWeight = "700";
+              if (dayAvailable[i]) {
+                var value = sumWorking[i] ?? 0;
+                sum += value;
+                const cell = this.addCell(row, Utils.toLocaleString(value), "right");
+                if (isHoliday[i]) {
+                  cell.style.setProperty("background-color", "#dcdcdc", "important");
+                }
+                if (sumWorking[i] > 10) {
+                  cell.style.color = "red";
+                  cell.style.fontWeight = "700";
+                } else if (sumWorking[i] > 0) {
+                  cell.style.color = "green";
+                  cell.style.fontWeight = "700";
+                }
               }
             }
             cellSumWorking = this.addCell(row, Utils.toLocaleString(sum));
-            const missingBooked = this.normalHours - overallBooked;
+            const missingBooked = this.normalHours - overallBooked - overallCompensation;
             if (cellSumWorking && missingBooked > 0) {
               cellSumWorking.style.color = 'red';
               cellSumWorking.style.fontWeight = '700';
@@ -274,13 +331,15 @@ export class TimeEntry extends AbstractModule {
             const rowFrom = Array.from(working[0].querySelectorAll('& > td'));
             const rowTo = Array.from(working[1].querySelectorAll('& > td'));
             for(var i=0 ; i<7 ; ++i) {
-              const start = this.getValueFromCell(rowFrom[i+2]);
-              const end = this.getValueFromCell(rowTo[i+2]);
-              const diff = Utils.difference(start, end);
-              const diff2 = diff - (sumBreaks[i] ?? 0);
-              timePresent[i] = diff;
-              timeWorking[i] = diff2;
-              overallWorking += diff2;
+              if (dayAvailable[i]) {
+                const start = this.getValueFromCell(rowFrom[i+2]);
+                const end = this.getValueFromCell(rowTo[i+2]);
+                const diff = Utils.difference(start, end);
+                const diff2 = diff - (sumBreaks[i] ?? 0) - (sumCompensation[i] ?? 0);
+                timePresent[i] = diff;
+                timeWorking[i] = diff2;
+                overallWorking += diff2;
+              }
             }
           }
           
@@ -295,21 +354,23 @@ export class TimeEntry extends AbstractModule {
             this.addCell(row, trans('summary_booked_breaks'), "left");
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
-              var value = sumBreaks[i] ?? 0;
-              sum += value;
-              const cell = this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
-              if (timeWorking[i] > 6 && value < 0.5) {
-                cell.style.color = "red";
-                cell.style.fontWeight = "700";
-                cell.title = trans('break_min', '30');
-              } else if (timeWorking[i] > 9 && value < 0.75) {
-                cell.style.color = "red";
-                cell.style.fontWeight = "700";
-                cell.title = trans('break_min', '45');
-              } else if (timeWorking[i] > 10) {
-                cell.style.color = "red";
-                cell.style.fontWeight = "700";
-                cell.title = trans('maxhours_exceeded', '10');
+              if (dayAvailable[i]) {
+                var value = sumBreaks[i] ?? 0;
+                sum += value;
+                const cell = this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
+                if (timeWorking[i] > 6 && value < 0.5) {
+                  cell.style.color = "red";
+                  cell.style.fontWeight = "700";
+                  cell.title = trans('break_min', '30');
+                } else if (timeWorking[i] > 9 && value < 0.75) {
+                  cell.style.color = "red";
+                  cell.style.fontWeight = "700";
+                  cell.title = trans('break_min', '45');
+                } else if (timeWorking[i] > 10) {
+                  cell.style.color = "red";
+                  cell.style.fontWeight = "700";
+                  cell.title = trans('maxhours_exceeded', '10');
+                }
               }
             }
             this.addCell(row, Utils.formatHours(sum));
@@ -322,9 +383,11 @@ export class TimeEntry extends AbstractModule {
             this.addCell(row, trans('summary_booked_working'), "left");
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
-              var value = sumWorking[i] ?? 0;
-              sum += value;
-              this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
+              if (dayAvailable[i]) {
+                var value = sumWorking[i] ?? 0;
+                sum += value;
+                this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
+              }
             }
             const cell = this.addCell(row, Utils.formatHours(sum));
 
@@ -342,9 +405,11 @@ export class TimeEntry extends AbstractModule {
             this.addCell(row, trans('summary_hours_present'), "left");
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
-              var value = timePresent[i] ?? 0;
-              sum += value;
-              this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
+              if (dayAvailable[i]) {
+                var value = timePresent[i] ?? 0;
+                sum += value;
+                this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
+              }
             }
             this.addCell(row, Utils.formatHours(sum));
 
@@ -356,18 +421,20 @@ export class TimeEntry extends AbstractModule {
             this.addCell(row, trans('summary_hours_working'), "left");
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
-              var value = (timePresent[i] ?? 0) - (sumBreaks[i] ?? 0);
-              sum += value;
-              this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
+              if (dayAvailable[i]) {
+                var value = (timePresent[i] ?? 0) - (sumBreaks[i] ?? 0);
+                sum += value;
+                this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
+              }
             }
             const cellSum = this.addCell(row, Utils.formatHours(sum));
-            if (sum < this.normalHours) {
+            if (sum < this.normalHours - overallCompensation) {
               cellSum.style.color = "red";
               cellSum.style.fontWeight = "700";
-              cellSum.title = trans('missing_working_hours', Utils.formatHours(this.normalHours - sum));
+              cellSum.title = trans('missing_working_hours', Utils.formatHours(this.normalHours - sum - overallCompensation));
             } else {
               cellSum.style.color = "green";
-              cellSum.title = trans('additional_hours', Utils.formatHours(sum - this.normalHours));
+              cellSum.title = trans('additional_hours', Utils.formatHours(overallCompensation + sum - this.normalHours));
             }
 
           }
