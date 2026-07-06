@@ -2,37 +2,37 @@ const translations: {[key: string]: {[key: string]: string}} = {
     'en': {
         'error_date_cell_not_found': 'Could not find cell for date %1',
         'error_summary_workinghours': 'Error while summarizing working hours: %1',
-        'summary_hours_present': 'Working hours (From > To)',
+        'summary_hours_present': 'Attendance<br><small style="color:gray">From > To</small>',
         'summary_booked_breaks': 'Total booked breaks',
-        'summary_booked_working': 'Total booked time entries',
+        'summary_booked_working': 'Total booked working time entries',
         'missing_booked_hours': '%1 less booked hours than working hours',
         'missing_weekly_hours': '%1 less hours than expected (%2)',
-        'summary_hours_working': 'Working hours (From > To w/o breaks)',
+        'summary_hours_working': 'Working hours<br><small style="color:gray">From > To w/o breaks/nonworking</small>',
         'missing_working_hours': 'Missing booked hours: %1',
         'additional_hours': 'Additional hours: %1',
         'break_min': 'You need at least %1 minutes break',
         'maxhours_exceeded': 'You must not work more than %1 hours a day',
         'sum_breaks': '∑ breaks',
-        'sum_compensation': '∑ compensation',
+        'sum_nonworking': '∑ non-working',
         'sum_working': '∑ working'
     
     },
     'de': {
         'error_date_cell_not_found': 'Zelle für Datum %1 wurde nicht gefunden',
         'error_summary_workinghours': 'Fehler beim Zusammenfassen der Arbeitsstunden: %1',
-        'summary_hours_present': 'Anwesenheit (Von > Bis)',
+        'summary_hours_present': 'Anwesenheit<br><small style="color:gray">Von > Bis</small>',
         'summary_booked_breaks': 'Gebuchte Pausen',
-        'summary_booked_working': 'Gebuchte Zeiteinträge',
+        'summary_booked_working': 'Gebuchte Arbeitszeiteinträge',
         'missing_booked_hours': '%1 weniger Zeiteinträge als Arbeitsstunden',
         'missing_weekly_hours': '%1 weniger Stunden als erwartet (%2)',
-        'summary_hours_working': 'Arbeitsstunden (Von > Bis ohne Pausen)',
-        'missing_working_hours': 'Fehlende Arbeitsstunden: %1',
+        'summary_hours_working': 'Arbeitszeit<br><small style="color:gray">Von > Bis ohne Pausen/Nicht-Arbeitszeit</small>',
+        'missing_working_hours': 'Fehlende Arbeitszeit: %1',
         'additional_hours': 'Zusätzliche Stunden: %1',
         'break_min': 'Du benötigst mindestens %1 Minuten Pause',
         'maxhours_exceeded': 'Du darfst nicht mehr als %1 Stunden pro Tag arbeiten',
         'sum_breaks': '∑ Pausen',
-        'sum_compensation': '∑ Kompensation',
-        'sum_working': '∑ Arbeit'
+        'sum_nonworking': '∑ Nicht-Arbeitszeit',
+        'sum_working': '∑ Arbeitszeit'
     }
 };
 

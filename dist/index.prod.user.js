@@ -2,7 +2,7 @@
 // @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
-// @version       0.10.8
+// @version       0.10.9
 // @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source        https://github.com/macaw-cad/tampermonkey-unit4
 // @license       MIT
@@ -923,7 +923,7 @@ module.exports = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%
 var __webpack_exports__ = {};
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.10.8"};
+const package_namespaceObject = {"rE":"0.10.9"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -2110,36 +2110,36 @@ const translations = {
   'en': {
     'error_date_cell_not_found': 'Could not find cell for date %1',
     'error_summary_workinghours': 'Error while summarizing working hours: %1',
-    'summary_hours_present': 'Working hours (From > To)',
+    'summary_hours_present': 'Attendance<br><small style="color:gray">From > To</small>',
     'summary_booked_breaks': 'Total booked breaks',
-    'summary_booked_working': 'Total booked time entries',
+    'summary_booked_working': 'Total booked working time entries',
     'missing_booked_hours': '%1 less booked hours than working hours',
     'missing_weekly_hours': '%1 less hours than expected (%2)',
-    'summary_hours_working': 'Working hours (From > To w/o breaks)',
+    'summary_hours_working': 'Working hours<br><small style="color:gray">From > To w/o breaks/nonworking</small>',
     'missing_working_hours': 'Missing booked hours: %1',
     'additional_hours': 'Additional hours: %1',
     'break_min': 'You need at least %1 minutes break',
     'maxhours_exceeded': 'You must not work more than %1 hours a day',
     'sum_breaks': '∑ breaks',
-    'sum_compensation': '∑ compensation',
+    'sum_nonworking': '∑ non-working',
     'sum_working': '∑ working'
   },
   'de': {
     'error_date_cell_not_found': 'Zelle für Datum %1 wurde nicht gefunden',
     'error_summary_workinghours': 'Fehler beim Zusammenfassen der Arbeitsstunden: %1',
-    'summary_hours_present': 'Anwesenheit (Von > Bis)',
+    'summary_hours_present': 'Anwesenheit<br><small style="color:gray">Von > Bis</small>',
     'summary_booked_breaks': 'Gebuchte Pausen',
-    'summary_booked_working': 'Gebuchte Zeiteinträge',
+    'summary_booked_working': 'Gebuchte Arbeitszeiteinträge',
     'missing_booked_hours': '%1 weniger Zeiteinträge als Arbeitsstunden',
     'missing_weekly_hours': '%1 weniger Stunden als erwartet (%2)',
-    'summary_hours_working': 'Arbeitsstunden (Von > Bis ohne Pausen)',
-    'missing_working_hours': 'Fehlende Arbeitsstunden: %1',
+    'summary_hours_working': 'Arbeitszeit<br><small style="color:gray">Von > Bis ohne Pausen/Nicht-Arbeitszeit</small>',
+    'missing_working_hours': 'Fehlende Arbeitszeit: %1',
     'additional_hours': 'Zusätzliche Stunden: %1',
     'break_min': 'Du benötigst mindestens %1 Minuten Pause',
     'maxhours_exceeded': 'Du darfst nicht mehr als %1 Stunden pro Tag arbeiten',
     'sum_breaks': '∑ Pausen',
-    'sum_compensation': '∑ Kompensation',
-    'sum_working': '∑ Arbeit'
+    'sum_nonworking': '∑ Nicht-Arbeitszeit',
+    'sum_working': '∑ Arbeitszeit'
   }
 };
 
@@ -2288,13 +2288,16 @@ class TimeEntry extends AbstractModule {
       }
     }
   }
-  category(timecode, activity) {
-    if (timecode === '99') {
-      return 'break';
-    }
-    if (activity === '908') {
-      return 'compensation';
-    }
+  category(timecode, activity, workorder) {
+    // breaks have special time code
+    if (timecode === '99') return 'break';
+
+    // non-working time (DE2)
+    if (workorder === '940000-10000') return 'nonworking';
+    // non-working time (DE3)
+    if (workorder === '950000-10000') return 'nonworking';
+
+    // everything else is working time
     return 'working';
   }
   summarize() {
@@ -2304,15 +2307,16 @@ class TimeEntry extends AbstractModule {
         const tableWorking = this.workingHoursSection.querySelector('table.tmWorkinghours tbody');
         const sumWorking = [];
         const sumBreaks = [];
-        const sumCompensation = [];
+        const sumNonworking = [];
         const isHoliday = [];
         const dayAvailable = [];
         var overallBooked = 0;
-        var overallCompensation = 0;
+        var overallNonworking = 0;
         var cellSumWorking = null;
         if (tableEntry) {
           // iterate over header to find time code column and first weekday column
           const columns = Array.from(this.section.querySelectorAll('table.Excel th'));
+          var colWorkOrder = Number.MAX_VALUE;
           var colTimeCode = Number.MAX_VALUE;
           var colActivity = Number.MAX_VALUE;
           var colWeekdays = Number.MAX_VALUE;
@@ -2321,6 +2325,9 @@ class TimeEntry extends AbstractModule {
             switch (columns[col].getAttribute("data-type")) {
               case 'cell-weekday':
                 colWeekdays = Math.min(col, colWeekdays);
+                break;
+              case 'cell-workorder':
+                colWorkOrder = col;
                 break;
               case 'cell-timecode':
                 colTimeCode = col;
@@ -2355,15 +2362,16 @@ class TimeEntry extends AbstractModule {
             if (cells[colTimeCode]) {
               const timeCode = this.getValueFromCell(cells[colTimeCode]);
               const activity = this.getValueFromCell(cells[colActivity]);
+              const workOrder = this.getValueFromCell(cells[colWorkOrder]);
               for (var i = 0; i < 7; ++i) {
                 if (dayAvailable[i]) {
                   const hours = Utils.toNumber(this.getValueFromCell(cells[colWeekdays + i]));
-                  const cat = this.category(timeCode, activity);
+                  const cat = this.category(timeCode, activity, workOrder);
                   if (cat === 'break') {
                     sumBreaks[i] = (sumBreaks[i] ?? 0) + hours;
-                  } else if (cat === 'compensation') {
-                    sumCompensation[i] = (sumCompensation[i] ?? 0) + hours;
-                    overallCompensation += hours;
+                  } else if (cat === 'nonworking') {
+                    sumNonworking[i] = (sumNonworking[i] ?? 0) + hours;
+                    overallNonworking += hours;
                   } else {
                     sumWorking[i] = (sumWorking[i] ?? 0) + hours;
                     overallBooked += hours;
@@ -2405,19 +2413,19 @@ class TimeEntry extends AbstractModule {
             }
             this.addCell(row, Utils.toLocaleString(sum));
 
-            // compensation only
+            // non-working only
             row = document.createElement('tr');
             row.className = "SumItem";
             lastRow.before(row);
             for (var i = 0; i < 8; ++i) {
               this.addCell(row, "");
             }
-            this.addCell(row, trans('sum_compensation'));
+            this.addCell(row, trans('sum_nonworking'));
             this.addCell(row, "");
             var sum = 0;
             for (var i = 0; i < 7; ++i) {
               if (dayAvailable[i]) {
-                var value = sumCompensation[i] ?? 0;
+                var value = sumNonworking[i] ?? 0;
                 sum += value;
                 const cell = this.addCell(row, Utils.toLocaleString(value), "right");
                 if (isHoliday[i]) {
@@ -2455,7 +2463,7 @@ class TimeEntry extends AbstractModule {
               }
             }
             cellSumWorking = this.addCell(row, Utils.toLocaleString(sum));
-            const missingBooked = this.normalHours - overallBooked - overallCompensation;
+            const missingBooked = this.normalHours - overallBooked - overallNonworking;
             if (cellSumWorking && missingBooked > 0) {
               cellSumWorking.style.color = 'red';
               cellSumWorking.style.fontWeight = '700';
@@ -2480,7 +2488,7 @@ class TimeEntry extends AbstractModule {
                 const start = this.getValueFromCell(rowFrom[i + 2]);
                 const end = this.getValueFromCell(rowTo[i + 2]);
                 const diff = Utils.difference(start, end);
-                const diff2 = diff - (sumBreaks[i] ?? 0) - (sumCompensation[i] ?? 0);
+                const diff2 = diff - (sumBreaks[i] ?? 0) - (sumNonworking[i] ?? 0);
                 timePresent[i] = diff;
                 timeWorking[i] = diff2;
                 overallWorking += diff2;
@@ -2580,13 +2588,13 @@ class TimeEntry extends AbstractModule {
               }
             }
             const cellSum = this.addCell(row, Utils.formatHours(sum));
-            if (sum < this.normalHours - overallCompensation) {
+            if (sum < this.normalHours - overallNonworking) {
               cellSum.style.color = "red";
               cellSum.style.fontWeight = "700";
-              cellSum.title = trans('missing_working_hours', Utils.formatHours(this.normalHours - sum - overallCompensation));
+              cellSum.title = trans('missing_working_hours', Utils.formatHours(this.normalHours - sum - overallNonworking));
             } else {
               cellSum.style.color = "green";
-              cellSum.title = trans('additional_hours', Utils.formatHours(overallCompensation + sum - this.normalHours));
+              cellSum.title = trans('additional_hours', Utils.formatHours(overallNonworking + sum - this.normalHours));
             }
           }
         }
@@ -2598,12 +2606,15 @@ class TimeEntry extends AbstractModule {
   }
   getValueFromCell(cell) {
     const input = cell.querySelector('.InputCell input');
-    return input ? input.value : cell.textContent ?? '';
+    if (input) return input.value;
+    const div = cell.querySelector('.DivOverflowNoWrap');
+    if (div) return div.textContent ?? '';
+    return cell.textContent ?? '';
   }
   addCell(row, value, align = "right", style = {}) {
     const cell = document.createElement('td');
     cell.className = "GridCell";
-    cell.innerText = value;
+    cell.innerHTML = value;
     Object.entries(style).forEach(([key, value]) => {
       if (value !== undefined) {
         cell.style.setProperty(key, '' + value);
