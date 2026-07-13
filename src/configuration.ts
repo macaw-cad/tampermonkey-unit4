@@ -72,6 +72,12 @@ export class Configuration {
             type: 'checkbox',
             default: false
           },
+          experimentalFtZExcelImport: {
+            label: '[Timesheet Entry]: Import data from Florians tollige Zeiterfassung Excel<copy>This is an experimental feature to fill in workorders based on a "Florians tollige Zeiterfassung" Excel document</copy>',
+            labelPos: 'right',
+            type: 'checkbox',
+            default: false
+          },
 
           handleTimesheetDetails: {
             label: '[Timesheet Approval]: enable enhancements<copy>Enable enhancements on approval / rejection screen</copy>',
@@ -160,6 +166,10 @@ export class Configuration {
 
   experimentalJsonImport() {
     return GM_config.get('experimentalJsonImport');
+  }
+
+  experimentalFtZExcelImport() {
+    return GM_config.get('experimentalFtZExcelImport');
   }
 
   /*
