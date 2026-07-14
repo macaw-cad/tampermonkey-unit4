@@ -420,7 +420,7 @@ export class Timesheetimport extends AbstractModule {
 
       if (entry.workOrder === '') return; // missing workorder -> already warned, cannot import
 
-      const description = entry.ticket ? `${entry.ticket} ${entry.comment}` : entry.comment;
+      const description = Configuration.getInstance().formatFtZDescription(entry);
       const key = entry.workOrder + '\u0000' + description;
       let group = groups.get(key);
       if (!group) {
