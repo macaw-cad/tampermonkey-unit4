@@ -2,7 +2,7 @@
 // @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
-// @version       0.10.9
+// @version       0.10.10
 // @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source        https://github.com/macaw-cad/tampermonkey-unit4
 // @license       MIT
@@ -566,6 +566,65 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.progress {
   padding: 12px;
   text-align: right;
 }
+.ftzCorrection {
+  flex: 1 1 auto;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding: 20px;
+  background: #fffdf0;
+  border: 1px solid #c9b458;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.ftzCorrection__heading {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 0 16px 0;
+}
+.ftzCorrection__warning {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #fde8e8;
+  border: 1px solid #d9534f;
+  border-radius: 6px;
+}
+.ftzCorrection__warning .ftzCorrection__heading {
+  color: #a12622;
+}
+.ftzCorrection__group {
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e6dca8;
+}
+.ftzCorrection__occurrences {
+  margin: 6px 0 0 4px;
+}
+.ftzCorrection__occurrence {
+  font-size: 13px;
+  color: #555;
+  padding: 2px 0;
+}
+.ftzCorrection__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.ftzCorrection__label {
+  min-width: 220px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
+}
+.ftzCorrection__input {
+  flex: 0 0 200px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
+  padding: 4px 6px;
+  border: 1px solid #888;
+  border-radius: 4px;
+}
 `, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
@@ -923,7 +982,7 @@ module.exports = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%
 var __webpack_exports__ = {};
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.10.9"};
+const package_namespaceObject = {"rE":"0.10.10"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1778,6 +1837,10 @@ window.GM_config = new GM_configStruct();
 /// <reference path="./external/gm_config/types/index.d.ts"/>
 
 
+const DEFAULT_FTZ_DESCRIPTION_RULES = [{
+  regex: '.+',
+  template: '{{Ticket}} {{Comment}}'
+}];
 class Configuration {
   static instance = new Configuration();
   static getInstance() {
@@ -1845,6 +1908,18 @@ class Configuration {
           type: 'checkbox',
           default: false
         },
+        experimentalFtZExcelImport: {
+          label: '[Timesheet Entry]: Import data from Florians tollige Zeiterfassung Excel<copy>This is an experimental feature to fill in workorders based on a "Florians tollige Zeiterfassung" Excel document</copy>',
+          labelPos: 'right',
+          type: 'checkbox',
+          default: false
+        },
+        ftzDescriptionRules: {
+          label: '[Timesheet Entry]: FtZ description rules<copy>JSON array of {regex, template} rules. First matching rule wins.<br/>Available placeholders: {{Weekday}}, {{Start}}, {{End}}, {{Duration}}, {{WorkOrder}}, {{WorkOrderInput}}, {{Ticket}}, {{Comment}}.<br/>Default: [{"regex":".+","template":"{{Ticket}} {{Comment}}"}]</copy>',
+          labelPos: 'left',
+          type: 'textarea',
+          default: JSON.stringify(DEFAULT_FTZ_DESCRIPTION_RULES)
+        },
         handleTimesheetDetails: {
           label: '[Timesheet Approval]: enable enhancements<copy>Enable enhancements on approval / rejection screen</copy>',
           labelPos: 'right',
@@ -1873,7 +1948,7 @@ class Configuration {
         }
         */
       },
-      css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config * { font-size: 13px; font-family: dagny, arial, tahoma, verdana, sans-serif; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; }'
+      css: 'copy { display: block; margin-left: 40px; font-weight: normal; } #MacawUnit4Config_wrapper { margin-bottom: 100px; } #MacawUnit4Config * { font-size: 13px; font-family: dagny, arial, tahoma, verdana, sans-serif; } #MacawUnit4Config_buttons_holder { background: #f8f8f8; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px; border-top: 1px solid black; } #MacawUnit4Config .config_var textarea { display: block; width: 100%; margin-top: 4px; min-height: 80px; }'
     });
   }
   addConfigUI() {
@@ -1920,6 +1995,9 @@ class Configuration {
   experimentalJsonImport() {
     return GM_config.get('experimentalJsonImport');
   }
+  experimentalFtZExcelImport() {
+    return GM_config.get('experimentalFtZExcelImport');
+  }
 
   /*
   myWorkingHours() {
@@ -1944,6 +2022,44 @@ class Configuration {
   }
   close() {
     GM_config.close();
+  }
+  ftzDescriptionRules() {
+    const raw = GM_config.get('ftzDescriptionRules');
+    if (typeof raw !== 'string' || raw.trim() === '') {
+      return DEFAULT_FTZ_DESCRIPTION_RULES;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(r => typeof r.regex === 'string' && typeof r.template === 'string');
+      }
+    } catch {
+      // ignore malformed JSON and fall back to default
+    }
+    return DEFAULT_FTZ_DESCRIPTION_RULES;
+  }
+
+  /**
+   * Build the description for a Florians tollige Zeiterfassung booking.
+   * The first rule whose regex matches the ticket wins.
+   * Falls back to "{{Ticket}} {{Comment}}" if no rule matches or no ticket is present.
+   */
+  formatFtZDescription(entry) {
+    const rules = this.ftzDescriptionRules();
+    const ticket = entry.ticket.trim();
+    const comment = entry.comment.trim();
+    for (const rule of rules) {
+      let re;
+      try {
+        re = new RegExp(rule.regex, 'i');
+      } catch {
+        continue;
+      }
+      if (ticket !== '' && re.test(ticket)) {
+        return rule.template.replace(/\{\{Weekday\}\}/g, entry.weekday).replace(/\{\{Start\}\}/g, entry.start).replace(/\{\{End\}\}/g, entry.end).replace(/\{\{Duration\}\}/g, entry.duration).replace(/\{\{WorkOrder\}\}/g, entry.workOrder).replace(/\{\{WorkOrderInput\}\}/g, entry.workOrderInput).replace(/\{\{Ticket\}\}/g, ticket).replace(/\{\{Comment\}\}/g, comment);
+      }
+    }
+    return ticket !== '' ? `${ticket} ${comment}` : comment;
   }
 }
 ;// ./src/modules/MarkupUtility.ts
@@ -3186,6 +3302,8 @@ class WHImportTask extends ImportTask {
         return new WorkingStartImportTask(taskData.groupId, new Date(taskData.date), taskData.value);
       case 'WorkingEndImportTask':
         return new WorkingEndImportTask(taskData.groupId, new Date(taskData.date), taskData.value);
+      case 'FtZWorkingImportTask':
+        return new FtZWorkingImportTask(taskData.groupId, taskData.weekday, taskData.type, taskData.value);
     }
   }
   constructor(groupId, date, type, value) {
@@ -3198,7 +3316,7 @@ class WHImportTask extends ImportTask {
     const headers = await this.waitForElements('.tmWorkinghours th');
     const rows = await this.waitForElements('.workinghours-section .ListItem, .workinghours-section .AltListItem, .workinghours-section .EditRow');
     const date = new Date(this.date);
-    const dateEN = date.getMonth() + 1 + "/" + date.getDate(); // eEN format: M/D      
+    const dateEN = date.getMonth() + 1 + "/" + date.getDate(); // eEN format: M/D
 
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const dateDE = date.getDate() + "." + month; // DE format: DD.MM.
@@ -3271,6 +3389,45 @@ class WorkingEndImportTask extends WHImportTask {
     return "Enter working time (To) for " + this.date.toLocaleDateString();
   }
 }
+
+// working-hours variant that matches the day column by its weekday token instead of a date
+class FtZWorkingImportTask extends WHImportTask {
+  // English weekday token as used in the grid headers: mon/tue/wed/thu/fri/sat/sun
+
+  constructor(groupId, weekday, type, time) {
+    super(groupId, new Date(0), type, time);
+    this.weekday = weekday;
+  }
+  actionDescription() {
+    return "Enter working time (" + (this.type === "start" ? "From" : "To") + ") for " + this.weekday;
+  }
+  async lookupCell() {
+    const headers = await this.waitForElements('.tmWorkinghours th');
+    const rows = await this.waitForElements('.workinghours-section .ListItem, .workinghours-section .AltListItem, .workinghours-section .EditRow');
+    for (var i = 0; i < headers.length; ++i) {
+      const head = headers[i];
+      const text = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase();
+      if (text.startsWith(this.weekday)) {
+        for (var j = 0; j < rows.length; ++j) {
+          const cell = rows[j].querySelector('td:nth-of-type(' + (i + 1) + ')');
+          const input = cell?.querySelector('.InputCell input');
+          if (j === 0 && this.type === "start") {
+            return {
+              cell,
+              input
+            };
+          } else if (j === 1 && this.type === "end") {
+            return {
+              cell,
+              input
+            };
+          }
+        }
+      }
+    }
+    return {};
+  }
+}
 ;// ./src/modules/timesheetimport/importer/workorders.ts
 
 
@@ -3292,6 +3449,10 @@ class WOImportTask extends ImportTask {
         return new DescriptionImportTask(taskData.groupId, taskData.workOrder);
       case 'HoursImportTask':
         return new HoursImportTask(taskData.groupId, taskData.workOrder, new Date(taskData.date), taskData.value);
+      case 'FtZHoursImportTask':
+        return new FtZHoursImportTask(taskData.groupId, taskData.workOrder, taskData.weekday, taskData.value);
+      case 'StartBreakRowImportTask':
+        return new StartBreakRowImportTask(taskData.groupId);
       case 'WorkOrderSummaryTask':
         return new WorkOrderSummaryTask(taskData.sum, taskData.breaks);
     }
@@ -3306,7 +3467,7 @@ class WOImportTask extends ImportTask {
 
   /**
    * Search a row for the given work order.
-   * 
+   *
    * @returns
    *   - HTMLElement of the editable row if found
    *   - true if new row will be created or exising row will be made editable (=> page reload)
@@ -3363,6 +3524,43 @@ class StartWorkOrderImportTask extends WOImportTask {
     }
     // we found an editable row, use it directly
     return this.next();
+  }
+}
+
+// activate the break booking that Unit4 auto-inserts (activity 999 / "Internal - Break Time"),
+// so that the following hour tasks can write into its day cells
+class StartBreakRowImportTask extends ImportTask {
+  constructor(groupId) {
+    super(groupId);
+  }
+  actionDescription() {
+    return "Open break row (activity 999)";
+  }
+  isBreakRow(row) {
+    const activityText = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent?.trim();
+    const activityInput = row.querySelector('td[data-type="cell-activity"] .InputCell input')?.value?.trim();
+    const descText = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent?.trim();
+    const descInput = row.querySelector('td[data-type="cell-description"] .InputCell input')?.value?.trim();
+    return activityText === '999' || activityInput === '999' || descText === 'Internal - Break Time' || descInput === 'Internal - Break Time';
+  }
+  async run() {
+    const rows = await this.waitForElements('tr.ListItem, tr.AltListItem, tr.EditRow');
+    for (const row of rows) {
+      if (this.isBreakRow(row)) {
+        if (row.classList.contains('EditRow')) {
+          // break row is already editable
+          return this.next();
+        }
+        const cell = row.querySelector('td[data-type=cell-description] div.ww.ellipsis');
+        if (cell) {
+          // make the break row editable => page reload
+          cell.click();
+          return this.nextAfterReload();
+        }
+        return this.failure('Break row description cell not found');
+      }
+    }
+    return this.failure('Break row (activity 999) not found');
   }
 }
 class WOFieldImportTask extends WOImportTask {
@@ -3462,7 +3660,32 @@ class HoursImportTask extends WOFieldImportTask {
     for (var i = 0; i < headers.length; ++i) {
       const head = headers[i];
       if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
-        // seems to match the date          
+        // seems to match the date
+        return await this.fieldElement(cells[i], 'cell-weekday[' + i + ']');
+      }
+    }
+    return null;
+  }
+}
+class FtZHoursImportTask extends WOFieldImportTask {
+  // English weekday token as used in the grid headers: mon/tue/wed/thu/fri/sat/sun
+
+  constructor(groupId, workOrder, weekday, hours) {
+    super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
+    this.weekday = weekday;
+  }
+  actionDescription() {
+    return "Enter hours for " + this.workOrder.workOrder + " on " + this.weekday;
+  }
+  async lookupField(row) {
+    const headers = await this.waitForElements('th[data-type=cell-weekday]');
+    const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
+
+    // match the day column by its weekday token (language independent, no date needed)
+    for (var i = 0; i < headers.length; ++i) {
+      const head = headers[i];
+      const text = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase();
+      if (text.startsWith(this.weekday)) {
         return await this.fieldElement(cells[i], 'cell-weekday[' + i + ']');
       }
     }
@@ -3484,8 +3707,10 @@ class WorkOrderSummaryTask extends ImportTask {
     const sumCells = await this.waitForElements('.SumColumn');
     const sumCell = sumCells.pop();
     if (sumCell) {
-      const unit4Sum = parseFloat(sumCell.textContent || "0");
-      if (unit4Sum !== this.sum) {
+      // parse locale-aware: Unit4 renders the total with a decimal comma (e.g. "47,50"),
+      // and parseFloat would stop at the comma and drop the fraction.
+      const unit4Sum = Utils.toNumber(sumCell.textContent || "0");
+      if (Math.abs(unit4Sum - this.sum) > 0.001) {
         // sum of hours does not match
         return this.failure(`Sum of hours does not match, expected: ${this.sum}, actual: ${unit4Sum}`);
       }
@@ -3702,9 +3927,26 @@ var timesheetimport_update = injectStylesIntoStyleTag_default()(timesheetimport/
 
 
 
+
+// one parsed row of the "Florians tollige Zeiterfassung" day-log (columns A-I)
+
 class Timesheetimport extends AbstractModule {
   // max waiting time for a field to be available / get focus
   static retrySeconds = 10;
+
+  // valid Unit4 workorder format, e.g. 950100-10005
+  static workOrderPattern = /^\d{6}-\d{5}$/;
+
+  // weekday tokens of the merged "Wochentag" column
+  static ftzWeekdays = new Set(['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']);
+
+  // a single time cell, e.g. 09:00 or 46:15
+  static ftzTimeRe = /^\d{1,2}:\d{2}$/;
+
+  // localStorage key for remembering how the user corrected invalid column-F workorders
+  static ftzCorrectionStorageKey = 'ftzWorkOrderCorrections';
+  ftzEntries = [];
+  ftzCorrectionInputs = new Map();
 
   // ----------------------------------------------------------------------
   // Time Entry Screen Action Buttons
@@ -3713,7 +3955,7 @@ class Timesheetimport extends AbstractModule {
   //private progress!: HTMLElement;
 
   initModule() {
-    if (Configuration.getInstance().experimentalJsonImport()) {
+    if (Configuration.getInstance().experimentalJsonImport() || Configuration.getInstance().experimentalFtZExcelImport()) {
       // add import button and progress if this feature is enabled in configuration
       document.querySelectorAll('h2.SectionTitle').forEach(e => {
         if (e.textContent.startsWith('Time entry')) {
@@ -3745,65 +3987,12 @@ class Timesheetimport extends AbstractModule {
           }
         });
         if (this.standardAddBtn) {
-          // create modal import dialog
-          this.dialog = document.createElement("div");
-          this.dialog.classList.add("modalDialog");
-          this.dialog.style.display = 'none';
-          this.dialogEntry = document.createElement("textarea");
-          this.dialog.appendChild(this.dialogEntry);
-          const dialogButtons = document.createElement("div");
-          dialogButtons.classList.add("modalDialog__buttons");
-          this.dialog.appendChild(dialogButtons);
-          const dialogOK = document.createElement("button");
-          dialogOK.setAttribute("type", "button");
-          dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
-          dialogOK.innerHTML = "<span>Start Import</span>";
-          dialogOK.addEventListener('click', this.actionImport.bind(this));
-          dialogButtons.appendChild(dialogOK);
-          const dialogCancel = document.createElement("button");
-          dialogCancel.setAttribute("type", "button");
-          dialogCancel.classList.add("RibbonInlineButton");
-          dialogCancel.innerHTML = "<span>Cancel</span>";
-          dialogCancel.addEventListener('click', this.actionClose.bind(this));
-          dialogButtons.appendChild(dialogCancel);
-          document.body.appendChild(this.dialog);
-
-          // create new button for import
-          const buttonImportCell = document.createElement("td");
-          table.rows[0].insertBefore(buttonImportCell, this.standardAddBtn.parentElement);
-          buttonImportCell.classList.add('Button');
-          buttonImportCell.style.paddingRight = "0";
-          const buttonImport = document.createElement("button");
-          buttonImport.setAttribute("id", "json-import-btn");
-          buttonImport.setAttribute("type", "button");
-          buttonImport.setAttribute("role", "button");
-          buttonImport.setAttribute("title", "Import data from JSON");
-          buttonImport.setAttribute("onclick", "");
-          buttonImport.classList.add('BaseButton');
-          buttonImport.classList.add('SectionButton');
-          buttonImport.innerHTML = "<span>Import JSON</span>";
-          buttonImport.addEventListener("click", this.actionDialog.bind(this));
-          buttonImportCell.appendChild(buttonImport);
-
-          // create new button for last errors
-          const buttonFailedCell = document.createElement("td");
-          table.rows[0].insertBefore(buttonFailedCell, this.standardAddBtn.parentElement);
-          buttonFailedCell.classList.add('Button');
-          buttonFailedCell.style.paddingLeft = "0";
-          this.buttonFailed = document.createElement("button");
-          this.buttonFailed.setAttribute("id", "json-import-failed-btn");
-          this.buttonFailed.setAttribute("type", "button");
-          this.buttonFailed.setAttribute("role", "button");
-          this.buttonFailed.setAttribute("title", "Show last failed imports");
-          this.buttonFailed.setAttribute("onclick", "");
-          this.buttonFailed.classList.add('BaseButton');
-          this.buttonFailed.classList.add('SectionButton');
-          this.buttonFailed.innerHTML = "<span>failed</span>";
-          this.buttonFailed.addEventListener("click", () => {
-            Utils.showDialog(sessionStorage.getItem("import_failed_summary") ?? 'No failed actions');
-          });
-          this.failedUpdate();
-          buttonFailedCell.appendChild(this.buttonFailed);
+          if (Configuration.getInstance().experimentalJsonImport()) {
+            this.addJsonImportUI(table);
+          }
+          if (Configuration.getInstance().experimentalFtZExcelImport()) {
+            this.addFtZExcelImportUI(table);
+          }
         }
 
         // Run pending tasks from importer
@@ -3814,7 +4003,120 @@ class Timesheetimport extends AbstractModule {
       }
     }
   }
+  addJsonImportUI(table) {
+    // create modal import dialog
+    this.dialog = document.createElement("div");
+    this.dialog.classList.add("modalDialog");
+    this.dialog.style.display = 'none';
+    this.dialogEntry = document.createElement("textarea");
+    this.dialog.appendChild(this.dialogEntry);
+    const dialogButtons = document.createElement("div");
+    dialogButtons.classList.add("modalDialog__buttons");
+    this.dialog.appendChild(dialogButtons);
+    const dialogOK = document.createElement("button");
+    dialogOK.setAttribute("type", "button");
+    dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
+    dialogOK.innerHTML = "<span>Start Import</span>";
+    dialogOK.addEventListener('click', this.actionImport.bind(this));
+    dialogButtons.appendChild(dialogOK);
+    const dialogCancel = document.createElement("button");
+    dialogCancel.setAttribute("type", "button");
+    dialogCancel.classList.add("RibbonInlineButton");
+    dialogCancel.innerHTML = "<span>Cancel</span>";
+    dialogCancel.addEventListener('click', this.actionClose.bind(this));
+    dialogButtons.appendChild(dialogCancel);
+    document.body.appendChild(this.dialog);
+
+    // create new button for import
+    const buttonImportCell = document.createElement("td");
+    table.rows[0].insertBefore(buttonImportCell, this.standardAddBtn.parentElement);
+    buttonImportCell.classList.add('Button');
+    buttonImportCell.style.paddingRight = "0";
+    const buttonImport = document.createElement("button");
+    buttonImport.setAttribute("id", "json-import-btn");
+    buttonImport.setAttribute("type", "button");
+    buttonImport.setAttribute("role", "button");
+    buttonImport.setAttribute("title", "Import data from JSON");
+    buttonImport.setAttribute("onclick", "");
+    buttonImport.classList.add('BaseButton');
+    buttonImport.classList.add('SectionButton');
+    buttonImport.innerHTML = "<span>Import JSON</span>";
+    buttonImport.addEventListener("click", this.actionDialog.bind(this));
+    buttonImportCell.appendChild(buttonImport);
+
+    // create new button for last errors
+    const buttonFailedCell = document.createElement("td");
+    table.rows[0].insertBefore(buttonFailedCell, this.standardAddBtn.parentElement);
+    buttonFailedCell.classList.add('Button');
+    buttonFailedCell.style.paddingLeft = "0";
+    this.buttonFailed = document.createElement("button");
+    this.buttonFailed.setAttribute("id", "json-import-failed-btn");
+    this.buttonFailed.setAttribute("type", "button");
+    this.buttonFailed.setAttribute("role", "button");
+    this.buttonFailed.setAttribute("title", "Show last failed imports");
+    this.buttonFailed.setAttribute("onclick", "");
+    this.buttonFailed.classList.add('BaseButton');
+    this.buttonFailed.classList.add('SectionButton');
+    this.buttonFailed.innerHTML = "<span>failed</span>";
+    this.buttonFailed.addEventListener("click", () => {
+      Utils.showDialog(sessionStorage.getItem("import_failed_summary") ?? 'No failed actions');
+    });
+    this.failedUpdate();
+    buttonFailedCell.appendChild(this.buttonFailed);
+  }
+  addFtZExcelImportUI(table) {
+    // create modal import dialog for "Florians tollige Zeiterfassung" Excel data
+    this.ftzDialog = document.createElement("div");
+    this.ftzDialog.classList.add("modalDialog");
+    this.ftzDialog.style.display = 'none';
+
+    // paste area for the tab-separated Excel export
+    this.ftzDialogEntry = document.createElement("textarea");
+    this.ftzDialogEntry.setAttribute("placeholder", "Excel-Daten hier einfügen (Select-All → Copy aus Florians tollige Zeiterfassung)");
+    this.ftzDialog.appendChild(this.ftzDialogEntry);
+
+    // correction area for invalid workorders (hidden until validation fails)
+    this.ftzCorrectionContainer = document.createElement("div");
+    this.ftzCorrectionContainer.classList.add("ftzCorrection");
+    this.ftzCorrectionContainer.style.display = 'none';
+    this.ftzDialog.appendChild(this.ftzCorrectionContainer);
+    const dialogButtons = document.createElement("div");
+    dialogButtons.classList.add("modalDialog__buttons");
+    this.ftzDialog.appendChild(dialogButtons);
+    this.ftzOkButton = document.createElement("button");
+    this.ftzOkButton.setAttribute("type", "button");
+    this.ftzOkButton.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
+    this.ftzOkButton.innerHTML = "<span>Start Import</span>";
+    this.ftzOkButton.addEventListener('click', this.actionFtZExcelImport.bind(this));
+    dialogButtons.appendChild(this.ftzOkButton);
+    const dialogCancel = document.createElement("button");
+    dialogCancel.setAttribute("type", "button");
+    dialogCancel.classList.add("RibbonInlineButton");
+    dialogCancel.innerHTML = "<span>Cancel</span>";
+    dialogCancel.addEventListener('click', this.actionFtZExcelClose.bind(this));
+    dialogButtons.appendChild(dialogCancel);
+    document.body.appendChild(this.ftzDialog);
+
+    // create new button for "Florians tollige Zeiterfassung" Excel import
+    const buttonFtZExcelCell = document.createElement("td");
+    table.rows[0].insertBefore(buttonFtZExcelCell, this.standardAddBtn.parentElement);
+    buttonFtZExcelCell.classList.add('Button');
+    const buttonFtZExcel = document.createElement("button");
+    buttonFtZExcel.setAttribute("id", "ftz-import-btn");
+    buttonFtZExcel.setAttribute("type", "button");
+    buttonFtZExcel.setAttribute("role", "button");
+    buttonFtZExcel.setAttribute("title", "Import data from Florians tollige Zeiterfassung Excel");
+    buttonFtZExcel.setAttribute("onclick", "");
+    buttonFtZExcel.classList.add('BaseButton');
+    buttonFtZExcel.classList.add('SectionButton');
+    buttonFtZExcel.innerHTML = "<span>Import FtZ</span>";
+    buttonFtZExcel.addEventListener("click", this.actionFtZExcelDialog.bind(this));
+    buttonFtZExcelCell.appendChild(buttonFtZExcel);
+  }
   failedUpdate() {
+    if (!this.buttonFailed) {
+      return;
+    }
     this.buttonFailed.disabled = sessionStorage.getItem("import_failed_summary") === null;
   }
 
@@ -3823,6 +4125,31 @@ class Timesheetimport extends AbstractModule {
     this.dialogEntry.value = '';
     this.dialog.style.display = 'flex';
     this.dialogEntry.focus();
+  }
+
+  // show FtZ Excel modal dialog
+  actionFtZExcelDialog() {
+    this.ftzDialogEntry.value = '';
+    this.resetFtZView();
+    this.ftzDialog.style.display = 'flex';
+    this.ftzDialogEntry.focus();
+  }
+
+  // close FtZ Excel modal dialog
+  actionFtZExcelClose() {
+    this.ftzDialog.style.display = 'none';
+    this.ftzDialogEntry.value = '';
+    this.resetFtZView();
+  }
+
+  // reset the FtZ dialog back to the paste view
+  resetFtZView() {
+    this.ftzEntries = [];
+    this.ftzCorrectionInputs = new Map();
+    this.ftzCorrectionContainer.innerHTML = '';
+    this.ftzCorrectionContainer.style.display = 'none';
+    this.ftzDialogEntry.style.display = '';
+    this.ftzOkButton.innerHTML = "<span>Start Import</span>";
   }
 
   // close modal dialog
@@ -3835,6 +4162,407 @@ class Timesheetimport extends AbstractModule {
     importer.runTasks().then(() => {
       this.failedUpdate();
     });
+  }
+
+  // start the "Florians tollige Zeiterfassung" Excel import
+  actionFtZExcelImport() {
+    const inCorrectionView = this.ftzCorrectionContainer.style.display !== 'none';
+    if (!inCorrectionView) {
+      // phase 1: parse the pasted tab-separated data
+      this.ftzEntries = Timesheetimport.parseFtZTsv(this.ftzDialogEntry.value);
+      if (this.ftzEntries.length === 0) {
+        alert("Keine gültigen Zeitbuchungen erkannt. Bitte die kompletten Excel-Daten (inkl. Tabellenkopf) einfügen.");
+        return;
+      }
+
+      // on first pass: show the review view if anything needs attention (missing or invalid)
+      const missing = this.ftzEntries.filter(e => e.workOrder === '' && !Timesheetimport.isBreakEntry(e));
+      const invalid = this.distinctInvalidWorkOrders();
+      if (missing.length > 0 || invalid.length > 0) {
+        this.renderFtZCorrections(invalid, missing);
+        return;
+      }
+    } else {
+      // phase 2: apply the user corrections to the stored entries
+      this.ftzCorrectionInputs.forEach((input, original) => {
+        const corrected = input.value.trim();
+        // remember valid corrections so the field is prefilled next time
+        if (corrected !== original && Timesheetimport.workOrderPattern.test(corrected)) {
+          this.saveFtZCorrection(original, corrected);
+        }
+        this.ftzEntries.forEach(entry => {
+          if (entry.workOrder === original) {
+            entry.workOrder = corrected;
+          }
+        });
+      });
+
+      // invalid workorders block the import until fixed; missing ones are only a warning
+      const invalid = this.distinctInvalidWorkOrders();
+      if (invalid.length > 0) {
+        const missing = this.ftzEntries.filter(e => e.workOrder === '' && !Timesheetimport.isBreakEntry(e));
+        this.renderFtZCorrections(invalid, missing);
+        return;
+      }
+    }
+
+    // all invalid workorders resolved -> start the real import
+    this.startFtZImport();
+  }
+
+  // load the saved column-F -> corrected workorder map from localStorage
+  loadFtZCorrections() {
+    try {
+      return JSON.parse(localStorage.getItem(Timesheetimport.ftzCorrectionStorageKey) ?? '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  // persist a single column-F -> corrected workorder mapping
+  saveFtZCorrection(original, corrected) {
+    const map = this.loadFtZCorrections();
+    map[original] = corrected;
+    localStorage.setItem(Timesheetimport.ftzCorrectionStorageKey, JSON.stringify(map));
+  }
+
+  // build and run the import tasks from the parsed (and corrected) FtZ entries
+  startFtZImport() {
+    const importer = Importer.getInstance();
+    WOImportTask.setSection(this.section);
+    WOImportTask.setAddButton(this.standardAddBtn);
+
+    // German weekday (column B) -> English grid header token
+    const weekdayToken = {
+      'Mo': 'mon',
+      'Di': 'tue',
+      'Mi': 'wed',
+      'Do': 'thu',
+      'Fr': 'fri',
+      'Sa': 'sat',
+      'So': 'sun'
+    };
+
+    // group bookings by workorder + comment; sum the durations per weekday
+
+    const groups = new Map();
+    let sumHours = 0;
+
+    // earliest start / latest end per weekday for the working-hours (From/To) fields
+
+    const workingDay = new Map();
+
+    // break hours per weekday, derived from the gaps between the day's bookings,
+    // for the auto-inserted activity-999 row
+    const breaksByDay = new Map();
+    let sumBreaks = 0;
+
+    // all booking intervals (decimal hours) per weekday, used to compute the break gaps
+
+    const dayIntervals = new Map();
+    this.ftzEntries.forEach(entry => {
+      const token = weekdayToken[entry.weekday];
+      if (!token) return; // unknown weekday
+
+      // "Pause" marker rows carry no work time -> ignore them entirely
+      if (Timesheetimport.isBreakEntry(entry)) return;
+      const hours = Utils.hoursFromTimestring(entry.duration);
+      if (isNaN(hours) || hours <= 0) return;
+
+      // collect the booking interval (defines presence -> gaps between them are breaks)
+      if (entry.start !== '' && entry.end !== '') {
+        const list = dayIntervals.get(token) ?? [];
+        list.push({
+          start: Utils.hoursFromTimestring(entry.start),
+          end: Utils.hoursFromTimestring(entry.end)
+        });
+        dayIntervals.set(token, list);
+      }
+      if (entry.workOrder === '') return; // missing workorder -> already warned, cannot import
+
+      const description = Configuration.getInstance().formatFtZDescription(entry);
+      const key = entry.workOrder + '\u0000' + description;
+      let group = groups.get(key);
+      if (!group) {
+        group = {
+          wo: {
+            workOrder: entry.workOrder,
+            activity: '',
+            timeCode: '',
+            description
+          },
+          hours: new Map()
+        };
+        groups.set(key, group);
+      }
+      group.hours.set(token, (group.hours.get(token) ?? 0) + hours);
+      sumHours += hours;
+
+      // track the working-hours window (min start / max end) for this weekday
+      if (entry.start !== '' && entry.end !== '') {
+        const day = workingDay.get(token);
+        if (!day) {
+          workingDay.set(token, {
+            start: entry.start,
+            end: entry.end
+          });
+        } else {
+          if (Utils.hoursFromTimestring(entry.start) < Utils.hoursFromTimestring(day.start)) {
+            day.start = entry.start;
+          }
+          if (Utils.hoursFromTimestring(entry.end) > Utils.hoursFromTimestring(day.end)) {
+            day.end = entry.end;
+          }
+        }
+      }
+    });
+
+    // derive the break per weekday as the sum of the gaps between consecutive bookings
+    dayIntervals.forEach((intervals, token) => {
+      intervals.sort((a, b) => a.start - b.start);
+      let gap = 0;
+      let prevEnd = intervals[0].end;
+      for (let i = 1; i < intervals.length; i++) {
+        if (intervals[i].start > prevEnd) {
+          gap += intervals[i].start - prevEnd;
+        }
+        prevEnd = Math.max(prevEnd, intervals[i].end);
+      }
+      // round to full minutes to avoid floating point noise
+      gap = Math.round(gap * 60) / 60;
+      if (gap > 0) {
+        breaksByDay.set(token, gap);
+        sumBreaks += gap;
+      }
+    });
+    if (groups.size === 0 && breaksByDay.size === 0) {
+      alert("Keine importierbaren Zeitbuchungen vorhanden.");
+      return;
+    }
+    importer.addTask(new CloseEditingModeTask());
+
+    // import the working hours (From/To) per weekday from the Excel start/end times
+    workingDay.forEach((day, token) => {
+      const groupId = ['ftz-workinghours', token].join('|');
+      importer.addTask(new FtZWorkingImportTask(groupId, token, "start", day.start));
+      importer.addTask(new FtZWorkingImportTask(groupId, token, "end", day.end));
+    });
+    importer.addTask(new CloseEditingModeTask());
+    groups.forEach((group, key) => {
+      const groupId = ['ftz', key].join('|');
+      importer.addTask(new StartWorkOrderImportTask(groupId, group.wo));
+      importer.addTask(new WorkOrderImportTask(groupId, group.wo));
+      importer.addTask(new DescriptionImportTask(groupId, group.wo));
+      group.hours.forEach((hours, token) => {
+        importer.addTask(new FtZHoursImportTask(groupId, group.wo, token, hours));
+      });
+    });
+    importer.addTask(new CloseEditingModeTask());
+
+    // book the breaks into Unit4's automatically inserted activity-999 row
+    if (breaksByDay.size > 0) {
+      const breakGroupId = 'ftz-breaks';
+      const breakWo = {
+        workOrder: '',
+        activity: '999',
+        timeCode: '',
+        description: 'Internal - Break Time'
+      };
+      importer.addTask(new StartBreakRowImportTask(breakGroupId));
+      breaksByDay.forEach((hours, token) => {
+        importer.addTask(new FtZHoursImportTask(breakGroupId, breakWo, token, hours));
+      });
+      importer.addTask(new CloseEditingModeTask());
+    }
+    importer.addTask(new WorkOrderSummaryTask(sumHours + sumBreaks, sumBreaks));
+    importer.clearFailed();
+    this.actionFtZExcelClose();
+    this.runTasks();
+  }
+
+  // a booking that represents a break (column G / Workorder input contains "Pause")
+  static isBreakEntry(entry) {
+    return entry.workOrderInput.trim().toLowerCase() === 'pause';
+  }
+
+  // distinct workorders that are present but do not match the required format
+  distinctInvalidWorkOrders() {
+    return [...new Set(this.ftzEntries.map(e => e.workOrder).filter(wo => wo !== '' && !Timesheetimport.workOrderPattern.test(wo)))];
+  }
+
+  // parse the tab-separated "Florians tollige Zeiterfassung" export into day-log entries.
+  //
+  // The user can copy two variants out of Excel, both of which end up here:
+  //  - "großes Format": the whole table as a real grid (many lines). It has a leading
+  //    spacer column (A), a statistics header on top and the week-summary block to the
+  //    right of the "U4" column.
+  //  - "kleines Format": only the day-log sub-range, which Excel flattens onto a single
+  //    line (all rows/columns joined by tabs, no newlines).
+  //
+  // Both variants contain the exact same "core block" of columns in the same order:
+  //   Gesamt(Tag) | Wochentag | Anfang | Ende | Dauer | Echte Workorder | Workorder | Ticket | Kommentar | U4
+  // A preparser (ftzCoreCells) reduces every variant to that core block, dropping the
+  // spacer column, the statistics header and the week-summary block. The shared extractor
+  // then reads the columns by their fixed offset inside the block.
+  static parseFtZTsv(text) {
+    return Timesheetimport.ftzBookingsFromCells(Timesheetimport.ftzCoreCells(text));
+  }
+
+  // preparser: reduce either copy variant to a flat stream of the day-log core-block cells
+  static ftzCoreCells(text) {
+    const grid = text.split(/\r?\n/).map(line => line.split('\t').map(cell => cell.trim()));
+
+    // the day-log header row carries the literal labels "Gesamt (Tag)" and "U4"
+    const headerRow = grid.find(row => row.includes('Gesamt (Tag)') && row.includes('U4'));
+    if (headerRow) {
+      const startCol = headerRow.indexOf('Gesamt (Tag)');
+      const endCol = headerRow.indexOf('U4');
+
+      // "großes Format": header on its own line -> keep only the core columns of every
+      // row, cutting off the leading spacer, the statistics header and the week-summary.
+      // "kleines Format" flattens header AND data onto one line, so the header row itself
+      // already contains bookings; in that case we keep the raw stream (there is no
+      // week-summary to strip) and let the extractor scan it.
+      if (endCol >= startCol && !Timesheetimport.rowHasBooking(headerRow)) {
+        return grid.flatMap(row => row.slice(startCol, endCol + 1));
+      }
+    }
+    return grid.flat();
+  }
+
+  // shared extractor: pick the bookings out of the core-block cell stream by column offset
+  static ftzBookingsFromCells(cells) {
+    const entries = [];
+    let weekday = '';
+    for (let i = 0; i < cells.length; i++) {
+      // remember the merged "Wochentag" cell for the following bookings of that day
+      if (Timesheetimport.ftzWeekdays.has(cells[i])) {
+        weekday = cells[i];
+        continue;
+      }
+      const [start, end, duration] = [cells[i], cells[i + 1], cells[i + 2]];
+      if (!Timesheetimport.isFtZBooking(start, end, duration)) {
+        continue;
+      }
+
+      // read the work columns by their fixed offset behind the Anfang/Ende/Dauer triplet:
+      // +3 Echte Workorder, +4 Workorder, +5 Ticket, +6 Kommentar
+      entries.push({
+        weekday,
+        start,
+        end,
+        duration,
+        workOrder: cells[i + 3] ?? '',
+        workOrderInput: cells[i + 4] ?? '',
+        ticket: cells[i + 5] ?? '',
+        comment: cells[i + 6] ?? ''
+      });
+
+      // skip the cells consumed by this booking so they are not re-scanned
+      i += 6;
+    }
+    return entries;
+  }
+
+  // true if the row contains a valid Anfang/Ende/Dauer time-triplet anywhere
+  static rowHasBooking(row) {
+    for (let i = 0; i + 2 < row.length; i++) {
+      if (Timesheetimport.isFtZBooking(row[i], row[i + 1], row[i + 2])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // a real booking is three HH:MM cells whose duration matches the Anfang->Ende span.
+  // this rejects day totals, empty/zero rows and the week-summary block (which reuse HH:MM).
+  static isFtZBooking(start, end, duration) {
+    const re = Timesheetimport.ftzTimeRe;
+    if (!re.test(start) || !re.test(end) || !re.test(duration)) {
+      return false;
+    }
+    const span = Utils.difference(start, end);
+    return span > 0 && Math.abs(span - Utils.hoursFromTimestring(duration)) <= 0.02;
+  }
+
+  // show the review view: non-blocking warnings for missing workorders and correction inputs for invalid ones
+  renderFtZCorrections(invalidWorkOrders, missingEntries) {
+    this.ftzCorrectionInputs = new Map();
+    this.ftzCorrectionContainer.innerHTML = '';
+
+    // remembered corrections from previous imports (column F -> corrected workorder)
+    const savedCorrections = this.loadFtZCorrections();
+
+    // warning block for bookings without any workorder (does not block the import)
+    if (missingEntries.length > 0) {
+      const warning = document.createElement("div");
+      warning.classList.add("ftzCorrection__warning");
+      const warningHeading = document.createElement("p");
+      warningHeading.classList.add("ftzCorrection__heading");
+      warningHeading.textContent = `⚠ ${missingEntries.length} Buchung(en) ohne Workorder. Im Normalfall ein Fehler – bitte in der Excel ergänzen und neu einfügen (blockiert den Import aber nicht):`;
+      warning.appendChild(warningHeading);
+      missingEntries.forEach(entry => {
+        const line = document.createElement("div");
+        line.classList.add("ftzCorrection__occurrence");
+        line.textContent = Timesheetimport.formatOccurrence(entry);
+        warning.appendChild(line);
+      });
+      this.ftzCorrectionContainer.appendChild(warning);
+    }
+
+    // correction block: one input per distinct invalid workorder, with all its occurrences as context
+    if (invalidWorkOrders.length > 0) {
+      const heading = document.createElement("p");
+      heading.classList.add("ftzCorrection__heading");
+      heading.textContent = `${invalidWorkOrders.length} ungültige Workorder(s) gefunden. Bitte im Format 950100-10005 korrigieren:`;
+      this.ftzCorrectionContainer.appendChild(heading);
+      invalidWorkOrders.forEach(wo => {
+        const group = document.createElement("div");
+        group.classList.add("ftzCorrection__group");
+        const row = document.createElement("div");
+        row.classList.add("ftzCorrection__row");
+        const label = document.createElement("span");
+        label.classList.add("ftzCorrection__label");
+        label.textContent = wo;
+        row.appendChild(label);
+        const input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.setAttribute("placeholder", "950100-10005");
+        input.classList.add("ftzCorrection__input");
+        input.value = savedCorrections[wo] ?? wo;
+        row.appendChild(input);
+        group.appendChild(row);
+
+        // list every occurrence of this workorder so the user can identify it
+        const occurrences = document.createElement("div");
+        occurrences.classList.add("ftzCorrection__occurrences");
+        this.ftzEntries.filter(e => e.workOrder === wo).forEach(e => {
+          const line = document.createElement("div");
+          line.classList.add("ftzCorrection__occurrence");
+          line.textContent = Timesheetimport.formatOccurrence(e);
+          occurrences.appendChild(line);
+        });
+        group.appendChild(occurrences);
+        this.ftzCorrectionInputs.set(wo, input);
+        this.ftzCorrectionContainer.appendChild(group);
+      });
+    }
+
+    // switch from paste view to review view
+    this.ftzDialogEntry.style.display = 'none';
+    this.ftzCorrectionContainer.style.display = 'block';
+    this.ftzOkButton.innerHTML = invalidWorkOrders.length > 0 ? "<span>Übernehmen &amp; Import</span>" : "<span>Trotzdem importieren</span>";
+    const firstInput = this.ftzCorrectionContainer.querySelector('input');
+    if (firstInput) {
+      firstInput.focus();
+    }
+  }
+
+  // format a booking as "Wochentag Anfang–Ende · Kommentar" for the review lists
+  static formatOccurrence(entry) {
+    const time = `${entry.start}–${entry.end}`;
+    const context = [entry.weekday, time].filter(v => v !== '').join(' ');
+    return entry.comment !== '' ? `${context} · ${entry.comment}` : context;
   }
 
   // start the import
@@ -3878,7 +4606,7 @@ class Timesheetimport extends AbstractModule {
               { "date": "2023-05-05", "hours": "4.75" }
             ]
           }
-        ]      
+        ]
       }
       */
 
