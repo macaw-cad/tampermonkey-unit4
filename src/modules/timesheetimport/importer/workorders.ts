@@ -28,6 +28,10 @@ export abstract class WOImportTask extends ImportTask {
                 return new DescriptionImportTask(taskData.groupId, taskData.workOrder);
             case 'HoursImportTask':
                 return new HoursImportTask(taskData.groupId, taskData.workOrder, new Date(taskData.date), taskData.value);
+            case 'FtZHoursImportTask':
+                return new FtZHoursImportTask(taskData.groupId, taskData.workOrder, taskData.weekday, taskData.value);
+            case 'StartBreakRowImportTask':
+                return new StartBreakRowImportTask(taskData.groupId);
             case 'WorkOrderSummaryTask':
                 return new WorkOrderSummaryTask(taskData.sum, taskData.breaks);
         }
@@ -42,7 +46,7 @@ export abstract class WOImportTask extends ImportTask {
 
     /**
      * Search a row for the given work order.
-     * 
+     *
      * @returns
      *   - HTMLElement of the editable row if found
      *   - true if new row will be created or exising row will be made editable (=> page reload)
@@ -63,7 +67,7 @@ export abstract class WOImportTask extends ImportTask {
                 return true;
             }
         }
-        
+
         const editRows = WOImportTask.addButton.ownerDocument.querySelectorAll('tr.EditRow');
         for (const row of editRows) {
             const workOrder = (row.querySelector('td[data-type="cell-workorder"] td.InputCell input') as HTMLInputElement)?.value;
@@ -105,6 +109,47 @@ export class StartWorkOrderImportTask extends WOImportTask {
         }
         // we found an editable row, use it directly
         return this.next();
+    }
+}
+
+// activate the break booking that Unit4 auto-inserts (activity 999 / "Internal - Break Time"),
+// so that the following hour tasks can write into its day cells
+export class StartBreakRowImportTask extends ImportTask {
+    constructor(groupId: string) {
+        super(groupId);
+    }
+
+    actionDescription(): string {
+        return "Open break row (activity 999)";
+    }
+
+    private isBreakRow(row: Element): boolean {
+        const activityText = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent?.trim();
+        const activityInput = (row.querySelector('td[data-type="cell-activity"] .InputCell input') as HTMLInputElement)?.value?.trim();
+        const descText = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent?.trim();
+        const descInput = (row.querySelector('td[data-type="cell-description"] .InputCell input') as HTMLInputElement)?.value?.trim();
+        return activityText === '999' || activityInput === '999'
+            || descText === 'Internal - Break Time' || descInput === 'Internal - Break Time';
+    }
+
+    public async run(): Promise<ImportTaskResult> {
+        const rows = await this.waitForElements('tr.ListItem, tr.AltListItem, tr.EditRow');
+        for (const row of rows) {
+            if (this.isBreakRow(row)) {
+                if (row.classList.contains('EditRow')) {
+                    // break row is already editable
+                    return this.next();
+                }
+                const cell = row.querySelector('td[data-type=cell-description] div.ww.ellipsis') as HTMLElement;
+                if (cell) {
+                    // make the break row editable => page reload
+                    cell.click();
+                    return this.nextAfterReload();
+                }
+                return this.failure('Break row description cell not found');
+            }
+        }
+        return this.failure('Break row (activity 999) not found');
     }
 }
 
@@ -207,9 +252,38 @@ export class HoursImportTask extends WOFieldImportTask {
       const dateDE = this.date.getDate() + "." + month; // DE format: DD.MM.
 
       for(var i=0 ; i<headers.length ; ++i) {
-        const head = headers[i] as HTMLElement;        
+        const head = headers[i] as HTMLElement;
         if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
-          // seems to match the date          
+          // seems to match the date
+          return await this.fieldElement(cells[i] as HTMLElement, 'cell-weekday['+i+']');
+        }
+      }
+      return null;
+    }
+
+}
+
+export class FtZHoursImportTask extends WOFieldImportTask {
+    // English weekday token as used in the grid headers: mon/tue/wed/thu/fri/sat/sun
+    private weekday: string;
+    constructor(groupId: string, workOrder: WorkOrder, weekday: string, hours: number) {
+        super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
+        this.weekday = weekday;
+    }
+
+    actionDescription(): string {
+        return "Enter hours for " + this.workOrder.workOrder + " on " + this.weekday;
+    }
+
+    protected async lookupField(row: HTMLElement): Promise<FoundField|null> {
+      const headers = await this.waitForElements('th[data-type=cell-weekday]');
+      const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
+
+      // match the day column by its weekday token (language independent, no date needed)
+      for(var i=0 ; i<headers.length ; ++i) {
+        const head = headers[i] as HTMLElement;
+        const text = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase();
+        if (text.startsWith(this.weekday)) {
           return await this.fieldElement(cells[i] as HTMLElement, 'cell-weekday['+i+']');
         }
       }
@@ -233,8 +307,10 @@ export class WorkOrderSummaryTask extends ImportTask {
         const sumCells = await this.waitForElements('.SumColumn');
         const sumCell = sumCells.pop();
         if (sumCell) {
-            const unit4Sum = parseFloat(sumCell.textContent || "0");
-            if (unit4Sum !== this.sum) {
+            // parse locale-aware: Unit4 renders the total with a decimal comma (e.g. "47,50"),
+            // and parseFloat would stop at the comma and drop the fraction.
+            const unit4Sum = Utils.toNumber(sumCell.textContent || "0");
+            if (Math.abs(unit4Sum - this.sum) > 0.001) {
                 // sum of hours does not match
                 return this.failure(`Sum of hours does not match, expected: ${this.sum}, actual: ${unit4Sum}`);
             }
