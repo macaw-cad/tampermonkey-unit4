@@ -43,6 +43,50 @@
         }
     }
 
+    &__info {
+        margin-bottom: 20px;
+        padding: 12px 16px;
+        background: #eaf2fb;
+        border: 1px solid #5b8fc7;
+        border-radius: 6px;
+    }
+
+    &__rowItem {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 4px 12px;
+    }
+
+    &__linkButton {
+        padding: 0 4px;
+        border: 0;
+        background: transparent;
+        color: #2a6ab3;
+        font-size: 12px;
+        cursor: pointer;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__override {
+        flex: 1 0 100%;
+        margin: 4px 0 6px 16px;
+
+        .ftzCorrection__row {
+            margin-bottom: 4px;
+        }
+    }
+
+    &__check {
+        display: block;
+        margin: 4px 0 6px 0;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
     &__group {
         margin-bottom: 18px;
         padding-bottom: 12px;
@@ -79,5 +123,41 @@
         padding: 4px 6px;
         border: 1px solid #888;
         border-radius: 4px;
+    }
+
+    // workorder suggestions from Unit4's lookup service
+    &__suggestions {
+        max-height: 180px;
+        overflow-y: auto;
+        margin: 0 0 8px 0;
+        font-size: 13px;
+        color: #555;
+    }
+
+    &__suggestion {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+        padding: 3px 6px;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        text-align: left;
+        font-size: 13px;
+        cursor: pointer;
+
+        &:hover {
+            background: #f3ecc4;
+        }
+
+        &--selected {
+            background: #e6dca8;
+            font-weight: bold;
+        }
+    }
+
+    &__suggestionCode {
+        flex: 0 0 110px;
+        font-family: 'Courier New', Courier, monospace;
     }
 }

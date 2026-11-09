@@ -1,0 +1,9 @@
+{
+  "version": "0.10.10-dev",
+  "extra": {
+    "devtarget": {
+      "folder": "C:/path/to/tampermonkey-unit4/dist",
+      "name": "file://C:/path/to/tampermonkey-unit4/dist"
+    }
+  }
+}

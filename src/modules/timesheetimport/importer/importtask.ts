@@ -1,6 +1,75 @@
 import { Utils } from "../../global/utils";
 import { ImportWorkingHours, ImportWorkOrder, SanityDaily } from "../timesheetimport";
 
+/**
+ * Set the value of a Unit4 input without triggering its request (page reload).
+ * Unit4 takes over every field whose hidden IsDirty flag is set with the next request of the page
+ * (e.g. Add, Close editing mode or activating another row), so several fields can be filled at once.
+ */
+export function setValueWithoutRequest(input: HTMLInputElement, value: string) {
+  input.value = value;
+  const dirty = input.closest('td[data-type]')?.querySelector('input[id$="_IsDirty"]') as HTMLInputElement | null;
+  if (!dirty) {
+    console.warn('No IsDirty flag found for ' + input.id + ', value will not be sent');
+    return;
+  }
+  // do NOT fall back to a change event: for hour cells Unit4's onchange handler sends the request
+  // right away, before the other cells of the row are filled
+  const before = dirty.value;
+  callPageFunction('setDirty', dirty.id);
+  if (dirty.value === before) {
+    console.warn('setDirty did not mark ' + dirty.id + ' as dirty, value may not be sent');
+  }
+}
+
+/**
+ * Call a global function of the Unit4 page. Tampermonkey may run the userscript in a sandbox where
+ * the page's globals are not visible, in that case the call runs in a short-lived script element
+ * inside the page context.
+ */
+function callPageFunction(name: string, ...args: string[]) {
+  const fn = (window as any)[name];
+  if (typeof fn === 'function') {
+    fn(...args);
+    return;
+  }
+  const script = document.createElement('script');
+  script.textContent = name + '(' + args.map(arg => JSON.stringify(arg)).join(', ') + ');';
+  (document.head ?? document.documentElement).appendChild(script);
+  script.remove();
+}
+
+/**
+ * Check if a day column header belongs to the given day: either an English weekday token as used
+ * by the FtZ import (mon, tue, ...) or an ISO date as used by the JSON import (YYYY-MM-DD).
+ */
+export function headerMatchesDay(head: HTMLElement, day: string): boolean {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+    const date = new Date(day);
+    const dateEN = (date.getMonth()+1) + "/" + date.getDate(); // EN format: M/D
+    const dateDE = date.getDate() + "." + String(date.getMonth()+1).padStart(2, '0'); // DE format: DD.MM.
+    return head.title.includes(dateEN) || head.title.includes(dateDE);
+  }
+  return (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase().startsWith(day);
+}
+
+/**
+ * Expected hours of the timesheet from the "Normal hours" field of the timesheet header
+ * (already reduced by bank holidays, part-time and month boundaries), null if not available.
+ */
+export function readNormalHours(doc: Document): number | null {
+  for (const td of doc.querySelectorAll('td.label')) {
+    if (td.textContent?.includes('Normal hours')) {
+      const input = td.nextElementSibling?.querySelector('input[type="text"]') as HTMLInputElement | null;
+      const hours = input ? Utils.toNumber(input.value) : NaN;
+      if (!isNaN(hours)) {
+        return hours;
+      }
+    }
+  }
+  return null;
+}
+
 export type FoundField = {
   field?: HTMLInputElement;
   value: string;
@@ -135,12 +204,21 @@ export class CloseEditingModeTask extends ImportTask {
 }
 
 export class SanityCheckTask extends ImportTask {
-    constructor(private data: SanityDaily) {
+    /**
+     * @param nonWorkingHours hours of the week that are no work but count towards the normal hours
+     *   (e.g. vacation, overtime compensation)
+     */
+    constructor(private data: SanityDaily, private nonWorkingHours: number = 0) {
         super('sanity-check');
     }
 
     actionDescription(): string {
         return "Final sanity check";
+    }
+
+    // expected hours of this timesheet, 40 if the "Normal hours" field is not available
+    private static normalHours(): number {
+        return readNormalHours(ImportTask.section.ownerDocument) ?? 40;
     }
 
     async run(): Promise<ImportTaskResult> {
@@ -156,7 +234,8 @@ export class SanityCheckTask extends ImportTask {
 
             const workingTime = day.workingTime - day.breaks;
             sumWorkingTime += workingTime;
-            sumBookedHours += (day.hours - day.breaks);
+            // day.hours already excludes the breaks (they are counted separately)
+            sumBookedHours += day.hours;
             if (workingTime > 10) {
                 errors.push(
                     "Working time issue: more than 10 hours of working time on date: " + dateStr
@@ -166,11 +245,13 @@ export class SanityCheckTask extends ImportTask {
                 errors.push("Working time issue: no working time on date: " + dateStr);
             }
         });
-        if (sumWorkingTime < 40) {
-            errors.push("Working time issue: total working time less than 40 hours: " + sumWorkingTime);
+        const normalHours = SanityCheckTask.normalHours();
+        const nonWorking = this.nonWorkingHours > 0 ? " + " + this.nonWorkingHours + " non-working" : "";
+        if (sumWorkingTime + this.nonWorkingHours < normalHours) {
+            errors.push("Working time issue: total working time less than " + normalHours + " hours (normal hours): " + sumWorkingTime + nonWorking);
         }
-        if (sumBookedHours < 40) {
-            errors.push("Booked hours issue: total booked hours less than 40 hours: " + sumBookedHours);
+        if (sumBookedHours + this.nonWorkingHours < normalHours) {
+            errors.push("Booked hours issue: total booked hours less than " + normalHours + " hours (normal hours): " + sumBookedHours + nonWorking);
         }
 
         if (errors.length > 0) {

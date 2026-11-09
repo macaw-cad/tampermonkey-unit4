@@ -11,6 +11,31 @@ export const DEFAULT_FTZ_DESCRIPTION_RULES: FtZDescriptionRule[] = [
   { regex: '.+', template: '{{Ticket}} {{Comment}}' }
 ];
 
+/**
+ * Work orders whose bookings do not count as presence (vacation, bank holiday, overtime
+ * compensation, sick leave, ...): the Excel import books their hours, but their start/end times
+ * are neither used for the working hours (From/To) nor for the break gaps.
+ * Format: work order with an optional activity in parentheses, "*" as wildcard.
+ * Extend this list with new knowledge; users can add or remove rules in the configuration.
+ */
+export const DEFAULT_NON_PRESENCE_RULES: string[] = [
+  '950000-10000',   // DE3 internal: vacation (900), bank holiday (906), child sick (905), overtime compensation (908), ...
+  '950100-10025',   // DE3 sick leave (moved away from 950000-10000)
+  '940000-10000',   // DE2 internal, assumed to work like 950000-10000 in DE3
+  '940100-10025',   // DE2 sick leave, assumed to work like 950100-10025 in DE3
+];
+
+type NonPresenceRule = { exclude: boolean, workOrder: RegExp, activity: RegExp | null };
+
+/**
+ * Work order (with activity) to book overtime compensation per Unit4 client, used by the Excel
+ * import to fill up missing hours of a week. Users can override or add clients in the configuration.
+ */
+export const DEFAULT_OVERTIME_WORK_ORDERS: { [client: string]: string } = {
+  'DE3': '950000-10000 (908)',
+  'DE2': '940000-10000 (908)',  // assumed to work like DE3
+};
+
 export class Configuration {
   private static instance: Configuration = new Configuration();
 
@@ -86,6 +111,18 @@ export class Configuration {
             labelPos: 'right',
             type: 'checkbox',
             default: false
+          },
+          nonPresenceWorkOrders: {
+            label: '[Timesheet Entry]: Work orders not counting as presence<copy>Bookings on these work orders (e.g. vacation, overtime compensation) are imported with their hours, but their times do not count for the working hours (From/To) and the breaks. One rule per line, optionally with an activity in parentheses and "*" as wildcard; text behind the rule is ignored.<br/>A line starting with "-" removes a default rule or adds an exception, e.g. "-950000-10000 (906)".<br/>Default rules: ' + DEFAULT_NON_PRESENCE_RULES.join(', ') + '</copy>',
+            labelPos: 'left',
+            type: 'textarea',
+            default: ''
+          },
+          overtimeWorkOrders: {
+            label: '[Timesheet Entry]: Work order for overtime compensation per client<copy>Used by the Excel import to fill up missing hours of a week. One client per line with the work order and activity, e.g. "DE3 950000-10000 (908)"; "DE3 -" disables it for a client.<br/>Defaults: ' + Object.entries(DEFAULT_OVERTIME_WORK_ORDERS).map(([client, wo]) => client + ' ' + wo).join(', ') + '</copy>',
+            labelPos: 'left',
+            type: 'textarea',
+            default: ''
           },
           ftzDescriptionRules: {
             label: '[Timesheet Entry]: FtZ description rules<copy>JSON array of {regex, template} rules. First matching rule wins.<br/>Available placeholders: {{Weekday}}, {{Start}}, {{End}}, {{Duration}}, {{WorkOrder}}, {{WorkOrderInput}}, {{Ticket}}, {{Comment}}.<br/>Default: [{"regex":".+","template":"{{Ticket}} {{Comment}}"}]</copy>',
@@ -212,6 +249,50 @@ export class Configuration {
 
   close() {
     GM_config.close();
+  }
+
+  // default rules plus the user's rules ("-" = exclude)
+  private nonPresenceRules(): NonPresenceRule[] {
+    const raw = GM_config.get('nonPresenceWorkOrders');
+    const lines = [...DEFAULT_NON_PRESENCE_RULES, ...(typeof raw === 'string' ? raw.split(/\r?\n/) : [])];
+    const glob = (pattern: string) => new RegExp('^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
+    const rules: NonPresenceRule[] = [];
+    lines.forEach(line => {
+      // "[-|+]<work order> [(<activity>)] [comment]"
+      const match = line.trim().match(/^([+-]?)\s*([\d*][\d*-]*)\s*(?:\(\s*([\d*]+)\s*\))?/);
+      if (match) {
+        rules.push({ exclude: match[1] === '-', workOrder: glob(match[2]), activity: match[3] ? glob(match[3]) : null });
+      }
+    });
+    return rules;
+  }
+
+  /**
+   * Does a booking on this work order / activity count as presence? See DEFAULT_NON_PRESENCE_RULES.
+   * An empty activity (Unit4 default) only matches rules without activity.
+   */
+  isNonPresence(workOrder: string, activity: string): boolean {
+    const matches = (rule: NonPresenceRule) =>
+      rule.workOrder.test(workOrder) && (rule.activity === null || rule.activity.test(activity));
+    const rules = this.nonPresenceRules();
+    return rules.some(r => !r.exclude && matches(r)) && !rules.some(r => r.exclude && matches(r));
+  }
+
+  /**
+   * Work order (e.g. "950000-10000 (908)") to book overtime compensation for a Unit4 client
+   * (e.g. "DE3"), null if there is none.
+   */
+  overtimeWorkOrder(client: string): string | null {
+    const workOrders: { [client: string]: string } = { ...DEFAULT_OVERTIME_WORK_ORDERS };
+    const raw = GM_config.get('overtimeWorkOrders');
+    (typeof raw === 'string' ? raw.split(/\r?\n/) : []).forEach(line => {
+      const match = line.trim().match(/^(\S+)\s+(.+)$/);
+      if (match) {
+        workOrders[match[1].toUpperCase()] = match[2].trim();
+      }
+    });
+    const workOrder = workOrders[client.toUpperCase()];
+    return workOrder && workOrder !== '-' ? workOrder : null;
   }
 
   ftzDescriptionRules(): FtZDescriptionRule[] {

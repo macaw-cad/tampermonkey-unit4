@@ -140,10 +140,9 @@ export class TimeEntry extends AbstractModule {
     // breaks have special time code
     if (timecode === '99') return 'break';
 
-    // non-working time (DE2)
-    if (workorder === '940000-10000') return 'nonworking';
-    // non-working time (DE3)
-    if (workorder === '950000-10000') return 'nonworking';
+    // non-working time (vacation, bank holiday, sick leave, overtime compensation, ...):
+    // shared rules with the Excel import, see DEFAULT_NON_PRESENCE_RULES in the configuration
+    if (Configuration.getInstance().isNonPresence(workorder.trim(), activity.trim())) return 'nonworking';
 
     // everything else is working time
     return 'working';
@@ -343,7 +342,12 @@ export class TimeEntry extends AbstractModule {
                 const start = this.getValueFromCell(rowFrom[i+2]);
                 const end = this.getValueFromCell(rowTo[i+2]);
                 const diff = Utils.difference(start, end);
-                const diff2 = diff - (sumBreaks[i] ?? 0) - (sumNonworking[i] ?? 0);
+                // non-working time (e.g. a doctor's appointment) may lie within From/To or outside
+                // (e.g. overtime compensation at the end of the day, a vacation day). The bookings
+                // have no times, so only subtract as much of it as From/To leaves beside the
+                // breaks and the booked working hours.
+                const presentNonworking = Math.max(0, Math.min(sumNonworking[i] ?? 0, diff - (sumBreaks[i] ?? 0) - (sumWorking[i] ?? 0)));
+                const diff2 = diff - (sumBreaks[i] ?? 0) - presentNonworking;
                 timePresent[i] = diff;
                 timeWorking[i] = diff2;
                 overallWorking += diff2;
@@ -421,7 +425,7 @@ export class TimeEntry extends AbstractModule {
             }
             this.addCell(row, Utils.formatHours(sum));
 
-            // hours from start and end of day w/o breaks
+            // hours from start and end of day w/o breaks and non-working time within
             var row = document.createElement('tr');
             row.className = "ListItem";
             lastRow.before(row);
@@ -430,7 +434,7 @@ export class TimeEntry extends AbstractModule {
             var sum = 0;
             for(var i=0 ; i<7 ; ++i) {
               if (dayAvailable[i]) {
-                var value = (timePresent[i] ?? 0) - (sumBreaks[i] ?? 0);
+                var value = timeWorking[i] ?? 0;
                 sum += value;
                 this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {background: '#dcdcdc'} : {});
               }

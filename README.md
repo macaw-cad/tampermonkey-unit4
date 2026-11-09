@@ -22,7 +22,8 @@ The script enhances the time entry screen with these features:
 * hide some unused columns
 * always show workorder and project titles
 * experimental: add more than 1 row at once
-* experimental: import data using JSON
+* experimental: import data using JSON ([docs](docs/JSON-Import.md))
+* experimental: import data from the "Florians tollige Zeiterfassung" Excel ([docs](docs/FtZ-Import.md))
 
 When the script is active, a "config" button is rendered in the bottom right corner.
 Using this, you can enable or disable some features of this script.
@@ -54,6 +55,12 @@ Dev builds will copy the compiled file to the devtarget.folder folder
 metadata with devtarget.name (the windows based file URL).
 The target folder needs to exist, otherwise the dev build will run
 into an error.
+
+To use a different folder for your local checkout without changing
+package.json, copy `package.local.example.json` to `package.local.json`
+(it is ignored by git) and adjust it. It overrides the devtarget and,
+optionally, the version shown in Tampermonkey for the dev build.
+Restart `npm run dev` after changing it.
 
 ## prepare Tampermonkey in your browser
 

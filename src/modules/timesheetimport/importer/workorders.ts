@@ -1,11 +1,24 @@
 import { Utils } from "../../global/utils";
-import { FoundField, ImportTask, ImportTaskResult } from "./importtask";
+import { FoundField, headerMatchesDay, ImportTask, ImportTaskResult, setValueWithoutRequest } from "./importtask";
 
 export type WorkOrder = {
     workOrder: string;
     activity: string;
     timeCode: string;
     description: string;
+}
+
+/**
+ * Does a time entry row belong to this work order? An empty activity, time code or description in
+ * the import data (e.g. the FtZ import) matches whatever Unit4 prefilled (activity 100, time code 0,
+ * its default description).
+ */
+export function rowMatchesWorkOrder(wo: WorkOrder, row: { workOrder?: string, activity?: string, timeCode?: string, description?: string }): boolean {
+    const matches = (expected: string | undefined, actual: string | undefined) => !expected || expected === actual;
+    return wo.workOrder === row.workOrder
+        && matches(wo.activity, row.activity)
+        && matches(wo.timeCode, row.timeCode)
+        && (matches(wo.description, row.description) || row.description === 'Internal - Break Time');
 }
 
 export abstract class WOImportTask extends ImportTask {
@@ -18,6 +31,8 @@ export abstract class WOImportTask extends ImportTask {
         switch (taskData.task) {
             case 'StartWorkOrderImportTask':
                 return new StartWorkOrderImportTask(taskData.groupId, taskData.workOrder);
+            case 'EmptyRowStartWorkOrderImportTask':
+                return new EmptyRowStartWorkOrderImportTask(taskData.groupId, taskData.workOrder);
             case 'TimecodeImportTask':
                 return new TimecodeImportTask(taskData.groupId, taskData.workOrder);
             case 'WorkOrderImportTask':
@@ -26,14 +41,12 @@ export abstract class WOImportTask extends ImportTask {
                 return new ActivityImportTask(taskData.groupId, taskData.workOrder);
             case 'DescriptionImportTask':
                 return new DescriptionImportTask(taskData.groupId, taskData.workOrder);
-            case 'HoursImportTask':
-                return new HoursImportTask(taskData.groupId, taskData.workOrder, new Date(taskData.date), taskData.value);
-            case 'FtZHoursImportTask':
-                return new FtZHoursImportTask(taskData.groupId, taskData.workOrder, taskData.weekday, taskData.value);
+            case 'RowHoursImportTask':
+                return new RowHoursImportTask(taskData.groupId, taskData.workOrder, taskData.hours);
             case 'StartBreakRowImportTask':
                 return new StartBreakRowImportTask(taskData.groupId);
             case 'WorkOrderSummaryTask':
-                return new WorkOrderSummaryTask(taskData.sum, taskData.breaks);
+                return new WorkOrderSummaryTask(taskData.sum, taskData.breaks, taskData.rows, taskData.days);
         }
     }
 
@@ -52,6 +65,26 @@ export abstract class WOImportTask extends ImportTask {
      *   - true if new row will be created or exising row will be made editable (=> page reload)
      */
     protected async searchExistingRow() {
+        const found = await this.findExistingRow();
+        if (found !== null) {
+            return found;
+        }
+
+        // no mathing row found, create one by clicking "Add" button
+        // => this will reload the page
+        WOImportTask.addButton.dispatchEvent(new Event('click'));
+        return true;
+    }
+
+    /**
+     * Search an existing row for the given work order (without adding a new one).
+     *
+     * @returns
+     *   - HTMLElement of the editable row if found
+     *   - true if an existing row will be made editable (=> page reload)
+     *   - null if there is no matching row
+     */
+    protected async findExistingRow(): Promise<HTMLElement | true | null> {
         // check all rows
         const rows = await this.waitForElements('tr.ListItem,tr.AltListItem,tr.EditRow');
         for (const row of rows) {
@@ -59,7 +92,7 @@ export abstract class WOImportTask extends ImportTask {
             const activity = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent;
             const description = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent;
             const timeCode = row.querySelector('td[data-type="cell-timecode"] div.ww.ellipsis')?.textContent;
-            if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
+            if (this.matchesRow(workOrder, activity, timeCode, description)) {
                 // found existing row (readonly), make editable by clicking on it
                 // => will reload the page
                 const cell = row.querySelector("td[data-type=cell-description] div.ww.ellipsis") as HTMLElement;
@@ -74,20 +107,20 @@ export abstract class WOImportTask extends ImportTask {
             const activity = (row.querySelector('td[data-type="cell-activity"] td.InputCell input') as HTMLInputElement)?.value;
             const description = (row.querySelector('td[data-type="cell-description"] td.InputCell input') as HTMLInputElement)?.value;
             const timeCode = (row.querySelector('td[data-type="cell-timecode"] td.InputCell input') as HTMLInputElement)?.value;
-            if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
+            if (this.matchesRow(workOrder, activity, timeCode, description)) {
                 // found existing row (editable), use it
-                return row;
+                return row as HTMLElement;
             }
         }
-
-        // no mathing row found, create one by clicking "Add" button
-        // => this will reload the page
-        WOImportTask.addButton.dispatchEvent(new Event('click'));
-        return true;
+        return null;
     }
 
     protected async activeRow() {
         return this.waitForElement('tr.EditRow');
+    }
+
+    private matchesRow(workOrder?: string, activity?: string, timeCode?: string, description?: string): boolean {
+        return rowMatchesWorkOrder(this.workOrder, { workOrder, activity, timeCode, description });
     }
 
 }
@@ -109,6 +142,52 @@ export class StartWorkOrderImportTask extends WOImportTask {
         }
         // we found an editable row, use it directly
         return this.next();
+    }
+}
+
+// reuse an empty time entry row before adding a new one. The import dialog adds such a row to get
+// a context for Unit4's workorder lookup; Unit4 keeps it with an "Illegal value" warning.
+// Only for normal hours (time code 0), as the empty row is prefilled with that time code.
+export class EmptyRowStartWorkOrderImportTask extends StartWorkOrderImportTask {
+    public async run(): Promise<ImportTaskResult> {
+        // an existing row of this work order (repeated import) takes precedence over the empty row
+        const existing = await this.findExistingRow();
+        if (existing === true) {
+            return this.nextAfterReload();
+        } else if (existing !== null) {
+            return this.next();
+        }
+
+        const rows = await this.waitForElements('.timeentry-section tr.ListItem, .timeentry-section tr.AltListItem, .timeentry-section tr.EditRow');
+        for (const row of rows) {
+            const cell = row.querySelector('td[data-type="cell-workorder"]');
+            if (!cell) {
+                continue; // no time entry row (e.g. summary rows)
+            }
+            // only an empty normal-hours row: no workorder, no hours and time code 0 (or none).
+            // Unit4 prefills the description ("Normal hours") and activity (100) of a new row,
+            // rows with another time code (e.g. absences) have no workorder either.
+            // read the value only (input or value div), not the description the timeentry module
+            // appends to workorder cells ("always show descriptions")
+            const text = (td: Element | null, valueDiv: string) =>
+                ((td?.querySelector('.InputCell input') as HTMLInputElement | null)?.value ?? td?.querySelector(valueDiv)?.textContent ?? '').trim();
+            const hasHours = [...row.querySelectorAll('td[data-type="cell-weekday"]')].some(td => (Utils.toNumber(text(td, 'div.ww')) || 0) !== 0);
+            const timeCode = text(row.querySelector('td[data-type="cell-timecode"]'), 'div.ww.ellipsis');
+            if (text(cell, 'div.ww.ellipsis') !== '' || hasHours || (timeCode !== '' && timeCode !== '0')) {
+                continue;
+            }
+            if (row.classList.contains('EditRow')) {
+                // empty row is already editable, fill it directly
+                return this.next();
+            }
+            const description = row.querySelector('td[data-type=cell-description] div.ww.ellipsis') as HTMLElement | null;
+            if (description) {
+                // make the empty row editable => page reload
+                description.click();
+                return this.nextAfterReload();
+            }
+        }
+        return super.run();
     }
 }
 
@@ -231,69 +310,54 @@ export class DescriptionImportTask extends WOFieldImportTask {
         return "Enter description for " + this.workOrder.workOrder;
     }
 }
-export class HoursImportTask extends WOFieldImportTask {
-    private date: Date;
-    constructor(groupId: string, workOrder: WorkOrder, day: Date, hours: number) {
-        super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
-        this.date = day;
+// enters the hours of all days into the active row at once. The values are only marked dirty and
+// sent with the next request (Add for the next row or Close editing mode), instead of one page
+// reload per day.
+export class RowHoursImportTask extends WOImportTask {
+    // day (weekday token like "mon" or ISO date, see headerMatchesDay) -> hours
+    public hours: { [day: string]: number };
+    constructor(groupId: string, workOrder: WorkOrder, hours: { [day: string]: number }) {
+        super(groupId, workOrder);
+        this.hours = hours;
     }
 
     actionDescription(): string {
-        return "Enter hours for " + this.workOrder.workOrder + " on " + this.date.toLocaleDateString();
+        return "Enter hours for " + (this.workOrder.workOrder || this.workOrder.description) + " on " + Object.keys(this.hours).join(', ');
     }
 
-    protected async lookupField(row: HTMLElement): Promise<FoundField|null> {
-      const headers = await this.waitForElements('th[data-type=cell-weekday]');
-      const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
+    public async run(): Promise<ImportTaskResult> {
+      // scope to the time entry grid: the working hours grid uses the same cell-weekday markup
+      // and would otherwise receive the hours whenever its From/To row is in editing mode
+      const headers = await this.waitForElements('.timeentry-section th[data-type=cell-weekday]');
+      const cells = await this.waitForElements('.timeentry-section .EditRow [data-type=cell-weekday]');
 
-      // requested date
-      const dateEN = (this.date.getMonth()+1) + "/" + this.date.getDate(); // eEN format: M/D
-      const month = String(this.date.getMonth()+1).padStart(2, '0');
-      const dateDE = this.date.getDate() + "." + month; // DE format: DD.MM.
-
-      for(var i=0 ; i<headers.length ; ++i) {
-        const head = headers[i] as HTMLElement;
-        if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
-          // seems to match the date
-          return await this.fieldElement(cells[i] as HTMLElement, 'cell-weekday['+i+']');
+      const missing: string[] = [];
+      Object.entries(this.hours).forEach(([day, hours]) => {
+        const i = headers.findIndex(head => headerMatchesDay(head, day));
+        const input = i >= 0 ? cells[i]?.querySelector('.InputCell input') as HTMLInputElement | null : null;
+        if (input) {
+          // leave unchanged values alone (e.g. zeros in a new row on a repeated import)
+          if (Math.abs((Utils.toNumber(input.value) || 0) - hours) > 0.001) {
+            setValueWithoutRequest(input, Utils.toLocaleString(hours));
+          }
+        } else {
+          missing.push(day);
         }
-      }
-      return null;
+      });
+      return missing.length > 0 ? this.failure(`Could not find hour field for ${missing.join(', ')}`) : this.next();
     }
-
 }
 
-export class FtZHoursImportTask extends WOFieldImportTask {
-    // English weekday token as used in the grid headers: mon/tue/wed/thu/fri/sat/sun
-    private weekday: string;
-    constructor(groupId: string, workOrder: WorkOrder, weekday: string, hours: number) {
-        super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
-        this.weekday = weekday;
-    }
-
-    actionDescription(): string {
-        return "Enter hours for " + this.workOrder.workOrder + " on " + this.weekday;
-    }
-
-    protected async lookupField(row: HTMLElement): Promise<FoundField|null> {
-      const headers = await this.waitForElements('th[data-type=cell-weekday]');
-      const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
-
-      // match the day column by its weekday token (language independent, no date needed)
-      for(var i=0 ; i<headers.length ; ++i) {
-        const head = headers[i] as HTMLElement;
-        const text = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase();
-        if (text.startsWith(this.weekday)) {
-          return await this.fieldElement(cells[i] as HTMLElement, 'cell-weekday['+i+']');
-        }
-      }
-      return null;
-    }
-
-}
+// a time entry row of the import (work order + description)
+export type ImportedRow = { workOrder: string, description: string };
 
 export class WorkOrderSummaryTask extends ImportTask {
-    constructor(private sum: number, private breaks: number) {
+    /**
+     * @param rows rows of this import and
+     * @param days imported days (weekday tokens or ISO dates, see headerMatchesDay):
+     *   used to list other rows with hours on these days when the sum does not match
+     */
+    constructor(private sum: number, private breaks: number, private rows: ImportedRow[] = [], private days: string[] = []) {
         super('work-order-summary');
     }
 
@@ -312,9 +376,43 @@ export class WorkOrderSummaryTask extends ImportTask {
             const unit4Sum = Utils.toNumber(sumCell.textContent || "0");
             if (Math.abs(unit4Sum - this.sum) > 0.001) {
                 // sum of hours does not match
-                return this.failure(`Sum of hours does not match, expected: ${this.sum}, actual: ${unit4Sum}`);
+                return this.failure(`Sum of hours does not match, expected: ${this.sum}, actual: ${unit4Sum}` + this.foreignRows());
             }
         }
         return this.next();
+    }
+
+    // explain a sum mismatch: rows with hours on imported days that are not part of this import,
+    // e.g. an outdated row after the description changed, a partial import or manual bookings
+    private foreignRows(): string {
+        const section = ImportTask.section;
+        const headers = [...section.querySelectorAll('th[data-type=cell-weekday]')] as HTMLElement[];
+        const dayColumns = headers
+            .map((head, i) => ({ i, label: head.title.replace(/\s*-\s*Header\s*$/, '').trim() }))
+            .filter(({ i }) => this.days.some(day => headerMatchesDay(headers[i], day)));
+
+        const lines: string[] = [];
+        section.querySelectorAll('tr.ListItem, tr.AltListItem').forEach(row => {
+            const value = (type: string) => row.querySelector(`td[data-type="${type}"] div.ww.ellipsis`)?.textContent?.trim() ?? '';
+            const workOrder = value('cell-workorder');
+            const description = value('cell-description');
+            if (workOrder === '' || value('cell-activity').startsWith('999')
+                || this.rows.some(r => r.workOrder === workOrder && (!r.description || r.description === description))) {
+                return; // no work order row (break, absence, summary) or part of this import
+            }
+            const cells = row.querySelectorAll('td[data-type=cell-weekday]');
+            const hours = dayColumns
+                .map(({ i, label }) => ({ label, text: cells[i]?.textContent?.trim() ?? '' }))
+                .filter(({ text }) => (Utils.toNumber(text) || 0) !== 0)
+                .map(({ label, text }) => `${label} ${text}`);
+            if (hours.length > 0) {
+                lines.push(` * ${workOrder} · ${description} (${hours.join(', ')})`);
+            }
+        });
+
+        return lines.length === 0 ? '' :
+            "\n\nRows with hours on imported days that are not part of this import"
+            + " (e.g. changed description or work order, partial import, or booked manually):\n"
+            + lines.join("\n");
     }
 }
