@@ -2,7 +2,7 @@
 // @name          userscript-macaw-unit4
 // @description   Unit4 enhancements - will enhance the user interface and add some new features (macaw Unit4 only)
 // @namespace     https://ubw.unit4cloud.com/
-// @version       0.10.10
+// @version       0.10.11
 // @author        Carsten Wilhelm <carsten.wilhelm@macaw.net>
 // @source        https://github.com/macaw-cad/tampermonkey-unit4
 // @license       MIT
@@ -593,6 +593,43 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.progress {
 .ftzCorrection__warning .ftzCorrection__heading {
   color: #a12622;
 }
+.ftzCorrection__info {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #eaf2fb;
+  border: 1px solid #5b8fc7;
+  border-radius: 6px;
+}
+.ftzCorrection__rowItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.ftzCorrection__linkButton {
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #2a6ab3;
+  font-size: 12px;
+  cursor: pointer;
+}
+.ftzCorrection__linkButton:hover {
+  text-decoration: underline;
+}
+.ftzCorrection__override {
+  flex: 1 0 100%;
+  margin: 4px 0 6px 16px;
+}
+.ftzCorrection__override .ftzCorrection__row {
+  margin-bottom: 4px;
+}
+.ftzCorrection__check {
+  display: block;
+  margin: 4px 0 6px 0;
+  font-size: 14px;
+  cursor: pointer;
+}
 .ftzCorrection__group {
   margin-bottom: 18px;
   padding-bottom: 12px;
@@ -624,6 +661,36 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.progress {
   padding: 4px 6px;
   border: 1px solid #888;
   border-radius: 4px;
+}
+.ftzCorrection__suggestions {
+  max-height: 180px;
+  overflow-y: auto;
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #555;
+}
+.ftzCorrection__suggestion {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ftzCorrection__suggestion:hover {
+  background: #f3ecc4;
+}
+.ftzCorrection__suggestion--selected {
+  background: #e6dca8;
+  font-weight: bold;
+}
+.ftzCorrection__suggestionCode {
+  flex: 0 0 110px;
+  font-family: 'Courier New', Courier, monospace;
 }
 `, ""]);
 // Exports
@@ -982,7 +1049,7 @@ module.exports = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%
 var __webpack_exports__ = {};
 
 ;// ./package.json
-const package_namespaceObject = {"rE":"0.10.10"};
+const package_namespaceObject = {"rE":"0.10.11"};
 // EXTERNAL MODULE: ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js
 var injectStylesIntoStyleTag = __webpack_require__("./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 var injectStylesIntoStyleTag_default = /*#__PURE__*/__webpack_require__.n(injectStylesIntoStyleTag);
@@ -1841,6 +1908,30 @@ const DEFAULT_FTZ_DESCRIPTION_RULES = [{
   regex: '.+',
   template: '{{Ticket}} {{Comment}}'
 }];
+
+/**
+ * Work orders whose bookings do not count as presence (vacation, bank holiday, overtime
+ * compensation, sick leave, ...): the Excel import books their hours, but their start/end times
+ * are neither used for the working hours (From/To) nor for the break gaps.
+ * Format: work order with an optional activity in parentheses, "*" as wildcard.
+ * Extend this list with new knowledge; users can add or remove rules in the configuration.
+ */
+const DEFAULT_NON_PRESENCE_RULES = ['950000-10000',
+// DE3 internal: vacation (900), bank holiday (906), child sick (905), overtime compensation (908), ...
+'950100-10025',
+// DE3 sick leave (moved away from 950000-10000)
+'940000-10000',
+// DE2 internal, assumed to work like 950000-10000 in DE3
+'940100-10025' // DE2 sick leave, assumed to work like 950100-10025 in DE3
+];
+/**
+ * Work order (with activity) to book overtime compensation per Unit4 client, used by the Excel
+ * import to fill up missing hours of a week. Users can override or add clients in the configuration.
+ */
+const DEFAULT_OVERTIME_WORK_ORDERS = {
+  'DE3': '950000-10000 (908)',
+  'DE2': '940000-10000 (908)' // assumed to work like DE3
+};
 class Configuration {
   static instance = new Configuration();
   static getInstance() {
@@ -1913,6 +2004,18 @@ class Configuration {
           labelPos: 'right',
           type: 'checkbox',
           default: false
+        },
+        nonPresenceWorkOrders: {
+          label: '[Timesheet Entry]: Work orders not counting as presence<copy>Bookings on these work orders (e.g. vacation, overtime compensation) are imported with their hours, but their times do not count for the working hours (From/To) and the breaks. One rule per line, optionally with an activity in parentheses and "*" as wildcard; text behind the rule is ignored.<br/>A line starting with "-" removes a default rule or adds an exception, e.g. "-950000-10000 (906)".<br/>Default rules: ' + DEFAULT_NON_PRESENCE_RULES.join(', ') + '</copy>',
+          labelPos: 'left',
+          type: 'textarea',
+          default: ''
+        },
+        overtimeWorkOrders: {
+          label: '[Timesheet Entry]: Work order for overtime compensation per client<copy>Used by the Excel import to fill up missing hours of a week. One client per line with the work order and activity, e.g. "DE3 950000-10000 (908)"; "DE3 -" disables it for a client.<br/>Defaults: ' + Object.entries(DEFAULT_OVERTIME_WORK_ORDERS).map(([client, wo]) => client + ' ' + wo).join(', ') + '</copy>',
+          labelPos: 'left',
+          type: 'textarea',
+          default: ''
         },
         ftzDescriptionRules: {
           label: '[Timesheet Entry]: FtZ description rules<copy>JSON array of {regex, template} rules. First matching rule wins.<br/>Available placeholders: {{Weekday}}, {{Start}}, {{End}}, {{Duration}}, {{WorkOrder}}, {{WorkOrderInput}}, {{Ticket}}, {{Comment}}.<br/>Default: [{"regex":".+","template":"{{Ticket}} {{Comment}}"}]</copy>',
@@ -2022,6 +2125,55 @@ class Configuration {
   }
   close() {
     GM_config.close();
+  }
+
+  // default rules plus the user's rules ("-" = exclude)
+  nonPresenceRules() {
+    const raw = GM_config.get('nonPresenceWorkOrders');
+    const lines = [...DEFAULT_NON_PRESENCE_RULES, ...(typeof raw === 'string' ? raw.split(/\r?\n/) : [])];
+    const glob = pattern => new RegExp('^' + pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$');
+    const rules = [];
+    lines.forEach(line => {
+      // "[-|+]<work order> [(<activity>)] [comment]"
+      const match = line.trim().match(/^([+-]?)\s*([\d*][\d*-]*)\s*(?:\(\s*([\d*]+)\s*\))?/);
+      if (match) {
+        rules.push({
+          exclude: match[1] === '-',
+          workOrder: glob(match[2]),
+          activity: match[3] ? glob(match[3]) : null
+        });
+      }
+    });
+    return rules;
+  }
+
+  /**
+   * Does a booking on this work order / activity count as presence? See DEFAULT_NON_PRESENCE_RULES.
+   * An empty activity (Unit4 default) only matches rules without activity.
+   */
+  isNonPresence(workOrder, activity) {
+    const matches = rule => rule.workOrder.test(workOrder) && (rule.activity === null || rule.activity.test(activity));
+    const rules = this.nonPresenceRules();
+    return rules.some(r => !r.exclude && matches(r)) && !rules.some(r => r.exclude && matches(r));
+  }
+
+  /**
+   * Work order (e.g. "950000-10000 (908)") to book overtime compensation for a Unit4 client
+   * (e.g. "DE3"), null if there is none.
+   */
+  overtimeWorkOrder(client) {
+    const workOrders = {
+      ...DEFAULT_OVERTIME_WORK_ORDERS
+    };
+    const raw = GM_config.get('overtimeWorkOrders');
+    (typeof raw === 'string' ? raw.split(/\r?\n/) : []).forEach(line => {
+      const match = line.trim().match(/^(\S+)\s+(.+)$/);
+      if (match) {
+        workOrders[match[1].toUpperCase()] = match[2].trim();
+      }
+    });
+    const workOrder = workOrders[client.toUpperCase()];
+    return workOrder && workOrder !== '-' ? workOrder : null;
   }
   ftzDescriptionRules() {
     const raw = GM_config.get('ftzDescriptionRules');
@@ -2408,10 +2560,9 @@ class TimeEntry extends AbstractModule {
     // breaks have special time code
     if (timecode === '99') return 'break';
 
-    // non-working time (DE2)
-    if (workorder === '940000-10000') return 'nonworking';
-    // non-working time (DE3)
-    if (workorder === '950000-10000') return 'nonworking';
+    // non-working time (vacation, bank holiday, sick leave, overtime compensation, ...):
+    // shared rules with the Excel import, see DEFAULT_NON_PRESENCE_RULES in the configuration
+    if (Configuration.getInstance().isNonPresence(workorder.trim(), activity.trim())) return 'nonworking';
 
     // everything else is working time
     return 'working';
@@ -2604,7 +2755,12 @@ class TimeEntry extends AbstractModule {
                 const start = this.getValueFromCell(rowFrom[i + 2]);
                 const end = this.getValueFromCell(rowTo[i + 2]);
                 const diff = Utils.difference(start, end);
-                const diff2 = diff - (sumBreaks[i] ?? 0) - (sumNonworking[i] ?? 0);
+                // non-working time (e.g. a doctor's appointment) may lie within From/To or outside
+                // (e.g. overtime compensation at the end of the day, a vacation day). The bookings
+                // have no times, so only subtract as much of it as From/To leaves beside the
+                // breaks and the booked working hours.
+                const presentNonworking = Math.max(0, Math.min(sumNonworking[i] ?? 0, diff - (sumBreaks[i] ?? 0) - (sumWorking[i] ?? 0)));
+                const diff2 = diff - (sumBreaks[i] ?? 0) - presentNonworking;
                 timePresent[i] = diff;
                 timeWorking[i] = diff2;
                 overallWorking += diff2;
@@ -2687,7 +2843,7 @@ class TimeEntry extends AbstractModule {
             }
             this.addCell(row, Utils.formatHours(sum));
 
-            // hours from start and end of day w/o breaks
+            // hours from start and end of day w/o breaks and non-working time within
             var row = document.createElement('tr');
             row.className = "ListItem";
             lastRow.before(row);
@@ -2696,7 +2852,7 @@ class TimeEntry extends AbstractModule {
             var sum = 0;
             for (var i = 0; i < 7; ++i) {
               if (dayAvailable[i]) {
-                var value = (timePresent[i] ?? 0) - (sumBreaks[i] ?? 0);
+                var value = timeWorking[i] ?? 0;
                 sum += value;
                 this.addCell(row, Utils.formatHours(value), "right", isHoliday[i] ? {
                   background: '#dcdcdc'
@@ -3098,6 +3254,74 @@ class Global extends AbstractModule {
 }
 ;// ./src/modules/timesheetimport/importer/importtask.ts
 
+/**
+ * Set the value of a Unit4 input without triggering its request (page reload).
+ * Unit4 takes over every field whose hidden IsDirty flag is set with the next request of the page
+ * (e.g. Add, Close editing mode or activating another row), so several fields can be filled at once.
+ */
+function setValueWithoutRequest(input, value) {
+  input.value = value;
+  const dirty = input.closest('td[data-type]')?.querySelector('input[id$="_IsDirty"]');
+  if (!dirty) {
+    console.warn('No IsDirty flag found for ' + input.id + ', value will not be sent');
+    return;
+  }
+  // do NOT fall back to a change event: for hour cells Unit4's onchange handler sends the request
+  // right away, before the other cells of the row are filled
+  const before = dirty.value;
+  callPageFunction('setDirty', dirty.id);
+  if (dirty.value === before) {
+    console.warn('setDirty did not mark ' + dirty.id + ' as dirty, value may not be sent');
+  }
+}
+
+/**
+ * Call a global function of the Unit4 page. Tampermonkey may run the userscript in a sandbox where
+ * the page's globals are not visible, in that case the call runs in a short-lived script element
+ * inside the page context.
+ */
+function callPageFunction(name, ...args) {
+  const fn = window[name];
+  if (typeof fn === 'function') {
+    fn(...args);
+    return;
+  }
+  const script = document.createElement('script');
+  script.textContent = name + '(' + args.map(arg => JSON.stringify(arg)).join(', ') + ');';
+  (document.head ?? document.documentElement).appendChild(script);
+  script.remove();
+}
+
+/**
+ * Check if a day column header belongs to the given day: either an English weekday token as used
+ * by the FtZ import (mon, tue, ...) or an ISO date as used by the JSON import (YYYY-MM-DD).
+ */
+function headerMatchesDay(head, day) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+    const date = new Date(day);
+    const dateEN = date.getMonth() + 1 + "/" + date.getDate(); // EN format: M/D
+    const dateDE = date.getDate() + "." + String(date.getMonth() + 1).padStart(2, '0'); // DE format: DD.MM.
+    return head.title.includes(dateEN) || head.title.includes(dateDE);
+  }
+  return (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase().startsWith(day);
+}
+
+/**
+ * Expected hours of the timesheet from the "Normal hours" field of the timesheet header
+ * (already reduced by bank holidays, part-time and month boundaries), null if not available.
+ */
+function readNormalHours(doc) {
+  for (const td of doc.querySelectorAll('td.label')) {
+    if (td.textContent?.includes('Normal hours')) {
+      const input = td.nextElementSibling?.querySelector('input[type="text"]');
+      const hours = input ? Utils.toNumber(input.value) : NaN;
+      if (!isNaN(hours)) {
+        return hours;
+      }
+    }
+  }
+  return null;
+}
 class ImportTask {
   // max waiting time for a field to be available / get focus
   static retrySeconds = 10;
@@ -3221,12 +3445,22 @@ class CloseEditingModeTask extends ImportTask {
   }
 }
 class SanityCheckTask extends ImportTask {
-  constructor(data) {
+  /**
+   * @param nonWorkingHours hours of the week that are no work but count towards the normal hours
+   *   (e.g. vacation, overtime compensation)
+   */
+  constructor(data, nonWorkingHours = 0) {
     super('sanity-check');
     this.data = data;
+    this.nonWorkingHours = nonWorkingHours;
   }
   actionDescription() {
     return "Final sanity check";
+  }
+
+  // expected hours of this timesheet, 40 if the "Normal hours" field is not available
+  static normalHours() {
+    return readNormalHours(ImportTask.section.ownerDocument) ?? 40;
   }
   async run() {
     const errors = [];
@@ -3240,18 +3474,21 @@ class SanityCheckTask extends ImportTask {
       }
       const workingTime = day.workingTime - day.breaks;
       sumWorkingTime += workingTime;
-      sumBookedHours += day.hours - day.breaks;
+      // day.hours already excludes the breaks (they are counted separately)
+      sumBookedHours += day.hours;
       if (workingTime > 10) {
         errors.push("Working time issue: more than 10 hours of working time on date: " + dateStr + "\n   Working time: " + Utils.toLocaleString(workingTime) + " hours, breaks: " + Utils.toLocaleString(day.breaks) + " hours");
       } else if (day.workingTime <= 0) {
         errors.push("Working time issue: no working time on date: " + dateStr);
       }
     });
-    if (sumWorkingTime < 40) {
-      errors.push("Working time issue: total working time less than 40 hours: " + sumWorkingTime);
+    const normalHours = SanityCheckTask.normalHours();
+    const nonWorking = this.nonWorkingHours > 0 ? " + " + this.nonWorkingHours + " non-working" : "";
+    if (sumWorkingTime + this.nonWorkingHours < normalHours) {
+      errors.push("Working time issue: total working time less than " + normalHours + " hours (normal hours): " + sumWorkingTime + nonWorking);
     }
-    if (sumBookedHours < 40) {
-      errors.push("Booked hours issue: total booked hours less than 40 hours: " + sumBookedHours);
+    if (sumBookedHours + this.nonWorkingHours < normalHours) {
+      errors.push("Booked hours issue: total booked hours less than " + normalHours + " hours (normal hours): " + sumBookedHours + nonWorking);
     }
     if (errors.length > 0) {
       return this.failure(errors.join("\n\n * "));
@@ -3298,50 +3535,13 @@ class Progress {
 class WHImportTask extends ImportTask {
   static createTask(taskData) {
     switch (taskData.task) {
-      case 'WorkingStartImportTask':
-        return new WorkingStartImportTask(taskData.groupId, new Date(taskData.date), taskData.value);
-      case 'WorkingEndImportTask':
-        return new WorkingEndImportTask(taskData.groupId, new Date(taskData.date), taskData.value);
-      case 'FtZWorkingImportTask':
-        return new FtZWorkingImportTask(taskData.groupId, taskData.weekday, taskData.type, taskData.value);
+      case 'WorkingRowImportTask':
+        return new WorkingRowImportTask(taskData.groupId, taskData.type, taskData.times);
     }
   }
-  constructor(groupId, date, type, value) {
+  constructor(groupId, type) {
     super(groupId);
-    this.date = date;
     this.type = type;
-    this.value = value;
-  }
-  async lookupCell() {
-    const headers = await this.waitForElements('.tmWorkinghours th');
-    const rows = await this.waitForElements('.workinghours-section .ListItem, .workinghours-section .AltListItem, .workinghours-section .EditRow');
-    const date = new Date(this.date);
-    const dateEN = date.getMonth() + 1 + "/" + date.getDate(); // eEN format: M/D
-
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const dateDE = date.getDate() + "." + month; // DE format: DD.MM.
-
-    for (var i = 0; i < headers.length; ++i) {
-      const head = headers[i];
-      if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
-        for (var j = 0; j < rows.length; ++j) {
-          const cell = rows[j].querySelector('td:nth-of-type(' + (i + 1) + ')');
-          const input = cell?.querySelector('.InputCell input');
-          if (j === 0 && this.type === "start") {
-            return {
-              cell,
-              input
-            };
-          } else if (j === 1 && this.type === "end") {
-            return {
-              cell,
-              input
-            };
-          }
-        }
-      }
-    }
-    return {};
   }
 
   // format time string based on naviogator.language (e.g. AM/PM format)
@@ -3357,80 +3557,64 @@ class WHImportTask extends ImportTask {
       minute: "numeric"
     }).format(date);
   }
+}
+
+// fills the whole From (or To) row at once. Only activating the row reloads the page; the values
+// are sent with the next request (activating the other row or closing the editing mode).
+class WorkingRowImportTask extends WHImportTask {
+  // day (weekday token like "mon" or ISO date, see headerMatchesDay) -> time (HH:MM)
+
+  constructor(groupId, type, times) {
+    super(groupId, type);
+    this.times = times;
+  }
+  actionDescription() {
+    return "Enter working time (" + (this.type === "start" ? "From" : "To") + ") for " + Object.keys(this.times).join(', ');
+  }
   async run() {
-    const cell = await this.lookupCell();
-    if (cell.input) {
-      // fill value
-      cell.input.focus();
-      cell.input.value = this.formatLocalTime(this.value, cell.input);
-      cell.input.blur();
-      return this.next();
-    } else if (cell.cell) {
-      // click to activate and try again
-      cell.cell.click();
-      return this.retryAfterReload();
-    }
-    return this.failure(trans('error_date_cell_not_found', this.date.toLocaleDateString()));
-  }
-}
-class WorkingStartImportTask extends WHImportTask {
-  constructor(groupId, day, time) {
-    super(groupId, day, "start", time);
-  }
-  actionDescription() {
-    return "Enter working time (From) for " + this.date.toLocaleDateString();
-  }
-}
-class WorkingEndImportTask extends WHImportTask {
-  constructor(groupId, day, time) {
-    super(groupId, day, "end", time);
-  }
-  actionDescription() {
-    return "Enter working time (To) for " + this.date.toLocaleDateString();
-  }
-}
-
-// working-hours variant that matches the day column by its weekday token instead of a date
-class FtZWorkingImportTask extends WHImportTask {
-  // English weekday token as used in the grid headers: mon/tue/wed/thu/fri/sat/sun
-
-  constructor(groupId, weekday, type, time) {
-    super(groupId, new Date(0), type, time);
-    this.weekday = weekday;
-  }
-  actionDescription() {
-    return "Enter working time (" + (this.type === "start" ? "From" : "To") + ") for " + this.weekday;
-  }
-  async lookupCell() {
     const headers = await this.waitForElements('.tmWorkinghours th');
     const rows = await this.waitForElements('.workinghours-section .ListItem, .workinghours-section .AltListItem, .workinghours-section .EditRow');
+    // first row: From, second row: To
+    const row = rows[this.type === "start" ? 0 : 1];
+    const cells = {};
     for (var i = 0; i < headers.length; ++i) {
-      const head = headers[i];
-      const text = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase();
-      if (text.startsWith(this.weekday)) {
-        for (var j = 0; j < rows.length; ++j) {
-          const cell = rows[j].querySelector('td:nth-of-type(' + (i + 1) + ')');
-          const input = cell?.querySelector('.InputCell input');
-          if (j === 0 && this.type === "start") {
-            return {
-              cell,
-              input
-            };
-          } else if (j === 1 && this.type === "end") {
-            return {
-              cell,
-              input
-            };
-          }
-        }
+      const day = Object.keys(this.times).find(d => headerMatchesDay(headers[i], d));
+      const cell = row?.querySelector('td:nth-of-type(' + (i + 1) + ')');
+      if (day && cell) {
+        cells[day] = cell;
       }
     }
-    return {};
+    const missing = Object.keys(this.times).filter(w => !cells[w]);
+    if (missing.length === Object.keys(this.times).length) {
+      return this.failure(trans('error_date_cell_not_found', missing.join(', ')));
+    }
+    const first = Object.values(cells)[0];
+    if (!first.querySelector('.InputCell input')) {
+      // row is not editable yet: click to activate and try again
+      first.click();
+      return this.retryAfterReload();
+    }
+    Object.entries(cells).forEach(([day, cell]) => {
+      const input = cell.querySelector('.InputCell input');
+      if (input) {
+        setValueWithoutRequest(input, this.formatLocalTime(this.times[day], input));
+      }
+    });
+    return missing.length > 0 ? this.failure(trans('error_date_cell_not_found', missing.join(', '))) : this.next();
   }
 }
 ;// ./src/modules/timesheetimport/importer/workorders.ts
 
 
+/**
+ * Does a time entry row belong to this work order? An empty activity, time code or description in
+ * the import data (e.g. the FtZ import) matches whatever Unit4 prefilled (activity 100, time code 0,
+ * its default description).
+ */
+function rowMatchesWorkOrder(wo, row) {
+  const matches = (expected, actual) => !expected || expected === actual;
+  return wo.workOrder === row.workOrder && matches(wo.activity, row.activity) && matches(wo.timeCode, row.timeCode) && (matches(wo.description, row.description) || row.description === 'Internal - Break Time');
+}
 class WOImportTask extends ImportTask {
   static setAddButton(button) {
     WOImportTask.addButton = button;
@@ -3439,6 +3623,8 @@ class WOImportTask extends ImportTask {
     switch (taskData.task) {
       case 'StartWorkOrderImportTask':
         return new StartWorkOrderImportTask(taskData.groupId, taskData.workOrder);
+      case 'EmptyRowStartWorkOrderImportTask':
+        return new EmptyRowStartWorkOrderImportTask(taskData.groupId, taskData.workOrder);
       case 'TimecodeImportTask':
         return new TimecodeImportTask(taskData.groupId, taskData.workOrder);
       case 'WorkOrderImportTask':
@@ -3447,14 +3633,12 @@ class WOImportTask extends ImportTask {
         return new ActivityImportTask(taskData.groupId, taskData.workOrder);
       case 'DescriptionImportTask':
         return new DescriptionImportTask(taskData.groupId, taskData.workOrder);
-      case 'HoursImportTask':
-        return new HoursImportTask(taskData.groupId, taskData.workOrder, new Date(taskData.date), taskData.value);
-      case 'FtZHoursImportTask':
-        return new FtZHoursImportTask(taskData.groupId, taskData.workOrder, taskData.weekday, taskData.value);
+      case 'RowHoursImportTask':
+        return new RowHoursImportTask(taskData.groupId, taskData.workOrder, taskData.hours);
       case 'StartBreakRowImportTask':
         return new StartBreakRowImportTask(taskData.groupId);
       case 'WorkOrderSummaryTask':
-        return new WorkOrderSummaryTask(taskData.sum, taskData.breaks);
+        return new WorkOrderSummaryTask(taskData.sum, taskData.breaks, taskData.rows, taskData.days);
     }
   }
   constructor(groupId, workOrder) {
@@ -3473,6 +3657,26 @@ class WOImportTask extends ImportTask {
    *   - true if new row will be created or exising row will be made editable (=> page reload)
    */
   async searchExistingRow() {
+    const found = await this.findExistingRow();
+    if (found !== null) {
+      return found;
+    }
+
+    // no mathing row found, create one by clicking "Add" button
+    // => this will reload the page
+    WOImportTask.addButton.dispatchEvent(new Event('click'));
+    return true;
+  }
+
+  /**
+   * Search an existing row for the given work order (without adding a new one).
+   *
+   * @returns
+   *   - HTMLElement of the editable row if found
+   *   - true if an existing row will be made editable (=> page reload)
+   *   - null if there is no matching row
+   */
+  async findExistingRow() {
     // check all rows
     const rows = await this.waitForElements('tr.ListItem,tr.AltListItem,tr.EditRow');
     for (const row of rows) {
@@ -3480,7 +3684,7 @@ class WOImportTask extends ImportTask {
       const activity = row.querySelector('td[data-type="cell-activity"] div.ww.ellipsis')?.textContent;
       const description = row.querySelector('td[data-type="cell-description"] div.ww.ellipsis')?.textContent;
       const timeCode = row.querySelector('td[data-type="cell-timecode"] div.ww.ellipsis')?.textContent;
-      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
+      if (this.matchesRow(workOrder, activity, timeCode, description)) {
         // found existing row (readonly), make editable by clicking on it
         // => will reload the page
         const cell = row.querySelector("td[data-type=cell-description] div.ww.ellipsis");
@@ -3494,19 +3698,23 @@ class WOImportTask extends ImportTask {
       const activity = row.querySelector('td[data-type="cell-activity"] td.InputCell input')?.value;
       const description = row.querySelector('td[data-type="cell-description"] td.InputCell input')?.value;
       const timeCode = row.querySelector('td[data-type="cell-timecode"] td.InputCell input')?.value;
-      if (this.workOrder.workOrder === workOrder && this.workOrder.activity === activity && this.workOrder.timeCode === timeCode && (this.workOrder.description === description || description === 'Internal - Break Time')) {
+      if (this.matchesRow(workOrder, activity, timeCode, description)) {
         // found existing row (editable), use it
         return row;
       }
     }
-
-    // no mathing row found, create one by clicking "Add" button
-    // => this will reload the page
-    WOImportTask.addButton.dispatchEvent(new Event('click'));
-    return true;
+    return null;
   }
   async activeRow() {
     return this.waitForElement('tr.EditRow');
+  }
+  matchesRow(workOrder, activity, timeCode, description) {
+    return rowMatchesWorkOrder(this.workOrder, {
+      workOrder,
+      activity,
+      timeCode,
+      description
+    });
   }
 }
 class StartWorkOrderImportTask extends WOImportTask {
@@ -3524,6 +3732,50 @@ class StartWorkOrderImportTask extends WOImportTask {
     }
     // we found an editable row, use it directly
     return this.next();
+  }
+}
+
+// reuse an empty time entry row before adding a new one. The import dialog adds such a row to get
+// a context for Unit4's workorder lookup; Unit4 keeps it with an "Illegal value" warning.
+// Only for normal hours (time code 0), as the empty row is prefilled with that time code.
+class EmptyRowStartWorkOrderImportTask extends StartWorkOrderImportTask {
+  async run() {
+    // an existing row of this work order (repeated import) takes precedence over the empty row
+    const existing = await this.findExistingRow();
+    if (existing === true) {
+      return this.nextAfterReload();
+    } else if (existing !== null) {
+      return this.next();
+    }
+    const rows = await this.waitForElements('.timeentry-section tr.ListItem, .timeentry-section tr.AltListItem, .timeentry-section tr.EditRow');
+    for (const row of rows) {
+      const cell = row.querySelector('td[data-type="cell-workorder"]');
+      if (!cell) {
+        continue; // no time entry row (e.g. summary rows)
+      }
+      // only an empty normal-hours row: no workorder, no hours and time code 0 (or none).
+      // Unit4 prefills the description ("Normal hours") and activity (100) of a new row,
+      // rows with another time code (e.g. absences) have no workorder either.
+      // read the value only (input or value div), not the description the timeentry module
+      // appends to workorder cells ("always show descriptions")
+      const text = (td, valueDiv) => (td?.querySelector('.InputCell input')?.value ?? td?.querySelector(valueDiv)?.textContent ?? '').trim();
+      const hasHours = [...row.querySelectorAll('td[data-type="cell-weekday"]')].some(td => (Utils.toNumber(text(td, 'div.ww')) || 0) !== 0);
+      const timeCode = text(row.querySelector('td[data-type="cell-timecode"]'), 'div.ww.ellipsis');
+      if (text(cell, 'div.ww.ellipsis') !== '' || hasHours || timeCode !== '' && timeCode !== '0') {
+        continue;
+      }
+      if (row.classList.contains('EditRow')) {
+        // empty row is already editable, fill it directly
+        return this.next();
+      }
+      const description = row.querySelector('td[data-type=cell-description] div.ww.ellipsis');
+      if (description) {
+        // make the empty row editable => page reload
+        description.click();
+        return this.nextAfterReload();
+      }
+    }
+    return super.run();
   }
 }
 
@@ -3640,63 +3892,55 @@ class DescriptionImportTask extends WOFieldImportTask {
     return "Enter description for " + this.workOrder.workOrder;
   }
 }
-class HoursImportTask extends WOFieldImportTask {
-  constructor(groupId, workOrder, day, hours) {
-    super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
-    this.date = day;
+// enters the hours of all days into the active row at once. The values are only marked dirty and
+// sent with the next request (Add for the next row or Close editing mode), instead of one page
+// reload per day.
+class RowHoursImportTask extends WOImportTask {
+  // day (weekday token like "mon" or ISO date, see headerMatchesDay) -> hours
+
+  constructor(groupId, workOrder, hours) {
+    super(groupId, workOrder);
+    this.hours = hours;
   }
   actionDescription() {
-    return "Enter hours for " + this.workOrder.workOrder + " on " + this.date.toLocaleDateString();
+    return "Enter hours for " + (this.workOrder.workOrder || this.workOrder.description) + " on " + Object.keys(this.hours).join(', ');
   }
-  async lookupField(row) {
-    const headers = await this.waitForElements('th[data-type=cell-weekday]');
-    const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
-
-    // requested date
-    const dateEN = this.date.getMonth() + 1 + "/" + this.date.getDate(); // eEN format: M/D
-    const month = String(this.date.getMonth() + 1).padStart(2, '0');
-    const dateDE = this.date.getDate() + "." + month; // DE format: DD.MM.
-
-    for (var i = 0; i < headers.length; ++i) {
-      const head = headers[i];
-      if (head.title.includes(dateEN) || head.title.includes(dateDE)) {
-        // seems to match the date
-        return await this.fieldElement(cells[i], 'cell-weekday[' + i + ']');
+  async run() {
+    // scope to the time entry grid: the working hours grid uses the same cell-weekday markup
+    // and would otherwise receive the hours whenever its From/To row is in editing mode
+    const headers = await this.waitForElements('.timeentry-section th[data-type=cell-weekday]');
+    const cells = await this.waitForElements('.timeentry-section .EditRow [data-type=cell-weekday]');
+    const missing = [];
+    Object.entries(this.hours).forEach(([day, hours]) => {
+      const i = headers.findIndex(head => headerMatchesDay(head, day));
+      const input = i >= 0 ? cells[i]?.querySelector('.InputCell input') : null;
+      if (input) {
+        // leave unchanged values alone (e.g. zeros in a new row on a repeated import)
+        if (Math.abs((Utils.toNumber(input.value) || 0) - hours) > 0.001) {
+          setValueWithoutRequest(input, Utils.toLocaleString(hours));
+        }
+      } else {
+        missing.push(day);
       }
-    }
-    return null;
+    });
+    return missing.length > 0 ? this.failure(`Could not find hour field for ${missing.join(', ')}`) : this.next();
   }
 }
-class FtZHoursImportTask extends WOFieldImportTask {
-  // English weekday token as used in the grid headers: mon/tue/wed/thu/fri/sat/sun
 
-  constructor(groupId, workOrder, weekday, hours) {
-    super(groupId, workOrder, 'cell-weekday', Utils.toLocaleString(hours), true);
-    this.weekday = weekday;
-  }
-  actionDescription() {
-    return "Enter hours for " + this.workOrder.workOrder + " on " + this.weekday;
-  }
-  async lookupField(row) {
-    const headers = await this.waitForElements('th[data-type=cell-weekday]');
-    const cells = await this.waitForElements('.EditRow [data-type=cell-weekday]');
+// a time entry row of the import (work order + description)
 
-    // match the day column by its weekday token (language independent, no date needed)
-    for (var i = 0; i < headers.length; ++i) {
-      const head = headers[i];
-      const text = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase();
-      if (text.startsWith(this.weekday)) {
-        return await this.fieldElement(cells[i], 'cell-weekday[' + i + ']');
-      }
-    }
-    return null;
-  }
-}
 class WorkOrderSummaryTask extends ImportTask {
-  constructor(sum, breaks) {
+  /**
+   * @param rows rows of this import and
+   * @param days imported days (weekday tokens or ISO dates, see headerMatchesDay):
+   *   used to list other rows with hours on these days when the sum does not match
+   */
+  constructor(sum, breaks, rows = [], days = []) {
     super('work-order-summary');
     this.sum = sum;
     this.breaks = breaks;
+    this.rows = rows;
+    this.days = days;
   }
   actionDescription() {
     return "Final check of work order summary";
@@ -3712,10 +3956,49 @@ class WorkOrderSummaryTask extends ImportTask {
       const unit4Sum = Utils.toNumber(sumCell.textContent || "0");
       if (Math.abs(unit4Sum - this.sum) > 0.001) {
         // sum of hours does not match
-        return this.failure(`Sum of hours does not match, expected: ${this.sum}, actual: ${unit4Sum}`);
+        return this.failure(`Sum of hours does not match, expected: ${this.sum}, actual: ${unit4Sum}` + this.foreignRows());
       }
     }
     return this.next();
+  }
+
+  // explain a sum mismatch: rows with hours on imported days that are not part of this import,
+  // e.g. an outdated row after the description changed, a partial import or manual bookings
+  foreignRows() {
+    const section = ImportTask.section;
+    const headers = [...section.querySelectorAll('th[data-type=cell-weekday]')];
+    const dayColumns = headers.map((head, i) => ({
+      i,
+      label: head.title.replace(/\s*-\s*Header\s*$/, '').trim()
+    })).filter(({
+      i
+    }) => this.days.some(day => headerMatchesDay(headers[i], day)));
+    const lines = [];
+    section.querySelectorAll('tr.ListItem, tr.AltListItem').forEach(row => {
+      const value = type => row.querySelector(`td[data-type="${type}"] div.ww.ellipsis`)?.textContent?.trim() ?? '';
+      const workOrder = value('cell-workorder');
+      const description = value('cell-description');
+      if (workOrder === '' || value('cell-activity').startsWith('999') || this.rows.some(r => r.workOrder === workOrder && (!r.description || r.description === description))) {
+        return; // no work order row (break, absence, summary) or part of this import
+      }
+      const cells = row.querySelectorAll('td[data-type=cell-weekday]');
+      const hours = dayColumns.map(({
+        i,
+        label
+      }) => ({
+        label,
+        text: cells[i]?.textContent?.trim() ?? ''
+      })).filter(({
+        text
+      }) => (Utils.toNumber(text) || 0) !== 0).map(({
+        label,
+        text
+      }) => `${label} ${text}`);
+      if (hours.length > 0) {
+        lines.push(` * ${workOrder} · ${description} (${hours.join(', ')})`);
+      }
+    });
+    return lines.length === 0 ? '' : "\n\nRows with hours on imported days that are not part of this import" + " (e.g. changed description or work order, partial import, or booked manually):\n" + lines.join("\n");
   }
 }
 ;// ./src/modules/timesheetimport/importer/importer.ts
@@ -3772,7 +4055,7 @@ class Importer {
       case 'CloseEditingModeTask':
         return new CloseEditingModeTask();
       case 'SanityCheckTask':
-        return new SanityCheckTask(taskData.data);
+        return new SanityCheckTask(taskData.data, taskData.nonWorkingHours);
     }
 
     // tasks from other modules
@@ -3848,7 +4131,7 @@ class Importer {
         // store last failures in storage
         sessionStorage.setItem("import_failed_summary", text);
       } else {
-        text = "JSON import finished\n";
+        text = "Import finished\n";
         // clear any previous failures from storage
         sessionStorage.removeItem("import_failed_summary");
       }
@@ -3930,6 +4213,10 @@ var timesheetimport_update = injectStylesIntoStyleTag_default()(timesheetimport/
 
 // one parsed row of the "Florians tollige Zeiterfassung" day-log (columns A-I)
 
+// a time entry row as currently shown in the timesheet, to skip unchanged rows on a repeated import
+
+// missing hours of the week, to be booked as overtime compensation on the given weekdays
+
 class Timesheetimport extends AbstractModule {
   // max waiting time for a field to be available / get focus
   static retrySeconds = 10;
@@ -3940,13 +4227,42 @@ class Timesheetimport extends AbstractModule {
   // weekday tokens of the merged "Wochentag" column
   static ftzWeekdays = new Set(['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']);
 
+  // German weekday (column B) -> English grid header token
+  static ftzWeekdayToken = {
+    'Mo': 'mon',
+    'Di': 'tue',
+    'Mi': 'wed',
+    'Do': 'thu',
+    'Fr': 'fri',
+    'Sa': 'sat',
+    'So': 'sun'
+  };
+
   // a single time cell, e.g. 09:00 or 46:15
   static ftzTimeRe = /^\d{1,2}:\d{2}$/;
 
   // localStorage key for remembering how the user corrected invalid column-F workorders
   static ftzCorrectionStorageKey = 'ftzWorkOrderCorrections';
+
+  // sessionStorage key for the pasted text while the page reloads to open a row for the workorder lookup
+  static ftzPendingDialogStorageKey = 'ftzPendingDialog';
+
+  // shared import dialog for JSON and FtZ data (the review view is FtZ only)
+
   ftzEntries = [];
+  // parsed JSON data while its workorders are reviewed (null for FtZ data)
+  jsonReview = null;
+  // bookings on weekdays the current timesheet does not contain (skipped by the import)
+  ftzOutsideEntries = [];
   ftzCorrectionInputs = new Map();
+  // corrections that differ from the workorder's correction for single rows (original workorder +
+  // description, see ftzRowKey), e.g. "123456-10002" for the meeting bookings on "123456"
+  ftzRowOverrides = new Map();
+  // a row has already been opened for the workorder lookup, do not try again
+  ftzLookupRowRequested = false;
+  // proposal to fill up the missing hours of the week with overtime compensation (FtZ review)
+  ftzOvertimeFill = null;
+  ftzOvertimeCheckbox = null;
 
   // ----------------------------------------------------------------------
   // Time Entry Screen Action Buttons
@@ -3987,63 +4303,23 @@ class Timesheetimport extends AbstractModule {
           }
         });
         if (this.standardAddBtn) {
-          if (Configuration.getInstance().experimentalJsonImport()) {
-            this.addJsonImportUI(table);
-          }
-          if (Configuration.getInstance().experimentalFtZExcelImport()) {
-            this.addFtZExcelImportUI(table);
-          }
+          // one import button for JSON and FtZ data, the format is detected on import
+          this.addImportUI(table);
+          this.addFailedButtonUI(table);
         }
 
         // Run pending tasks from importer
         const importer = Importer.getInstance();
         WOImportTask.setSection(this.section);
         WOImportTask.setAddButton(this.standardAddBtn);
+        if (this.ftzDialog) {
+          this.restoreFtZDialog();
+        }
         this.runTasks();
       }
     }
   }
-  addJsonImportUI(table) {
-    // create modal import dialog
-    this.dialog = document.createElement("div");
-    this.dialog.classList.add("modalDialog");
-    this.dialog.style.display = 'none';
-    this.dialogEntry = document.createElement("textarea");
-    this.dialog.appendChild(this.dialogEntry);
-    const dialogButtons = document.createElement("div");
-    dialogButtons.classList.add("modalDialog__buttons");
-    this.dialog.appendChild(dialogButtons);
-    const dialogOK = document.createElement("button");
-    dialogOK.setAttribute("type", "button");
-    dialogOK.classList.add("RibbonInlineButton", "RibbonInlineButtonHappy");
-    dialogOK.innerHTML = "<span>Start Import</span>";
-    dialogOK.addEventListener('click', this.actionImport.bind(this));
-    dialogButtons.appendChild(dialogOK);
-    const dialogCancel = document.createElement("button");
-    dialogCancel.setAttribute("type", "button");
-    dialogCancel.classList.add("RibbonInlineButton");
-    dialogCancel.innerHTML = "<span>Cancel</span>";
-    dialogCancel.addEventListener('click', this.actionClose.bind(this));
-    dialogButtons.appendChild(dialogCancel);
-    document.body.appendChild(this.dialog);
-
-    // create new button for import
-    const buttonImportCell = document.createElement("td");
-    table.rows[0].insertBefore(buttonImportCell, this.standardAddBtn.parentElement);
-    buttonImportCell.classList.add('Button');
-    buttonImportCell.style.paddingRight = "0";
-    const buttonImport = document.createElement("button");
-    buttonImport.setAttribute("id", "json-import-btn");
-    buttonImport.setAttribute("type", "button");
-    buttonImport.setAttribute("role", "button");
-    buttonImport.setAttribute("title", "Import data from JSON");
-    buttonImport.setAttribute("onclick", "");
-    buttonImport.classList.add('BaseButton');
-    buttonImport.classList.add('SectionButton');
-    buttonImport.innerHTML = "<span>Import JSON</span>";
-    buttonImport.addEventListener("click", this.actionDialog.bind(this));
-    buttonImportCell.appendChild(buttonImport);
-
+  addFailedButtonUI(table) {
     // create new button for last errors
     const buttonFailedCell = document.createElement("td");
     table.rows[0].insertBefore(buttonFailedCell, this.standardAddBtn.parentElement);
@@ -4064,15 +4340,15 @@ class Timesheetimport extends AbstractModule {
     this.failedUpdate();
     buttonFailedCell.appendChild(this.buttonFailed);
   }
-  addFtZExcelImportUI(table) {
-    // create modal import dialog for "Florians tollige Zeiterfassung" Excel data
+  addImportUI(table) {
+    // create modal import dialog for JSON and "Florians tollige Zeiterfassung" Excel data
     this.ftzDialog = document.createElement("div");
     this.ftzDialog.classList.add("modalDialog");
     this.ftzDialog.style.display = 'none';
 
-    // paste area for the tab-separated Excel export
+    // paste area for JSON or the tab-separated Excel export
     this.ftzDialogEntry = document.createElement("textarea");
-    this.ftzDialogEntry.setAttribute("placeholder", "Excel-Daten hier einfügen (Select-All → Copy aus Florians tollige Zeiterfassung)");
+    this.ftzDialogEntry.setAttribute("placeholder", "JSON oder Excel-Daten hier einfügen (Excel: Select-All → Copy aus Florians tollige Zeiterfassung)");
     this.ftzDialog.appendChild(this.ftzDialogEntry);
 
     // correction area for invalid workorders (hidden until validation fails)
@@ -4097,21 +4373,22 @@ class Timesheetimport extends AbstractModule {
     dialogButtons.appendChild(dialogCancel);
     document.body.appendChild(this.ftzDialog);
 
-    // create new button for "Florians tollige Zeiterfassung" Excel import
-    const buttonFtZExcelCell = document.createElement("td");
-    table.rows[0].insertBefore(buttonFtZExcelCell, this.standardAddBtn.parentElement);
-    buttonFtZExcelCell.classList.add('Button');
-    const buttonFtZExcel = document.createElement("button");
-    buttonFtZExcel.setAttribute("id", "ftz-import-btn");
-    buttonFtZExcel.setAttribute("type", "button");
-    buttonFtZExcel.setAttribute("role", "button");
-    buttonFtZExcel.setAttribute("title", "Import data from Florians tollige Zeiterfassung Excel");
-    buttonFtZExcel.setAttribute("onclick", "");
-    buttonFtZExcel.classList.add('BaseButton');
-    buttonFtZExcel.classList.add('SectionButton');
-    buttonFtZExcel.innerHTML = "<span>Import FtZ</span>";
-    buttonFtZExcel.addEventListener("click", this.actionFtZExcelDialog.bind(this));
-    buttonFtZExcelCell.appendChild(buttonFtZExcel);
+    // create new button for the import
+    const buttonImportCell = document.createElement("td");
+    table.rows[0].insertBefore(buttonImportCell, this.standardAddBtn.parentElement);
+    buttonImportCell.classList.add('Button');
+    buttonImportCell.style.paddingRight = "0";
+    const buttonImport = document.createElement("button");
+    buttonImport.setAttribute("id", "import-btn");
+    buttonImport.setAttribute("type", "button");
+    buttonImport.setAttribute("role", "button");
+    buttonImport.setAttribute("title", "Import data from JSON or Florians tollige Zeiterfassung Excel");
+    buttonImport.setAttribute("onclick", "");
+    buttonImport.classList.add('BaseButton');
+    buttonImport.classList.add('SectionButton');
+    buttonImport.innerHTML = "<span>Import</span>";
+    buttonImport.addEventListener("click", this.actionFtZExcelDialog.bind(this));
+    buttonImportCell.appendChild(buttonImport);
   }
   failedUpdate() {
     if (!this.buttonFailed) {
@@ -4120,22 +4397,16 @@ class Timesheetimport extends AbstractModule {
     this.buttonFailed.disabled = sessionStorage.getItem("import_failed_summary") === null;
   }
 
-  // show modal dialog
-  actionDialog() {
-    this.dialogEntry.value = '';
-    this.dialog.style.display = 'flex';
-    this.dialogEntry.focus();
-  }
-
-  // show FtZ Excel modal dialog
+  // show the import modal dialog
   actionFtZExcelDialog() {
     this.ftzDialogEntry.value = '';
+    this.ftzLookupRowRequested = false;
     this.resetFtZView();
     this.ftzDialog.style.display = 'flex';
     this.ftzDialogEntry.focus();
   }
 
-  // close FtZ Excel modal dialog
+  // close the import modal dialog
   actionFtZExcelClose() {
     this.ftzDialog.style.display = 'none';
     this.ftzDialogEntry.value = '';
@@ -4145,17 +4416,17 @@ class Timesheetimport extends AbstractModule {
   // reset the FtZ dialog back to the paste view
   resetFtZView() {
     this.ftzEntries = [];
+    this.ftzOvertimeFill = null;
+    this.ftzOvertimeCheckbox = null;
+    this.jsonReview = null;
+    this.ftzOutsideEntries = [];
     this.ftzCorrectionInputs = new Map();
+    this.ftzRowOverrides = new Map();
     this.ftzCorrectionContainer.innerHTML = '';
     this.ftzCorrectionContainer.style.display = 'none';
     this.ftzDialogEntry.style.display = '';
     this.ftzOkButton.innerHTML = "<span>Start Import</span>";
-  }
-
-  // close modal dialog
-  actionClose() {
-    this.dialog.style.display = 'none';
-    this.dialogEntry.value = '';
+    this.ftzOkButton.disabled = false;
   }
   runTasks() {
     const importer = Importer.getInstance();
@@ -4164,50 +4435,197 @@ class Timesheetimport extends AbstractModule {
     });
   }
 
-  // start the "Florians tollige Zeiterfassung" Excel import
+  // start the import: JSON data goes to the JSON import, Excel data to the FtZ import
   actionFtZExcelImport() {
     const inCorrectionView = this.ftzCorrectionContainer.style.display !== 'none';
     if (!inCorrectionView) {
-      // phase 1: parse the pasted tab-separated data
-      this.ftzEntries = Timesheetimport.parseFtZTsv(this.ftzDialogEntry.value);
-      if (this.ftzEntries.length === 0) {
-        alert("Keine gültigen Zeitbuchungen erkannt. Bitte die kompletten Excel-Daten (inkl. Tabellenkopf) einfügen.");
+      // phase 1: detect the pasted format and branch to the matching importer
+      const text = this.ftzDialogEntry.value;
+      const format = Timesheetimport.detectImportFormat(text);
+      if (format === 'json') {
+        if (!Configuration.getInstance().experimentalJsonImport()) {
+          alert("Der JSON-Import ist in der Konfiguration deaktiviert.");
+          return;
+        }
+        this.jsonReview = Timesheetimport.parseJsonImport(text);
+        if (this.jsonReview === null) {
+          return;
+        }
+
+        // invalid workorders get the same review view (incl. workorder lookup) as the FtZ import
+        const invalid = this.distinctInvalidWorkOrders();
+        if (invalid.length > 0 && !this.ftzLookupRowRequested && this.ftzLookupContext() === null) {
+          this.requestFtZLookupRow();
+          return;
+        }
+        if (invalid.length > 0) {
+          this.renderFtZCorrections(invalid, []);
+          return;
+        }
+        this.startJsonImport();
+        return;
+      }
+      if (format === null) {
+        alert("Unbekanntes Format. Bitte JSON-Daten oder die kompletten Excel-Daten aus Florians tollige Zeiterfassung (inkl. Tabellenkopf) einfügen.");
+        return;
+      }
+      if (!Configuration.getInstance().experimentalFtZExcelImport()) {
+        alert("Der Excel-Import (Florians tollige Zeiterfassung) ist in der Konfiguration deaktiviert.");
         return;
       }
 
-      // on first pass: show the review view if anything needs attention (missing or invalid)
+      // parse the pasted tab-separated data
+      this.jsonReview = null;
+      this.ftzEntries = Timesheetimport.parseFtZTsv(text);
+
+      // set aside bookings on weekdays that are not part of the current timesheet
+      // (e.g. a week split by a month end), they cannot be imported
+      const gridWeekdays = this.ftzGridWeekdays();
+      if (gridWeekdays.size > 0) {
+        const inGrid = e => gridWeekdays.has(Timesheetimport.ftzWeekdayToken[e.weekday]);
+        this.ftzOutsideEntries = this.ftzEntries.filter(e => !inGrid(e) && !Timesheetimport.isBreakEntry(e));
+        this.ftzEntries = this.ftzEntries.filter(e => inGrid(e));
+      }
+
+      // on first pass: show the review view if anything needs attention (missing, invalid or outside the week)
       const missing = this.ftzEntries.filter(e => e.workOrder === '' && !Timesheetimport.isBreakEntry(e));
       const invalid = this.distinctInvalidWorkOrders();
-      if (missing.length > 0 || invalid.length > 0) {
+
+      // the workorder lookup needs a time entry row in editing mode: open one (page reload),
+      // the dialog is restored afterwards with suggestions
+      if (invalid.length > 0 && !this.ftzLookupRowRequested && this.ftzLookupContext() === null) {
+        this.requestFtZLookupRow();
+        return;
+      }
+
+      // offer to fill up the week to the normal hours with overtime compensation
+      this.ftzOvertimeFill = this.ftzOvertimeProposal();
+      if (missing.length > 0 || invalid.length > 0 || this.ftzOutsideEntries.length > 0 || this.ftzOvertimeFill !== null) {
         this.renderFtZCorrections(invalid, missing);
         return;
       }
     } else {
-      // phase 2: apply the user corrections to the stored entries
-      this.ftzCorrectionInputs.forEach((input, original) => {
-        const corrected = input.value.trim();
-        // remember valid corrections so the field is prefilled next time
-        if (corrected !== original && Timesheetimport.workOrderPattern.test(corrected)) {
-          this.saveFtZCorrection(original, corrected);
+      // phase 2: apply the user corrections to the stored entries: a correction for a single row
+      // wins over the correction of its workorder
+      this.reviewEntries().forEach(entry => {
+        const original = entry.workOrder;
+        const input = this.ftzCorrectionInputs.get(original);
+        if (!input) {
+          return;
         }
-        this.ftzEntries.forEach(entry => {
-          if (entry.workOrder === original) {
-            entry.workOrder = corrected;
-          }
-        });
+        const override = this.ftzRowOverrides.get(Timesheetimport.ftzRowKey(original, this.reviewDescription(entry)));
+        // the correction may carry an activity as well, e.g. "950000-10000 (908)"
+        // an empty or unchanged own correction (still the original workorder) falls back to the workorder's one
+        const ownValue = override?.value.trim() ?? '';
+        const corrected = Timesheetimport.splitFtZWorkOrder(ownValue !== '' && ownValue !== original ? ownValue : input.value);
+        entry.workOrder = corrected.workOrder;
+        if (corrected.activity !== '') {
+          entry.activity = corrected.activity;
+        }
       });
 
-      // invalid workorders block the import until fixed; missing ones are only a warning
+      // remember valid corrections of the workorders (incl. activity) so they are prefilled next time;
+      // corrections of single rows are not remembered, as descriptions change from week to week
+      this.ftzCorrectionInputs.forEach((input, original) => {
+        const corrected = Timesheetimport.splitFtZWorkOrder(input.value);
+        if (input.value.trim() !== original && Timesheetimport.workOrderPattern.test(corrected.workOrder)) {
+          this.saveFtZCorrection(original, input.value.trim());
+        }
+      });
+
+      // invalid workorders block the import until fixed; missing ones (FtZ only) are just a warning
       const invalid = this.distinctInvalidWorkOrders();
       if (invalid.length > 0) {
-        const missing = this.ftzEntries.filter(e => e.workOrder === '' && !Timesheetimport.isBreakEntry(e));
+        const missing = this.jsonReview ? [] : this.ftzEntries.filter(e => e.workOrder === '' && !Timesheetimport.isBreakEntry(e));
         this.renderFtZCorrections(invalid, missing);
         return;
       }
     }
 
     // all invalid workorders resolved -> start the real import
-    this.startFtZImport();
+    if (this.jsonReview) {
+      this.startJsonImport();
+    } else {
+      this.startFtZImport();
+    }
+  }
+
+  // start the JSON import with the (corrected) entries of the review
+  startJsonImport() {
+    const json = this.jsonReview;
+    if (json && this.importJsonData(json.data, json.days)) {
+      this.actionFtZExcelClose();
+    }
+  }
+
+  // entries whose workorders are reviewed: the JSON entries or the FtZ bookings
+  reviewEntries() {
+    return this.jsonReview ? this.jsonReview.data : this.ftzEntries;
+  }
+
+  // description of the Unit4 row an entry ends up in
+  reviewDescription(entry) {
+    return this.jsonReview ? entry.description ?? '' : Configuration.getInstance().formatFtZDescription(entry);
+  }
+
+  // key of a Unit4 row in the review: original workorder + description
+  static ftzRowKey(workOrder, description) {
+    return workOrder + '\u0000' + description;
+  }
+
+  // open a time entry row for the workorder lookup. Unit4 reloads the page for that, so the pasted
+  // text is kept in sessionStorage and restoreFtZDialog() reopens the dialog after the reload.
+  requestFtZLookupRow() {
+    this.ftzLookupRowRequested = true;
+    sessionStorage.setItem(Timesheetimport.ftzPendingDialogStorageKey, this.ftzDialogEntry.value);
+
+    // prefer an existing workorder row, otherwise add an empty one (reused by the import later)
+    const row = [...this.section.querySelectorAll('tr.ListItem, tr.AltListItem')].find(r => r.querySelector('td[data-type="cell-workorder"]') && !Timesheetimport.isBreakRow(r));
+    const cell = row?.querySelector('td[data-type=cell-description] div.ww.ellipsis');
+    this.ftzDialogEntry.style.display = 'none';
+    this.ftzCorrectionContainer.textContent = 'Workorder-Suche wird vorbereitet, Unit4 lädt kurz neu …';
+    this.ftzCorrectionContainer.style.display = 'block';
+    this.ftzOkButton.disabled = true;
+    if (cell) {
+      cell.click();
+    } else {
+      this.standardAddBtn.dispatchEvent(new Event('click'));
+    }
+
+    // Unit4 did not reload: continue without suggestions (unless the dialog was cancelled meanwhile)
+    window.setTimeout(() => {
+      sessionStorage.removeItem(Timesheetimport.ftzPendingDialogStorageKey);
+      if (this.ftzDialog.style.display === 'none') {
+        return;
+      }
+      this.resetFtZView();
+      this.actionFtZExcelImport();
+    }, 5000);
+  }
+
+  // reopen the FtZ dialog with the pasted text after the reload triggered by requestFtZLookupRow()
+  restoreFtZDialog() {
+    const text = sessionStorage.getItem(Timesheetimport.ftzPendingDialogStorageKey);
+    if (text === null) {
+      return;
+    }
+    sessionStorage.removeItem(Timesheetimport.ftzPendingDialogStorageKey);
+    if (Importer.getInstance().currentTask()) {
+      return; // an import is running, do not interfere
+    }
+    this.actionFtZExcelDialog();
+    this.ftzDialogEntry.value = text;
+    this.ftzLookupRowRequested = true;
+    this.actionFtZExcelImport();
+  }
+
+  // JSON starts with [ or {, the Excel export is recognized by its bookings (never valid JSON)
+  static detectImportFormat(text) {
+    const trimmed = text.trim();
+    if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+      return 'json';
+    }
+    return Timesheetimport.parseFtZTsv(text).length > 0 ? 'ftz' : null;
   }
 
   // load the saved column-F -> corrected workorder map from localStorage
@@ -4232,21 +4650,13 @@ class Timesheetimport extends AbstractModule {
     WOImportTask.setSection(this.section);
     WOImportTask.setAddButton(this.standardAddBtn);
 
-    // German weekday (column B) -> English grid header token
-    const weekdayToken = {
-      'Mo': 'mon',
-      'Di': 'tue',
-      'Mi': 'wed',
-      'Do': 'thu',
-      'Fr': 'fri',
-      'Sa': 'sat',
-      'So': 'sun'
-    };
-
     // group bookings by workorder + comment; sum the durations per weekday
 
     const groups = new Map();
     let sumHours = 0;
+
+    // imported work hours per weekday, for the final sanity check
+    const hoursByDay = new Map();
 
     // earliest start / latest end per weekday for the working-hours (From/To) fields
 
@@ -4260,46 +4670,47 @@ class Timesheetimport extends AbstractModule {
     // all booking intervals (decimal hours) per weekday, used to compute the break gaps
 
     const dayIntervals = new Map();
+
+    // intervals of non-presence bookings per weekday: they do not define the working hours, but
+    // a non-presence block within the working hours (e.g. a doctor's appointment) is no break
+    const nonPresenceIntervals = new Map();
+
+    // all weekdays with bookings (incl. days with non-presence bookings only, e.g. vacation)
+    const importDays = new Set();
+    // hours of bookings that do not count as presence (vacation, overtime compensation, ...)
+    let nonWorkingHours = 0;
     this.ftzEntries.forEach(entry => {
-      const token = weekdayToken[entry.weekday];
+      const token = Timesheetimport.ftzWeekdayToken[entry.weekday];
       if (!token) return; // unknown weekday
 
       // "Pause" marker rows carry no work time -> ignore them entirely
       if (Timesheetimport.isBreakEntry(entry)) return;
       const hours = Utils.hoursFromTimestring(entry.duration);
       if (isNaN(hours) || hours <= 0) return;
+      importDays.add(token);
 
-      // collect the booking interval (defines presence -> gaps between them are breaks)
-      if (entry.start !== '' && entry.end !== '') {
+      // vacation, overtime compensation etc.: only the duration counts, the times in the Excel
+      // are no presence (see DEFAULT_NON_PRESENCE_RULES)
+      const nonPresence = entry.workOrder !== '' && Configuration.getInstance().isNonPresence(entry.workOrder, entry.activity);
+
+      // collect the booking interval (defines presence -> gaps between them are breaks) and
+      // the working-hours window (min start / max end). Bookings without a workorder count
+      // as well, so that window and breaks are derived from the same bookings.
+      if (nonPresence && entry.start !== '' && entry.end !== '') {
+        const list = nonPresenceIntervals.get(token) ?? [];
+        list.push({
+          start: Utils.hoursFromTimestring(entry.start),
+          end: Utils.hoursFromTimestring(entry.end)
+        });
+        nonPresenceIntervals.set(token, list);
+      }
+      if (!nonPresence && entry.start !== '' && entry.end !== '') {
         const list = dayIntervals.get(token) ?? [];
         list.push({
           start: Utils.hoursFromTimestring(entry.start),
           end: Utils.hoursFromTimestring(entry.end)
         });
         dayIntervals.set(token, list);
-      }
-      if (entry.workOrder === '') return; // missing workorder -> already warned, cannot import
-
-      const description = Configuration.getInstance().formatFtZDescription(entry);
-      const key = entry.workOrder + '\u0000' + description;
-      let group = groups.get(key);
-      if (!group) {
-        group = {
-          wo: {
-            workOrder: entry.workOrder,
-            activity: '',
-            timeCode: '',
-            description
-          },
-          hours: new Map()
-        };
-        groups.set(key, group);
-      }
-      group.hours.set(token, (group.hours.get(token) ?? 0) + hours);
-      sumHours += hours;
-
-      // track the working-hours window (min start / max end) for this weekday
-      if (entry.start !== '' && entry.end !== '') {
         const day = workingDay.get(token);
         if (!day) {
           workingDay.set(token, {
@@ -4315,10 +4726,80 @@ class Timesheetimport extends AbstractModule {
           }
         }
       }
+      if (entry.workOrder === '') return; // missing workorder -> already warned, cannot import
+
+      const description = Configuration.getInstance().formatFtZDescription(entry);
+      const key = [entry.workOrder, entry.activity, description].join('\u0000');
+      let group = groups.get(key);
+      if (!group) {
+        group = {
+          wo: {
+            workOrder: entry.workOrder,
+            activity: entry.activity,
+            timeCode: '',
+            description
+          },
+          hours: new Map()
+        };
+        groups.set(key, group);
+      }
+      group.hours.set(token, (group.hours.get(token) ?? 0) + hours);
+      sumHours += hours;
+      if (nonPresence) {
+        nonWorkingHours += hours;
+      } else {
+        hoursByDay.set(token, (hoursByDay.get(token) ?? 0) + hours);
+      }
     });
 
-    // derive the break per weekday as the sum of the gaps between consecutive bookings
-    dayIntervals.forEach((intervals, token) => {
+    // fill up the missing hours of the week with overtime compensation, if accepted in the review.
+    // Its times are unknown, so it never counts for the working hours or the breaks.
+    const fill = this.ftzOvertimeCheckbox?.checked ? this.ftzOvertimeFill : null;
+    if (fill) {
+      const {
+        workOrder,
+        activity
+      } = Timesheetimport.splitFtZWorkOrder(fill.workOrder);
+      const nonPresence = Configuration.getInstance().isNonPresence(workOrder, activity);
+      const key = [workOrder, activity, ''].join('\u0000');
+      let group = groups.get(key);
+      if (!group) {
+        group = {
+          wo: {
+            workOrder,
+            activity,
+            timeCode: '',
+            description: ''
+          },
+          hours: new Map()
+        };
+        groups.set(key, group);
+      }
+      const fillGroup = group;
+      Object.entries(fill.hours).forEach(([token, hours]) => {
+        fillGroup.hours.set(token, (fillGroup.hours.get(token) ?? 0) + hours);
+        sumHours += hours;
+        if (nonPresence) {
+          nonWorkingHours += hours;
+        } else {
+          hoursByDay.set(token, (hoursByDay.get(token) ?? 0) + hours);
+        }
+      });
+    }
+
+    // derive the break per weekday as the sum of the gaps between consecutive bookings. Non-presence
+    // bookings within the working hours (clipped to them) fill gaps as well, they are no break.
+    // non-presence hours within the working hours per weekday, no working time for the sanity check
+    const nonPresenceInWindow = new Map();
+    dayIntervals.forEach((presence, token) => {
+      const windowStart = Math.min(...presence.map(p => p.start));
+      const windowEnd = Math.max(...presence.map(p => p.end));
+      const inWindow = (nonPresenceIntervals.get(token) ?? []).map(p => ({
+        start: Math.max(p.start, windowStart),
+        end: Math.min(p.end, windowEnd)
+      })).filter(p => p.end > p.start);
+      nonPresenceInWindow.set(token, inWindow.reduce((sum, p) => sum + p.end - p.start, 0));
+      const intervals = [...presence, ...inWindow];
       intervals.sort((a, b) => a.start - b.start);
       let gap = 0;
       let prevEnd = intervals[0].end;
@@ -4341,26 +4822,68 @@ class Timesheetimport extends AbstractModule {
     }
     importer.addTask(new CloseEditingModeTask());
 
-    // import the working hours (From/To) per weekday from the Excel start/end times
-    workingDay.forEach((day, token) => {
-      const groupId = ['ftz-workinghours', token].join('|');
-      importer.addTask(new FtZWorkingImportTask(groupId, token, "start", day.start));
-      importer.addTask(new FtZWorkingImportTask(groupId, token, "end", day.end));
-    });
-    importer.addTask(new CloseEditingModeTask());
-    groups.forEach((group, key) => {
-      const groupId = ['ftz', key].join('|');
-      importer.addTask(new StartWorkOrderImportTask(groupId, group.wo));
-      importer.addTask(new WorkOrderImportTask(groupId, group.wo));
-      importer.addTask(new DescriptionImportTask(groupId, group.wo));
-      group.hours.forEach((hours, token) => {
-        importer.addTask(new FtZHoursImportTask(groupId, group.wo, token, hours));
+    // import the working hours (From/To) from the Excel start/end times: the whole From row first,
+    // then the whole To row, so that only switching between the rows reloads the page
+    if (importDays.size > 0) {
+      const starts = {};
+      const ends = {};
+      importDays.forEach(token => {
+        // days with non-presence bookings only (sick leave, vacation, ...) get no presence (00:00 - 00:00)
+        // instead of keeping Unit4's default working hours
+        const day = workingDay.get(token) ?? {
+          start: '00:00',
+          end: '00:00'
+        };
+        starts[token] = day.start;
+        ends[token] = day.end;
       });
+      // activating a row reloads the page: skip rows that already have these times
+      const current = this.ftzWorkingHours();
+      const unchanged = (row, times) => !!row && Object.entries(times).every(([token, time]) => Math.abs((row.get(token) ?? NaN) - Utils.hoursFromTimestring(time)) < 0.001);
+      if (!unchanged(current?.start, starts)) {
+        importer.addTask(new WorkingRowImportTask('ftz-workinghours|start', "start", starts));
+      }
+      if (!unchanged(current?.end, ends)) {
+        importer.addTask(new WorkingRowImportTask('ftz-workinghours|end', "end", ends));
+      }
+    }
+    importer.addTask(new CloseEditingModeTask());
+
+    // all days of the Excel data: rows get hours for each of them (0 if none), so that hours moved
+    // to another day are cleared in existing rows on a repeated import
+    const withAllDays = hours => Object.fromEntries([...importDays].map(token => [token, hours.get(token) ?? 0]));
+
+    // rows that already exist with the same hours on all imported days are skipped: checking them
+    // would open each row and reload the page for nothing
+    const gridRows = this.ftzGridRows();
+    const sameHours = (current, hours) => Object.entries(hours).every(([token, h]) => Math.abs((current.get(token) ?? 0) - h) < 0.001);
+    let unchangedRows = 0;
+    groups.forEach((group, key) => {
+      const existing = gridRows.find(row => !row.isBreak && rowMatchesWorkOrder(group.wo, row));
+      if (existing && sameHours(existing.hours, withAllDays(group.hours))) {
+        unchangedRows++;
+        return;
+      }
+      const groupId = ['ftz', key].join('|');
+      importer.addTask(new EmptyRowStartWorkOrderImportTask(groupId, group.wo));
+      importer.addTask(new WorkOrderImportTask(groupId, group.wo));
+      // Unit4 sets its default activity with the work order, so a given one comes afterwards
+      if (group.wo.activity !== '') {
+        importer.addTask(new ActivityImportTask(groupId, group.wo));
+      }
+      // without a description (e.g. overtime), Unit4's default text stays
+      if (group.wo.description !== '') {
+        importer.addTask(new DescriptionImportTask(groupId, group.wo));
+      }
+      importer.addTask(new RowHoursImportTask(groupId, group.wo, withAllDays(group.hours)));
     });
     importer.addTask(new CloseEditingModeTask());
 
-    // book the breaks into Unit4's automatically inserted activity-999 row
-    if (breaksByDay.size > 0) {
+    // book the breaks into Unit4's automatically inserted activity-999 row, also to clear old
+    // breaks of a previous import (e.g. a day that became a sick day). Skipped if the break row
+    // already has these values, as opening the row reloads the page.
+    const breakRow = gridRows.find(row => row.isBreak);
+    if (breakRow ? !sameHours(breakRow.hours, withAllDays(breaksByDay)) : breaksByDay.size > 0) {
       const breakGroupId = 'ftz-breaks';
       const breakWo = {
         workOrder: '',
@@ -4369,15 +4892,43 @@ class Timesheetimport extends AbstractModule {
         description: 'Internal - Break Time'
       };
       importer.addTask(new StartBreakRowImportTask(breakGroupId));
-      breaksByDay.forEach((hours, token) => {
-        importer.addTask(new FtZHoursImportTask(breakGroupId, breakWo, token, hours));
-      });
+      importer.addTask(new RowHoursImportTask(breakGroupId, breakWo, withAllDays(breaksByDay)));
       importer.addTask(new CloseEditingModeTask());
     }
-    importer.addTask(new WorkOrderSummaryTask(sumHours + sumBreaks, sumBreaks));
+    if (unchangedRows > 0) {
+      console.log(`FtZ import: ${unchangedRows} unchanged row(s) skipped`);
+    }
+    const importedRows = [...groups.values()].map(g => ({
+      workOrder: g.wo.workOrder,
+      description: g.wo.description
+    }));
+    importer.addTask(new WorkOrderSummaryTask(sumHours + sumBreaks, sumBreaks, importedRows, [...importDays]));
+
+    // same sanity check as the JSON import (break rules, max. working time per day, weekly totals),
+    // keyed by weekday (e.g. "Mon") since the Excel carries no dates
+    const daily = {};
+    workingDay.forEach((day, token) => {
+      const label = token.charAt(0).toUpperCase() + token.slice(1);
+      daily[label] = {
+        hours: hoursByDay.get(token) ?? 0,
+        breaks: breaksByDay.get(token) ?? 0,
+        workingTime: Utils.difference(day.start, day.end) - (nonPresenceInWindow.get(token) ?? 0)
+      };
+    });
+    importer.addTask(new SanityCheckTask(daily, nonWorkingHours));
     importer.clearFailed();
     this.actionFtZExcelClose();
     this.runTasks();
+  }
+
+  // weekday tokens (mon, tue, ...) of the day columns in the time entry grid
+  ftzGridWeekdays() {
+    const tokens = new Set();
+    this.section.querySelectorAll('th[data-type=cell-weekday]').forEach(head => {
+      const text = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase();
+      tokens.add(text.slice(0, 3));
+    });
+    return tokens;
   }
 
   // a booking that represents a break (column G / Workorder input contains "Pause")
@@ -4387,7 +4938,9 @@ class Timesheetimport extends AbstractModule {
 
   // distinct workorders that are present but do not match the required format
   distinctInvalidWorkOrders() {
-    return [...new Set(this.ftzEntries.map(e => e.workOrder).filter(wo => wo !== '' && !Timesheetimport.workOrderPattern.test(wo)))];
+    return [...new Set(this.reviewEntries()
+    // JSON entries with a time code only (e.g. absences) have no workorder
+    .map(e => e.workOrder ?? '').filter(wo => wo !== '' && !Timesheetimport.workOrderPattern.test(wo)))];
   }
 
   // parse the tab-separated "Florians tollige Zeiterfassung" export into day-log entries.
@@ -4447,12 +5000,17 @@ class Timesheetimport extends AbstractModule {
 
       // read the work columns by their fixed offset behind the Anfang/Ende/Dauer triplet:
       // +3 Echte Workorder, +4 Workorder, +5 Ticket, +6 Kommentar
+      const {
+        workOrder,
+        activity
+      } = Timesheetimport.splitFtZWorkOrder(cells[i + 3] ?? '');
       entries.push({
         weekday,
         start,
         end,
         duration,
-        workOrder: cells[i + 3] ?? '',
+        workOrder,
+        activity,
         workOrderInput: cells[i + 4] ?? '',
         ticket: cells[i + 5] ?? '',
         comment: cells[i + 6] ?? ''
@@ -4462,6 +5020,18 @@ class Timesheetimport extends AbstractModule {
       i += 6;
     }
     return entries;
+  }
+
+  // "Echte Workorder" may carry the activity in parentheses, e.g. "950000-10000 (908)" for overtime
+  static splitFtZWorkOrder(value) {
+    const match = value.trim().match(/^(.*?)\s*\(\s*(\d+)\s*\)$/);
+    return match ? {
+      workOrder: match[1],
+      activity: match[2]
+    } : {
+      workOrder: value.trim(),
+      activity: ''
+    };
   }
 
   // true if the row contains a valid Anfang/Ende/Dauer time-triplet anywhere
@@ -4488,10 +5058,42 @@ class Timesheetimport extends AbstractModule {
   // show the review view: non-blocking warnings for missing workorders and correction inputs for invalid ones
   renderFtZCorrections(invalidWorkOrders, missingEntries) {
     this.ftzCorrectionInputs = new Map();
+    this.ftzRowOverrides = new Map();
     this.ftzCorrectionContainer.innerHTML = '';
 
     // remembered corrections from previous imports (column F -> corrected workorder)
     const savedCorrections = this.loadFtZCorrections();
+
+    // context for Unit4's workorder lookup, only available while a time entry row is in editing mode
+    const lookupContext = invalidWorkOrders.length > 0 ? this.ftzLookupContext() : null;
+
+    // offer to fill up the missing hours of the week with overtime compensation (FtZ only)
+    const fill = this.jsonReview ? null : this.ftzOvertimeFill;
+    const fillChecked = this.ftzOvertimeCheckbox?.checked ?? false;
+    this.ftzOvertimeCheckbox = null;
+    if (fill) {
+      const info = document.createElement("div");
+      info.classList.add("ftzCorrection__info");
+      const heading = document.createElement("p");
+      heading.classList.add("ftzCorrection__heading");
+      heading.textContent = `Diese Woche sind ${Utils.toLocaleString(fill.booked)} h gebucht, Soll laut Unit4 (Normal hours): ${Utils.toLocaleString(fill.normal)} h. Es fehlen ${Utils.toLocaleString(fill.missing)} h.`;
+      info.appendChild(heading);
+      const label = document.createElement("label");
+      label.classList.add("ftzCorrection__check");
+      const checkbox = document.createElement("input");
+      checkbox.setAttribute("type", "checkbox");
+      checkbox.checked = fillChecked;
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(` Fehlende Stunden als Überstundenabbau buchen (${fill.workOrder})`));
+      info.appendChild(label);
+      this.ftzOvertimeCheckbox = checkbox;
+      const weekday = token => Object.keys(Timesheetimport.ftzWeekdayToken).find(de => Timesheetimport.ftzWeekdayToken[de] === token) ?? token;
+      const distribution = document.createElement("div");
+      distribution.classList.add("ftzCorrection__occurrence");
+      distribution.textContent = 'Verteilung: ' + Object.entries(fill.hours).map(([token, hours]) => `${weekday(token)} ${Utils.toLocaleString(hours)} h`).join(' · ');
+      info.appendChild(distribution);
+      this.ftzCorrectionContainer.appendChild(info);
+    }
 
     // warning block for bookings without any workorder (does not block the import)
     if (missingEntries.length > 0) {
@@ -4510,11 +5112,28 @@ class Timesheetimport extends AbstractModule {
       this.ftzCorrectionContainer.appendChild(warning);
     }
 
+    // warning block for bookings on days that are not part of the current timesheet (skipped)
+    if (this.ftzOutsideEntries.length > 0) {
+      const warning = document.createElement("div");
+      warning.classList.add("ftzCorrection__warning");
+      const warningHeading = document.createElement("p");
+      warningHeading.classList.add("ftzCorrection__heading");
+      warningHeading.textContent = `⚠ ${this.ftzOutsideEntries.length} Buchung(en) an Tagen, die es in diesem Timesheet nicht gibt. Diese werden nicht importiert:`;
+      warning.appendChild(warningHeading);
+      this.ftzOutsideEntries.forEach(entry => {
+        const line = document.createElement("div");
+        line.classList.add("ftzCorrection__occurrence");
+        line.textContent = Timesheetimport.formatOccurrence(entry);
+        warning.appendChild(line);
+      });
+      this.ftzCorrectionContainer.appendChild(warning);
+    }
+
     // correction block: one input per distinct invalid workorder, with all its occurrences as context
     if (invalidWorkOrders.length > 0) {
       const heading = document.createElement("p");
       heading.classList.add("ftzCorrection__heading");
-      heading.textContent = `${invalidWorkOrders.length} ungültige Workorder(s) gefunden. Bitte im Format 950100-10005 korrigieren:`;
+      heading.textContent = `${invalidWorkOrders.length} ungültige Workorder(s) gefunden. Bitte im Format 950100-10005 korrigieren, optional mit Aktivität, z. B. 950000-10000 (908):`;
       this.ftzCorrectionContainer.appendChild(heading);
       invalidWorkOrders.forEach(wo => {
         const group = document.createElement("div");
@@ -4533,14 +5152,26 @@ class Timesheetimport extends AbstractModule {
         row.appendChild(input);
         group.appendChild(row);
 
-        // list every occurrence of this workorder so the user can identify it
+        // suggestions from Unit4's workorder lookup, e.g. all 950100-* workorders for "950100-X"
+        if (lookupContext) {
+          const suggestions = document.createElement("div");
+          suggestions.classList.add("ftzCorrection__suggestions");
+          group.appendChild(suggestions);
+          this.bindFtZSuggestions(input, suggestions, lookupContext, Timesheetimport.ftzSearchTerm(wo));
+        }
+
+        // list the Unit4 rows of this workorder (bookings grouped by description) so the user can
+        // identify them; each row can get its own correction, e.g. a different suffix for meetings
         const occurrences = document.createElement("div");
         occurrences.classList.add("ftzCorrection__occurrences");
-        this.ftzEntries.filter(e => e.workOrder === wo).forEach(e => {
-          const line = document.createElement("div");
-          line.classList.add("ftzCorrection__occurrence");
-          line.textContent = Timesheetimport.formatOccurrence(e);
-          occurrences.appendChild(line);
+        const rows = new Map();
+        this.reviewEntries().filter(e => e.workOrder === wo).forEach(e => {
+          const description = this.reviewDescription(e);
+          const times = this.jsonReview ? (e.time ?? []).map(t => `${t.date} (${t.hours})`) : [`${e.weekday} ${e.start}–${e.end}`];
+          rows.set(description, [...(rows.get(description) ?? []), ...times]);
+        });
+        rows.forEach((times, description) => {
+          occurrences.appendChild(this.renderFtZRowOverride(wo, description, times, lookupContext));
         });
         group.appendChild(occurrences);
         this.ftzCorrectionInputs.set(wo, input);
@@ -4551,11 +5182,239 @@ class Timesheetimport extends AbstractModule {
     // switch from paste view to review view
     this.ftzDialogEntry.style.display = 'none';
     this.ftzCorrectionContainer.style.display = 'block';
-    this.ftzOkButton.innerHTML = invalidWorkOrders.length > 0 ? "<span>Übernehmen &amp; Import</span>" : "<span>Trotzdem importieren</span>";
+    this.ftzOkButton.innerHTML = invalidWorkOrders.length > 0 ? "<span>Übernehmen &amp; Import</span>" : missingEntries.length > 0 || this.ftzOutsideEntries.length > 0 ? "<span>Trotzdem importieren</span>" : "<span>Start Import</span>";
     const firstInput = this.ftzCorrectionContainer.querySelector('input');
     if (firstInput) {
       firstInput.focus();
     }
+  }
+
+  // proposal to fill up the booked hours of the Excel data to the timesheet's normal hours with
+  // overtime compensation, null if nothing is missing or the normal hours / work order are unknown
+  ftzOvertimeProposal() {
+    const normal = readNormalHours(document);
+    const client = this.ftzClient();
+    const workOrder = client ? Configuration.getInstance().overtimeWorkOrder(client) : null;
+    if (normal === null || workOrder === null) {
+      return null;
+    }
+
+    // hours per weekday of the bookings that will be imported (no breaks, no missing workorders)
+    const dayHours = new Map();
+    this.ftzEntries.forEach(entry => {
+      const token = Timesheetimport.ftzWeekdayToken[entry.weekday];
+      const hours = Utils.hoursFromTimestring(entry.duration);
+      if (token && !Timesheetimport.isBreakEntry(entry) && entry.workOrder !== '' && hours > 0) {
+        dayHours.set(token, (dayHours.get(token) ?? 0) + hours);
+      }
+    });
+    const booked = [...dayHours.values()].reduce((sum, hours) => sum + hours, 0);
+    const missing = Math.round((normal - booked) * 100) / 100;
+    if (dayHours.size === 0 || missing <= 0) {
+      return null;
+    }
+    return {
+      workOrder,
+      hours: Timesheetimport.distributeHours(dayHours, normal, missing),
+      booked,
+      normal,
+      missing
+    };
+  }
+
+  // distribute the missing hours over the days with bookings (part-time: only the days worked):
+  // each day is filled up towards its share of the normal hours, in quarter hours; the rounding
+  // remainder goes to the day with the largest gap, so that the total matches exactly
+  static distributeHours(dayHours, normal, missing) {
+    const share = normal / dayHours.size;
+    const gaps = [...dayHours].map(([day, hours]) => ({
+      day,
+      gap: Math.max(0, share - hours)
+    }));
+    // the gaps add up to at least the missing hours, scale them down if some days are above their share
+    const sumGaps = gaps.reduce((sum, g) => sum + g.gap, 0);
+    const result = {};
+    let assigned = 0;
+    gaps.forEach(g => {
+      const hours = Math.round(g.gap * missing / sumGaps * 4) / 4;
+      if (hours > 0) {
+        result[g.day] = hours;
+        assigned += hours;
+      }
+    });
+    const rest = Math.round((missing - assigned) * 100) / 100;
+    if (rest !== 0) {
+      const largest = gaps.reduce((a, b) => b.gap > a.gap ? b : a);
+      result[largest.day] = Math.max(0, Math.round(((result[largest.day] ?? 0) + rest) * 100) / 100);
+    }
+    return result;
+  }
+
+  // Unit4 client of the timesheet (e.g. "DE3") from the time entry grid context
+  ftzClient() {
+    const grid = this.section.querySelector('th[data-type="cell-workorder"]')?.closest('table[data-context]');
+    try {
+      return grid?.dataset.context ? atob(grid.dataset.context).split('^')[3] ?? null : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // context for Unit4's workorder lookup service. It is bound to a time entry row in editing mode:
+  // the grid context "TTS025^<instance>^TS1611^DE3^<section>" with the section replaced by
+  // the workorder field id and the row number of the edit row.
+  ftzLookupContext() {
+    const grid = this.section.querySelector('th[data-type="cell-workorder"]')?.closest('table[data-context]');
+    const editRow = [...(grid?.querySelectorAll('tr.EditRow') ?? [])].find(row => !Timesheetimport.isBreakRow(row));
+    const rowNr = editRow?.id.match(/_row(\d+)$/)?.[1];
+    const fieldId = editRow?.querySelector('td[data-type="cell-workorder"] [data-fieldid]')?.dataset.fieldid;
+    if (!grid?.dataset.context || !rowNr || !fieldId) {
+      return null;
+    }
+    try {
+      const parts = atob(grid.dataset.context).split('^');
+      return parts.length >= 5 ? btoa([...parts.slice(0, 4), fieldId, rowNr].join('^')) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // time entry rows as currently shown in the timesheet (values of read-only and editable rows)
+  ftzGridRows() {
+    const tokens = [...this.section.querySelectorAll('th[data-type=cell-weekday]')].map(head => (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase().slice(0, 3));
+    // the input of an editable cell or the value div of a read-only one (not the description
+    // the timeentry module appends to some cells)
+    const value = (td, valueDiv) => (td?.querySelector('.InputCell input')?.value ?? td?.querySelector(valueDiv)?.textContent ?? '').trim();
+    return [...this.section.querySelectorAll('tr.ListItem, tr.AltListItem, tr.EditRow')].filter(row => row.querySelector('td[data-type="cell-workorder"]')).map(row => {
+      const field = type => value(row.querySelector(`td[data-type="${type}"]`), 'div.ww.ellipsis');
+      const hours = new Map();
+      row.querySelectorAll('td[data-type=cell-weekday]').forEach((td, i) => {
+        if (tokens[i]) {
+          hours.set(tokens[i], Utils.toNumber(value(td, 'div.ww')) || 0);
+        }
+      });
+      return {
+        workOrder: field('cell-workorder'),
+        activity: field('cell-activity'),
+        timeCode: field('cell-timecode'),
+        description: field('cell-description'),
+        isBreak: Timesheetimport.isBreakRow(row),
+        hours
+      };
+    });
+  }
+
+  // current From (first row) and To (second row) times of the working hours per weekday token,
+  // as decimal hours (NaN if empty), null if the working hours section is not available
+  ftzWorkingHours() {
+    if (!this.sectionWorkingHours) {
+      return null;
+    }
+    const headers = [...this.sectionWorkingHours.querySelectorAll('.tmWorkinghours th')];
+    const rows = [...this.sectionWorkingHours.querySelectorAll('.ListItem, .AltListItem, .EditRow')];
+    const read = row => {
+      const times = new Map();
+      headers.forEach((head, i) => {
+        const token = (head.textContent ?? '').replace(/[_.\s]/g, '').toLowerCase().slice(0, 3);
+        const cell = row?.querySelector('td:nth-of-type(' + (i + 1) + ')');
+        const text = (cell?.querySelector('.InputCell input')?.value ?? cell?.textContent ?? '').trim();
+        times.set(token, /^\d{1,2}:\d{2}/.test(text) ? Utils.hoursFromTimestring(text) : NaN);
+      });
+      return times;
+    };
+    return {
+      start: read(rows[0]),
+      end: read(rows[1])
+    };
+  }
+
+  // the break row (activity 999) never offers workorders in the lookup
+  static isBreakRow(row) {
+    const activity = row.querySelector('td[data-type="cell-activity"]');
+    const value = activity?.querySelector('input')?.value ?? activity?.textContent ?? '';
+    return value.trim().startsWith('999');
+  }
+
+  // search term for the lookup: the leading digits of a workorder, e.g. "950100" for "950100-X"
+  static ftzSearchTerm(value) {
+    return (value.trim().match(/^[\d-]*/)?.[0] ?? '').replace(/-+$/, '');
+  }
+
+  // query Unit4's autocomplete service, the same request the workorder field sends while typing
+  static async lookupFtZWorkOrders(context, search) {
+    try {
+      const body = new URLSearchParams({
+        Search: search,
+        Context: context,
+        BatchStart: '1',
+        BatchSize: '50'
+      });
+      const res = await fetch('System/Services/DataListService.aspx', {
+        method: 'POST',
+        body
+      });
+      if (!res.ok) {
+        return [];
+      }
+      const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
+      return [...xml.querySelectorAll('item')].map(item => ({
+        value: item.querySelector('value')?.textContent?.trim() ?? '',
+        // descriptions are HTML-encoded twice, e.g. "f&amp;#246;rderung"
+        descr: new DOMParser().parseFromString(item.querySelector('descr')?.textContent ?? '', 'text/html').body.textContent?.trim() ?? ''
+      }))
+      // drops the "[NEW]" entry that echoes the search term
+      .filter(item => Timesheetimport.workOrderPattern.test(item.value));
+    } catch (e) {
+      console.warn('FtZ workorder lookup failed', e);
+      return [];
+    }
+  }
+
+  // fill the suggestion list of one correction input and search again while the user types
+  bindFtZSuggestions(input, list, context, initialSearch) {
+    let timer;
+    let requestId = 0;
+    const search = async term => {
+      const id = ++requestId;
+      if (term === '') {
+        list.textContent = '';
+        return;
+      }
+      list.textContent = 'Suche …';
+      const items = await Timesheetimport.lookupFtZWorkOrders(context, term);
+      if (id !== requestId) {
+        return; // a newer search has been started meanwhile
+      }
+      list.textContent = items.length === 0 ? 'Keine passenden Workorders gefunden' : '';
+      items.forEach(item => {
+        const option = document.createElement("button");
+        option.setAttribute("type", "button");
+        option.classList.add("ftzCorrection__suggestion");
+        if (item.value === input.value.trim()) {
+          option.classList.add("ftzCorrection__suggestion--selected");
+        }
+        const code = document.createElement("span");
+        code.classList.add("ftzCorrection__suggestionCode");
+        code.textContent = item.value;
+        option.appendChild(code);
+        const descr = document.createElement("span");
+        descr.textContent = item.descr;
+        option.appendChild(descr);
+        option.addEventListener('click', () => {
+          input.value = item.value;
+          list.querySelectorAll('.ftzCorrection__suggestion--selected').forEach(e => e.classList.remove("ftzCorrection__suggestion--selected"));
+          option.classList.add("ftzCorrection__suggestion--selected");
+        });
+        list.appendChild(option);
+      });
+    };
+
+    // same delay as Unit4's own autocomplete
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => search(Timesheetimport.ftzSearchTerm(input.value)), 400);
+    });
+    search(initialSearch);
   }
 
   // format a booking as "Wochentag Anfang–Ende · Kommentar" for the review lists
@@ -4565,10 +5424,67 @@ class Timesheetimport extends AbstractModule {
     return entry.comment !== '' ? `${context} · ${entry.comment}` : context;
   }
 
-  // start the import
-  actionImport() {
+  // one Unit4 row of an invalid workorder in the review: description and times, plus a link to give
+  // it a correction of its own (starting from the original workorder, with lookup suggestions)
+  renderFtZRowOverride(workOrder, description, times, lookupContext) {
+    const key = Timesheetimport.ftzRowKey(workOrder, description);
+    const item = document.createElement("div");
+    item.classList.add("ftzCorrection__occurrence", "ftzCorrection__rowItem");
+    const text = document.createElement("span");
+    text.textContent = `${description !== '' ? description : '(ohne Beschreibung)'} · ${times.join(', ')}`;
+    item.appendChild(text);
+    const toggle = document.createElement("button");
+    toggle.setAttribute("type", "button");
+    toggle.classList.add("ftzCorrection__linkButton");
+    toggle.textContent = "abweichende Workorder";
+    item.appendChild(toggle);
+    const editor = document.createElement("div");
+    editor.classList.add("ftzCorrection__override");
+    editor.style.display = 'none';
+    item.appendChild(editor);
+    toggle.addEventListener('click', () => {
+      // own correction for this row, starting from the original workorder of the Excel / JSON data
+      editor.innerHTML = '';
+      const row = document.createElement("div");
+      row.classList.add("ftzCorrection__row");
+      const input = document.createElement("input");
+      input.setAttribute("type", "text");
+      input.setAttribute("placeholder", "950100-10005");
+      input.classList.add("ftzCorrection__input");
+      input.value = workOrder;
+      row.appendChild(input);
+      const reset = document.createElement("button");
+      reset.setAttribute("type", "button");
+      reset.classList.add("ftzCorrection__linkButton");
+      reset.title = "Wieder die Korrektur der Workorder verwenden";
+      reset.textContent = "✕";
+      reset.addEventListener('click', () => {
+        this.ftzRowOverrides.delete(key);
+        editor.innerHTML = '';
+        editor.style.display = 'none';
+        toggle.style.display = '';
+      });
+      row.appendChild(reset);
+      editor.appendChild(row);
+      if (lookupContext) {
+        const suggestions = document.createElement("div");
+        suggestions.classList.add("ftzCorrection__suggestions");
+        editor.appendChild(suggestions);
+        // search for the original workorder, e.g. all 123456-*
+        this.bindFtZSuggestions(input, suggestions, lookupContext, Timesheetimport.ftzSearchTerm(workOrder));
+      }
+      this.ftzRowOverrides.set(key, input);
+      toggle.style.display = 'none';
+      editor.style.display = '';
+      input.focus();
+    });
+    return item;
+  }
+
+  // parse JSON import data (old and new format), returns null (after telling the user) if it is not valid
+  static parseJsonImport(text) {
     try {
-      const json = JSON.parse(this.dialogEntry.value);
+      const json = JSON.parse(text);
       // check if we have old or new format
       var data = [];
       var days = {};
@@ -4610,6 +5526,20 @@ class Timesheetimport extends AbstractModule {
       }
       */
 
+      return {
+        data,
+        days
+      };
+    } catch (e) {
+      console.error(e);
+      alert("Import data must be valid JSON");
+      return null;
+    }
+  }
+
+  // create and run the import tasks for parsed JSON data, returns false (after telling the user) on errors
+  importJsonData(data, days) {
+    try {
       const importer = Importer.getInstance();
 
       // import work orders
@@ -4620,12 +5550,13 @@ class Timesheetimport extends AbstractModule {
       // close all editing modes before import (so that no edit row is still active)
       importer.addTask(new CloseEditingModeTask());
 
-      // import working hours
+      // import working hours: the whole From row first, then the whole To row,
+      // so that only switching between the rows reloads the page
+      const starts = {};
+      const ends = {};
       Object.entries(days).forEach(([dateStr, day]) => {
-        const date = new Date(dateStr);
-        const groupId = ["workinghours", dateStr].join('|');
-        importer.addTask(new WorkingStartImportTask(groupId, date, day.start));
-        importer.addTask(new WorkingEndImportTask(groupId, date, day.end));
+        starts[dateStr] = day.start;
+        ends[dateStr] = day.end;
         // update daily working time for sanity check
         if (!daily[dateStr]) {
           daily[dateStr] = {
@@ -4637,6 +5568,10 @@ class Timesheetimport extends AbstractModule {
         // calculate working time based on start and end time (format: HH:MM)
         daily[dateStr].workingTime = Utils.difference(day.start, day.end);
       });
+      if (Object.keys(days).length > 0) {
+        importer.addTask(new WorkingRowImportTask('workinghours|start', "start", starts));
+        importer.addTask(new WorkingRowImportTask('workinghours|end', "end", ends));
+      }
 
       // close all editing modes after storing working hours
       importer.addTask(new CloseEditingModeTask());
@@ -4645,14 +5580,21 @@ class Timesheetimport extends AbstractModule {
       data.forEach(entry => {
         // group all tasks for the same work order together
         const groupId = ["workorders", entry.timeCode, entry.workOrder, entry.activity, entry.description].join('|');
-        importer.addTask(new StartWorkOrderImportTask(groupId, entry));
+        // normal hours may reuse the empty row left by the workorder lookup of the review view
+        const normalHours = (entry.timeCode ?? '0') === '0' || entry.timeCode === '';
+        importer.addTask(normalHours ? new EmptyRowStartWorkOrderImportTask(groupId, entry) : new StartWorkOrderImportTask(groupId, entry));
         importer.addTask(new TimecodeImportTask(groupId, entry));
         importer.addTask(new WorkOrderImportTask(groupId, entry));
         importer.addTask(new ActivityImportTask(groupId, entry));
-        importer.addTask(new DescriptionImportTask(groupId, entry));
+        // without a description, Unit4's default text stays
+        if (entry.description) {
+          importer.addTask(new DescriptionImportTask(groupId, entry));
+        }
+        // enter the hours of all days of this entry at once (sent with the next request)
+        const hoursByDate = {};
         entry.time.forEach(timeEntry => {
           const hours = Utils.toNumber(timeEntry.hours);
-          importer.addTask(new HoursImportTask(groupId, entry, new Date(timeEntry.date), hours));
+          hoursByDate[timeEntry.date] = hours;
           // sum hours and breaks
           sumHours += hours;
           if (entry.timeCode === "99") {
@@ -4672,26 +5614,31 @@ class Timesheetimport extends AbstractModule {
             daily[timeEntry.date].hours += hours;
           }
         });
+        importer.addTask(new RowHoursImportTask(groupId, entry, hoursByDate));
       });
 
       // close all editing modes at the end
       importer.addTask(new CloseEditingModeTask());
 
       // check sum of hours
-      importer.addTask(new WorkOrderSummaryTask(sumHours, sumBreaks));
+      const importedRows = data.map(entry => ({
+        workOrder: entry.workOrder,
+        description: entry.description
+      }));
+      const importedDays = [...new Set(data.flatMap(entry => (entry.time ?? []).map(t => t.date)))];
+      importer.addTask(new WorkOrderSummaryTask(sumHours, sumBreaks, importedRows, importedDays));
 
       // General sanity check
       importer.addTask(new SanityCheckTask(daily));
 
-      // close dialog
-      this.actionClose();
-
       // handle first import item
       importer.clearFailed();
       importer.runTasks();
+      return true;
     } catch (e) {
       console.error(e);
       alert("Import data must be valid JSON");
+      return false;
     }
   }
 }
